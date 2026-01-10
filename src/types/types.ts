@@ -17,7 +17,29 @@ export type Piece = {
   rotation: 0 | 90 | 180 | 270;
 };
 
+export type LevelDefinition = {
+  board: Board;
+  pieces: PieceMatrix[];
+};
+
 // examples
+
+export const DOUBLE_DOT_PIECE: PieceMatrix = [[1, 1]];
+export const CORNER_PIECE: PieceMatrix = [
+  [1, 0],
+  [1, 1],
+];
+
+export type PieceDirection = 0 | 90 | 180 | 270;
+
+export type GamePiece = {
+  id: string;
+  baseMatrix: PieceMatrix; // base'i update etme, bu matris hep kalacak. rotate edilse bile bu değişmeyecek
+  rotation: PieceDirection;
+  placed?: boolean;
+};
+
+export const SHORT_I_PIECE: PieceMatrix = [[1, 1, 1]];
 
 export const I_PIECE: PieceMatrix = [[1, 1, 1, 1]];
 

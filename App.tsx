@@ -1,10 +1,7 @@
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/screens/GameScreen.tsx';
-import { board1, board2, board3, board4 } from './src/utils/levels.ts';
+import { Level2 } from './src/utils/levels.ts';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -21,7 +18,7 @@ function AppContent() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={[styles.container]}>
-        <GameScreen level={board3} />
+        <GameScreen level={Level2} />
       </SafeAreaView>
     </View>
   );
