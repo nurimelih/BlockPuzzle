@@ -36,12 +36,7 @@ export const canPlace = (
         const bx = x + j;
 
         // Check bounds first
-        if (
-          by < 0 ||
-          bx < 0 ||
-          by >= board.length ||
-          bx >= board[0].length
-        ) {
+        if (by < 0 || bx < 0 || by >= board.length || bx >= board[0].length) {
           return false;
         }
 

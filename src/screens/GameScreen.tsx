@@ -1,11 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  LayoutChangeEvent,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Board, Cell, PieceMatrix } from '../types/types.ts';
 import { canPlace, getRandomPiece } from '../hooks/useGamePlayManager.ts';
 
@@ -16,22 +10,19 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const CELL_WIDTH = 50;
   const CELL_HEIGHT = 50;
 
-  const BOARD_LEFT = 50;
-  const BOARD_BOTTOM = 150;
-
-  // We'll measure the board's actual top position using onLayout
-  const [boardTop, setBoardTop] = useState<number | null>(null);
-  const [boardLeft, setBoardLeft] = useState<number | null>(null);
+  // Board is positioned at top:0, left:0 within the container
+  // So these are the reference points for coordinate calculation
+  const boardTop = 0;
+  const boardLeft = 0;
   const boardRef = useRef<View>(null);
-  const containerRef = useRef<View>(null);
 
   // local states
   const [piece, setPiece] = useState<PieceMatrix>(getRandomPiece());
 
   // Initial position - will be updated once board is measured
-  const [piecePosition, setPiecePosition] = useState({
+  const [piecePosition, _setPiecePosition] = useState({
     top: 0,
-    left: BOARD_LEFT,
+    left: 0,
   });
 
   // themes
@@ -45,12 +36,15 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     },
     level: {
       position: 'absolute',
-      bottom: BOARD_BOTTOM,
-      left: BOARD_LEFT,
+      top: 0,
+      left: 0,
     },
     button: {
-      position: 'absolute',
-      top: 10,
+      borderWidth: 1,
+      borderRadius: 4,
+      backgroundColor: 'rgba(12,12,12,.3)',
+      width: 90,
+      padding: 4,
     },
     row: {
       flexDirection: 'row',
@@ -71,7 +65,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     },
     pieceContainer: {
       position: 'absolute',
-      zIndex: 2,
+      zIndex: 3,
     },
     pieceRow: {
       flexDirection: 'row',
@@ -86,54 +80,27 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     },
   });
 
-  // Handler to measure the board's actual position
-  const handleBoardLayout = useCallback((event: LayoutChangeEvent) => {
-    // Get the board view's position relative to its parent (the container)
-    const { x, y } = event.nativeEvent.layout;
-    console.log('Board layout - position:', { x, y });
-    setBoardTop(y);
-    setBoardLeft(x);
-    // Set initial piece position to match board top-left
-    setPiecePosition({ top: y, left: x });
-  }, []);
-
-  // hooks
-  useEffect(() => {
-    // Only start the test play interval once we have measured the board
-    if (boardTop === null) return;
-
-    const interval = setInterval(() => {
-      testPlay();
-    }, 500);
-    return () => clearInterval(interval);
-  }, [boardTop]);
-
   // functions
-  const testPlay = () => {
-    if (boardTop === null) return;
+  /*  const testPlay = () => {
+      setPiecePosition(curr => {
+        const maxTop = boardTop + (level.length - piece.length) * CELL_HEIGHT;
+        const maxLeft =
+          boardLeft + (level[0].length - piece[0].length) * CELL_WIDTH;
 
-    setPiecePosition(curr => {
-      const maxTop = boardTop + (level.length - 1) * CELL_HEIGHT;
-      const maxLeft = BOARD_LEFT + (level[0].length - 1) * CELL_WIDTH;
-
-      if (curr.left <= maxLeft) {
-        if (curr.top < maxTop) {
-          return { top: curr.top + CELL_HEIGHT, left: curr.left };
-        } else {
-          return { top: boardTop, left: curr.left + CELL_WIDTH };
+        if (curr.left <= maxLeft) {
+          if (curr.top <= maxTop) {
+            return { top: curr.top + CELL_HEIGHT, left: curr.left };
+          } else {
+            return { top: boardTop, left: curr.left + CELL_WIDTH };
+          }
         }
-      }
-      return { top: boardTop, left: BOARD_LEFT };
-    });
-  };
+        return { top: boardTop, left: boardLeft };
+      });
+    };*/
 
-  // Calculate board coordinates - only valid if board position is measured
-  const boardX = boardLeft !== null
-    ? Math.floor((piecePosition.left - boardLeft) / CELL_WIDTH)
-    : 0;
-  const boardY = boardTop !== null
-    ? Math.floor((piecePosition.top - boardTop) / CELL_HEIGHT)
-    : 0;
+  // Calculate board coordinates
+  const boardX = Math.floor((piecePosition.left - boardLeft) / CELL_WIDTH);
+  const boardY = Math.floor((piecePosition.top - boardTop) / CELL_HEIGHT);
   const fit = canPlace(level, piece, boardX, boardY);
 
   const handleGetRandomPiece = useCallback(() => {
@@ -141,6 +108,14 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     console.log('handleGetRandomPiece', pi);
     setPiece(pi);
   }, []);
+
+  // hooks
+  /*  useEffect(() => {
+      const interval = setInterval(() => {
+        testPlay();
+      }, 500);
+      return () => clearInterval(interval);
+    }, []);*/
 
   const renderPiece = useCallback(() => {
     return (
@@ -173,22 +148,29 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                   ]}
                 >
                   {cell === 1 && (
-                    <Text style={{fontSize: 10, color: 'white', fontWeight: 'bold'}}>
-                      {cellBoardX},{cellBoardY}
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        color: 'white',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {cellBoardX},{cellBoardY}X
                     </Text>
                   )}
+                  <Text>{cell}</Text>
                 </View>
               );
             })}
           </View>
         ))}
       </View>
-    );
-  }, [piece, piecePosition, fit, boardX, boardY]);
+    ); /**/
+  }, [piece, piecePosition, fit, boardX, boardY, styles]);
 
   const renderLevel = useCallback(() => {
     return (
-      <View style={[styles.level]} onLayout={handleBoardLayout} ref={boardRef}>
+      <View style={[styles.level]} ref={boardRef}>
         {level.map((row: Cell[], rowIndex: number) => {
           return (
             <View
@@ -204,12 +186,13 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                       cell === Cell.AVAILABLE
                         ? styles.available
                         : styles.occupied,
-                      {justifyContent: 'center', alignItems: 'center'},
+                      { justifyContent: 'center', alignItems: 'center' },
                     ]}
                   >
-                    <Text style={{fontSize: 8, color: 'black'}}>
+                    <Text style={{ fontSize: 12, color: 'black' }}>
                       {colIndex},{rowIndex}
                     </Text>
+                    <Text>{cell}</Text>
                   </View>
                 );
               })}
@@ -218,25 +201,40 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         })}
       </View>
     );
-  }, [level, piece, handleBoardLayout]);
+  }, [level, styles]);
 
   return (
     <View style={[styles.container]}>
-      <Pressable style={[styles.button]} onPress={handleGetRandomPiece}>
-        <Text> New Piece</Text>
-      </Pressable>
       {/* Debug display */}
-      <View style={{position: 'absolute', top: 50, left: 20, backgroundColor: 'rgba(255,255,255,0.9)', padding: 10, zIndex: 100, borderWidth: 1}}>
-        <Text style={{fontWeight: 'bold'}}>Debug Info:</Text>
-        <Text>Piece visual: top={piecePosition.top}, left={piecePosition.left}</Text>
-        <Text>Board coords: x={boardX}, y={boardY}</Text>
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 50,
+          left: 20,
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: 10,
+          zIndex: 100,
+          borderWidth: 1,
+        }}
+      >
+        <Pressable style={[styles.button]} onPress={handleGetRandomPiece}>
+          <Text>New Piece</Text>
+        </Pressable>
+        <Text style={{ fontWeight: 'bold' }}>Debug Info:</Text>
+        <Text>
+          Piece visual: top={piecePosition.top}, left={piecePosition.left}
+        </Text>
+        <Text>
+          Board coords: x={boardX}, y={boardY}
+        </Text>
         <Text>Fit: {fit ? 'YES' : 'NO'}</Text>
         <Text>---</Text>
-        <Text>boardTop (measured)={boardTop}</Text>
-        <Text>boardLeft (measured)={boardLeft}</Text>
-        <Text>BOARD_BOTTOM={BOARD_BOTTOM}</Text>
+        <Text>boardTop={boardTop}</Text>
+        <Text>boardLeft={boardLeft}</Text>
         <Text>---</Text>
-        <Text>Board is {level.length} rows x {level[0].length} cols</Text>
+        <Text>
+          Board is {level.length} rows x {level[0].length} cols
+        </Text>
         <Text>Board height: {level.length * CELL_HEIGHT}px</Text>
       </View>
       {renderLevel()}

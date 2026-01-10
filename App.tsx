@@ -2,7 +2,6 @@ import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import {
   SafeAreaProvider,
   SafeAreaView,
-  useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { GameScreen } from './src/screens/GameScreen.tsx';
 import { board1, board2, board3, board4 } from './src/utils/levels.ts';
@@ -19,12 +18,10 @@ function App() {
 }
 
 function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
   return (
     <View style={styles.container}>
       <SafeAreaView style={[styles.container]}>
-        <GameScreen level={board4} />
+        <GameScreen level={board3} />
       </SafeAreaView>
     </View>
   );
