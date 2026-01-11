@@ -3,9 +3,10 @@ import {
   Board,
   PieceMatrix,
   LevelDefinition,
-  GamePiece, PieceDirection,
+  GamePiece,
+  PieceDirection,
 } from '../types/types.ts';
-import { rotate90CW } from '../utils/transformHelpers.ts';
+import { getRotatedMatrix, rotate90CW } from '../utils/transformHelpers.ts';
 
 type UseGameStateProps = {
   level: LevelDefinition;
@@ -30,16 +31,28 @@ export const useGameState = ({ level }: UseGameStateProps) => {
 
         return {
           ...piece,
-          rotation:  (piece.rotation + 90) % 360 as PieceDirection,
+          rotation: ((piece.rotation + 90) % 360) as PieceDirection,
           placed: false,
         };
       }),
     );
   }, []);
 
+  const getPieceMatrix = useCallback(
+    (id: string) => {
+      const piece = pieces.find(p => p.id === id);
+      if (!piece) {
+        return undefined;
+      }
+      return getRotatedMatrix(piece.baseMatrix, piece.rotation);
+    },
+    [pieces],
+  );
+
   return {
     board,
     pieces,
     rotatePiece,
+    getPieceMatrix,
   };
 };

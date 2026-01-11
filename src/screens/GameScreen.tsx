@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Cell, LevelDefinition } from '../types/types.ts';
 import { useGamePlayManager } from '../hooks/useGamePlayManager.ts';
 import { useGameState } from '../hooks/useGameState.ts';
-import { getRotatedMatrix } from '../utils/transformHelpers.ts';
 
 type Props = {
   level: LevelDefinition;
@@ -16,14 +15,16 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const CELL_WIDTH = 50;
   const CELL_HEIGHT = 50;
 
-  const BOARD_HEIGHT = level.board.length *  CELL_HEIGHT;
+  const BOARD_HEIGHT = level.board.length * CELL_HEIGHT;
 
   const startPos = useRef({ left: 0, top: 0 });
   const pieceRef = useRef<View>(null);
 
   // manager
   const { canPlace } = useGamePlayManager();
-  const { board, pieces, rotatePiece } = useGameState({ level });
+  const { board, pieces, rotatePiece, getPieceMatrix } = useGameState({
+    level,
+  });
 
   // local states
   const [activePieceId, setActivePieceId] = useState<string>();
@@ -32,7 +33,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   >(() => {
     const initial: Record<string, { left: number; top: number }> = {};
     level.pieces.forEach((_, index) => {
-      initial[`piece-${index}`] = { left: 0, top: BOARD_HEIGHT + CELL_WIDTH * index };
+      initial[`piece-${index}`] = {
+        left: 0,
+        top: BOARD_HEIGHT + CELL_WIDTH * index,
+      };
     });
     return initial;
   });
@@ -71,13 +75,9 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         );
 
         if (!gamePiece) return;
+        const matrix = getPieceMatrix(gamePiece.id);
 
-        const matrix = getRotatedMatrix(
-          gamePiece.baseMatrix,
-          gamePiece.rotation,
-        );
-
-        // Alert.alert(canPlace(board, matrix, gridX, gridY).valueOf().toString());
+        if (!matrix) return;
 
         if (canPlace(board, matrix, gridX, gridY)) {
           setUiPositions(prev => ({
@@ -203,15 +203,13 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     return (
       <View style={[styles.piecesContainer]}>
         {pieces.map(gamePiece => {
-          const matrix = getRotatedMatrix(
-            gamePiece.baseMatrix,
-            gamePiece.rotation,
-          );
+          const matrix = getPieceMatrix(gamePiece.id);
 
           const uiPos = uiPositions[gamePiece.id];
           const gridX = Math.round(uiPos.left / CELL_WIDTH);
           const gridY = Math.round(uiPos.top / CELL_HEIGHT);
 
+          if(!matrix) return;
           const fit = canPlace(board, matrix, gridX, gridY);
 
           return (
