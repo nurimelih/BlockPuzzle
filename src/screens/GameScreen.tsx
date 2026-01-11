@@ -199,7 +199,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     );
   }, [styles, board]);
 
-  const renderPieces = useCallback(() => {
+  const renderPieces = () => {
     return (
       <View style={[styles.piecesContainer]}>
         {pieces.map(gamePiece => {
@@ -209,7 +209,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
           const gridX = Math.round(uiPos.left / CELL_WIDTH);
           const gridY = Math.round(uiPos.top / CELL_HEIGHT);
 
-          if(!matrix) return;
+          if (!matrix) return;
           const fit = canPlace(board, matrix, gridX, gridY);
 
           return (
@@ -248,15 +248,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         })}
       </View>
     );
-  }, [
-    pieces,
-    board,
-    styles,
-    rotatePiece,
-    canPlace,
-    uiPositions,
-    activePieceId,
-  ]);
+  };
 
   return (
     <View style={[styles.container]}>
