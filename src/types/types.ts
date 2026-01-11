@@ -24,6 +24,7 @@ export type LevelDefinition = {
 
 // examples
 
+export const DOT_PIECE: PieceMatrix = [[1]];
 export const DOUBLE_DOT_PIECE: PieceMatrix = [[1, 1]];
 export const CORNER_PIECE: PieceMatrix = [
   [1, 0],
