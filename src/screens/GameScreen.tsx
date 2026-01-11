@@ -43,6 +43,9 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
+  const piecesRef = useRef(pieces);
+  const boardStateRef = useRef(board);
+  const getPieceMatrixRef = useRef(getPieceMatrix);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -70,35 +73,39 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         const gridX = Math.round(left / CELL_WIDTH);
         const gridY = Math.round(top / CELL_HEIGHT);
 
-        const gamePiece = pieces.find(
+        const gamePiece = piecesRef.current.find(
           piece => piece.id === (activePieceIdRef.current as string),
         );
 
         if (!gamePiece) return;
-        const matrix = getPieceMatrix(gamePiece.id);
+        const matrix = getPieceMatrixRef.current(gamePiece.id);
 
         if (!matrix) return;
 
-        if (canPlace(board, matrix, gridX, gridY)) {
+        const canPlaceResult = canPlace(
+          boardStateRef.current,
+          matrix,
+          gridX,
+          gridY,
+        );
+
+        if (canPlaceResult) {
+          const snapLeft = gridX * CELL_WIDTH;
+          const snapTop = gridY * CELL_HEIGHT;
+
           setUiPositions(prev => ({
             ...prev,
             [id]: {
-              left: gridX * CELL_WIDTH,
-              top: gridY * CELL_HEIGHT,
+              left: snapLeft,
+              top: snapTop,
             },
           }));
+        } else {
+          console.log('not snapping');
         }
       },
     }),
   ).current;
-
-  useEffect(() => {
-    uiPositionsRef.current = uiPositions;
-  }, [uiPositions]);
-
-  useEffect(() => {
-    activePieceIdRef.current = activePieceId;
-  }, [activePieceId]);
 
   // themes
   const styles = StyleSheet.create({
@@ -162,6 +169,27 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       borderWidth: 0,
     },
   });
+
+  // hooks
+  useEffect(() => {
+    uiPositionsRef.current = uiPositions;
+  }, [uiPositions]);
+
+  useEffect(() => {
+    activePieceIdRef.current = activePieceId;
+  }, [activePieceId]);
+
+  useEffect(() => {
+    piecesRef.current = pieces;
+  }, [pieces]);
+
+  useEffect(() => {
+    boardStateRef.current = board;
+  }, [board]);
+
+  useEffect(() => {
+    getPieceMatrixRef.current = getPieceMatrix;
+  }, [getPieceMatrix]);
 
   // functions
   const renderLevel = useCallback(() => {
