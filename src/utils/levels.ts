@@ -5,7 +5,7 @@ import {
   SHORT_I_PIECE,
   DOUBLE_DOT_PIECE,
   T_PIECE,
-  S_PIECE,
+  S_PIECE, DOT_PIECE,
 } from '../types/types.ts';
 
 export const board1: number[][] = [
@@ -49,4 +49,9 @@ export const Level2: LevelDefinition = {
 export const Level3: LevelDefinition = {
   board: board3,
   pieces: [I_PIECE, I_PIECE, I_PIECE, I_PIECE, S_PIECE],
+};
+
+export const Level4: LevelDefinition = {
+  board: board4,
+  pieces: [SHORT_I_PIECE, SHORT_I_PIECE,  S_PIECE, CORNER_PIECE, CORNER_PIECE, DOT_PIECE],
 };
