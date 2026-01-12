@@ -18,7 +18,7 @@ function AppContent() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={[styles.container]}>
-        <GameScreen level={Level4} />
+        <GameScreen level={Level3} />
       </SafeAreaView>
     </View>
   );
