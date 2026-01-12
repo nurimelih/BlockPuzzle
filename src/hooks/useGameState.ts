@@ -25,6 +25,7 @@ export const useGameState = ({ level }: UseGameStateProps) => {
   const [board, setBoard] = useState<Board>(level.board);
 
   const lockPiece = useCallback((id: string, lock: boolean = true) => {
+
     setPieces(prev => {
       return prev.map(piece => {
         if (piece.id !== id) return piece;
@@ -33,6 +34,8 @@ export const useGameState = ({ level }: UseGameStateProps) => {
       });
     });
   }, []);
+
+
 
   const rotatePiece = useCallback((id: string) => {
     setPieces(prev =>
@@ -62,6 +65,7 @@ export const useGameState = ({ level }: UseGameStateProps) => {
   return {
     board,
     pieces,
+    setPieces,
     rotatePiece,
     lockPiece,
     getPieceMatrix,
