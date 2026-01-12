@@ -9,13 +9,9 @@ export enum Cell {
 
 export type Board = Cell[][];
 
-export type PieceMatrix = number[][]; // 0 / 1
+export type OccupiedMask = boolean[][]
 
-export type Piece = {
-  id: string;
-  matrix: PieceMatrix;
-  rotation: 0 | 90 | 180 | 270;
-};
+export type PieceMatrix = number[][]; // 0 / 1
 
 export type LevelDefinition = {
   board: Board;
@@ -38,6 +34,8 @@ export type GamePiece = {
   baseMatrix: PieceMatrix; // base'i update etme, bu matris hep kalacak. rotate edilse bile bu değişmeyecek
   rotation: PieceDirection;
   placed?: boolean;
+  boardX?: number;
+  boardY?: number;
 };
 
 export const SHORT_I_PIECE: PieceMatrix = [[1, 1, 1]];

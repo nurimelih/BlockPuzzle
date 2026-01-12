@@ -2,15 +2,18 @@
 import {
   Board,
   Cell,
+  GamePiece,
   I_PIECE,
   J_PIECE,
   L_PIECE,
   O_PIECE,
+  Piece,
   PieceMatrix,
   S_PIECE,
   T_PIECE,
   Z_PIECE,
 } from '../types/types.ts';
+import { getRotatedMatrix } from '../utils/transformHelpers.ts';
 
 export const useGamePlayManager = () => {
   const PIECES = [
@@ -29,21 +32,62 @@ export const useGamePlayManager = () => {
     piece: PieceMatrix,
     x: number,
     y: number,
+    pieces: GamePiece[],
   ): boolean => {
+    const placedPieces = pieces.filter(i => i.placed === true);
+
     for (let i = 0; i < piece.length; i++) {
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] === 1) {
           const by = y + i;
           const bx = x + j;
 
-          // Check bounds first
+          // board'u aşıyor mu
           if (by < 0 || bx < 0 || by >= board.length || bx >= board[0].length) {
             return false;
           }
 
-          // Then check if the cell is available (not INVALID or OCCUPIED)
+          // board'da pasif yerlere denk geliyor mu
           if (board[by][bx] !== Cell.AVAILABLE) {
             return false;
+          }
+
+          // her parçayı gez
+          // her parçanın ekrandaki görünen halini al (getRotatedMatrix)
+          // rotatedMatrix'te her satırı gez
+          // her satırda her sütunu gez
+          // her noktada 1 değerini bulana kadar devam et.
+          // döngüdeki curr placed piece'in boardX'ine kaçıncı satırdaysan onu ekle
+          // döngüdeki curr placed piece'in boardY'sine kaçıncı sütundaysan onu ekle
+
+          // herhangi bir hücre başkasının herhangi bir hücresiyle çakışıyor mu
+
+          for (let placedPiece of pieces) {
+            const rotatedMatrix = getRotatedMatrix(
+              placedPiece.baseMatrix,
+              placedPiece.rotation,
+            );
+
+            for (let row = 0; row < rotatedMatrix.length; row++) {
+              for (let col = 0; col < rotatedMatrix[row].length; col++) {
+                if (rotatedMatrix[row][col] !== 1) continue;
+                if (
+                  placedPiece.boardX == null ||
+                  placedPiece.boardY == null
+                ) continue;
+
+
+                const ox = placedPiece.boardX + col;
+                const oy = placedPiece.boardY + row;
+
+                console.log(placedPiece.boardX , col, placedPiece.boardY , row,)
+
+
+                if (ox === bx && oy === by) {
+                  return false;
+                }
+              }
+            }
           }
         }
       }
