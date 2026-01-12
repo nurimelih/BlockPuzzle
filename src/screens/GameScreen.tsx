@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Cell, LevelDefinition } from '../types/types.ts';
+import { Cell, GamePiece, LevelDefinition } from '../types/types.ts';
 import { useGamePlayManager } from '../hooks/useGamePlayManager.ts';
 import { useGameState } from '../hooks/useGameState.ts';
 
@@ -19,8 +19,8 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   // ÖNEMLİ
   // TODO: boardX, boardY şuan için pixel based, grid-based olacak
 
-  const CELL_WIDTH = 50;
-  const CELL_HEIGHT = 50;
+  const CELL_WIDTH = 40;
+  const CELL_HEIGHT = 40;
 
   const screenWidth = Dimensions.get('screen').width;
 
@@ -35,7 +35,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
   // manager
   const { canPlace } = useGamePlayManager();
-  const { board, pieces, rotatePiece, getPieceMatrix, lockPiece } =
+  const { board, pieces, rotatePiece, setPieces, getPieceMatrix, lockPiece } =
     useGameState({
       level,
     });
@@ -101,6 +101,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
           matrix,
           gridX,
           gridY,
+          piecesRef.current
         );
 
         if (canPlaceResult) {
@@ -115,9 +116,23 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
             },
           }));
           lockPiece(id);
+
+          setPieces(prev =>
+            prev.map(piece => {
+              if (piece.id !== id) return piece;
+              return { ...piece, boardX: gridX, boardY: gridY };
+            }),
+          );
         } else {
           console.log('not snapping');
+          setPieces(prev =>
+            prev.map(piece => {
+              if (piece.id !== id) return piece;
+              return { ...piece, boardX: 0, boardY: 0 };
+            }),
+          );
           lockPiece(id, false);
+
         }
       },
     }),
@@ -129,32 +144,25 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 0,
     },
     level: {
       position: 'absolute',
       top: PAGE_PADDING,
       left: PAGE_PADDING,
     },
-    button: {
-      borderWidth: 1,
-      borderRadius: 4,
-      backgroundColor: 'rgba(12,12,12,.3)',
-      width: 90,
-      padding: 4,
-    },
+
     row: {
       flexDirection: 'row',
-      borderLeftWidth: 1,
+      borderLeftWidth: 0,
     },
-    topBorder: { borderTopWidth: 1 },
+    topBorder: { borderTopWidth: 0 },
     cell: {
       width: CELL_WIDTH,
       height: CELL_HEIGHT,
-      borderBottomWidth: 1,
-      borderRightWidth: 1,
+      borderWidth: 0.5,
       justifyContent: 'center',
       alignItems: 'center',
+      borderRadius: 4,
     },
     available: {
       backgroundColor: 'pink',
@@ -163,14 +171,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       backgroundColor: '#FF8C94',
     },
     piecesContainer: {
-      borderWidth: 1,
       position: 'absolute',
       top: BOARD_TOP_POS,
       left: BOARD_LEFT_POS,
-      zIndex: 2,
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      maxWidth: 350, // should be dynmic
+      zIndex: 1,
     },
 
     pieceRow: {
@@ -179,6 +183,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     piece: {
       backgroundColor: '#A8E6CE',
       borderWidth: 1,
+      borderRadius: 4,
     },
     fit: {
       backgroundColor: '#DCEDC2',
@@ -236,12 +241,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                         ? styles.available
                         : styles.notAvailable,
                     ]}
-                  >
-                    <Text style={{ fontSize: 12, color: 'black' }}>
-                      {colIndex},{rowIndex}
-                    </Text>
-                    <Text>{cell}</Text>
-                  </View>
+                  ></View>
                 );
               })}
             </View>
@@ -256,9 +256,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       <View style={[styles.piecesContainer]}>
         {pieces.map((gamePiece, index) => {
           const matrix = getPieceMatrix(gamePiece.id);
-
           const uiPos = uiPositions[gamePiece.id];
-
           if (!matrix) return;
 
           return (
@@ -286,9 +284,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                           cell === 1 ? styles.piece : styles.empty,
                           gamePiece.placed ? styles.fit : styles.piece,
                         ]}
-                      >
-                        <Text style={{ fontSize: 10 }}></Text>
-                      </View>
+                      />
                     ))}
                   </View>
                 ))}
@@ -307,17 +303,11 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
       <View style={styles.debug}>
         <Text>
-          curr:{' '}
+          curr:
           {JSON.stringify(
             {
-              rotation: pieces.find(
-                piece => piece.id === activePieceIdRef.current,
-              )?.rotation,
-              id: pieces.find(piece => piece.id === activePieceIdRef.current)
-                ?.id,
-              placed: pieces.find(
-                piece => piece.id === activePieceIdRef.current,
-              )?.placed,
+              ...pieces.find(piece => piece.id === activePieceIdRef.current),
+              baseMatrix: undefined,
             },
             null,
             2,
