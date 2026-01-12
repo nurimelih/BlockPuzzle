@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Cell, LevelDefinition } from '../types/types.ts';
 import { useGamePlayManager } from '../hooks/useGamePlayManager.ts';
 import { useGameState } from '../hooks/useGameState.ts';
@@ -15,6 +22,12 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const CELL_WIDTH = 50;
   const CELL_HEIGHT = 50;
 
+  const screenWidth = Dimensions.get('screen').width;
+
+  const PAGE_PADDING = (screenWidth - CELL_WIDTH * level.board[0].length) / 2;
+  const BOARD_TOP_POS = PAGE_PADDING;
+  const BOARD_LEFT_POS = PAGE_PADDING;
+
   const BOARD_HEIGHT = level.board.length * CELL_HEIGHT;
 
   const startPos = useRef({ left: 0, top: 0 });
@@ -22,9 +35,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
   // manager
   const { canPlace } = useGamePlayManager();
-  const { board, pieces, rotatePiece, getPieceMatrix } = useGameState({
-    level,
-  });
+  const { board, pieces, rotatePiece, getPieceMatrix, lockPiece } =
+    useGameState({
+      level,
+    });
 
   // local states
   const [activePieceId, setActivePieceId] = useState<string>();
@@ -100,8 +114,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
               top: snapTop,
             },
           }));
+          lockPiece(id);
         } else {
           console.log('not snapping');
+          lockPiece(id, false);
         }
       },
     }),
@@ -110,16 +126,15 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   // themes
   const styles = StyleSheet.create({
     container: {
-      margin: 20,
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      borderWidth: 1,
+      borderWidth: 0,
     },
     level: {
       position: 'absolute',
-      top: 0,
-      left: 0,
+      top: PAGE_PADDING,
+      left: PAGE_PADDING,
     },
     button: {
       borderWidth: 1,
@@ -138,35 +153,45 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       height: CELL_HEIGHT,
       borderBottomWidth: 1,
       borderRightWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     available: {
       backgroundColor: 'pink',
     },
-    occupied: {
-      backgroundColor: 'red',
+    notAvailable: {
+      backgroundColor: '#FF8C94',
     },
     piecesContainer: {
       borderWidth: 1,
       position: 'absolute',
-      top: 0,
-      left: 0,
+      top: BOARD_TOP_POS,
+      left: BOARD_LEFT_POS,
       zIndex: 2,
       flexDirection: 'row',
       flexWrap: 'wrap',
       maxWidth: 350, // should be dynmic
-      gap: 10,
     },
 
     pieceRow: {
       flexDirection: 'row',
     },
     piece: {
-      backgroundColor: 'orange',
+      backgroundColor: '#A8E6CE',
       borderWidth: 1,
+    },
+    fit: {
+      backgroundColor: '#DCEDC2',
     },
     empty: {
       opacity: 0,
       borderWidth: 0,
+    },
+
+    debug: {
+      position: 'absolute',
+      left: PAGE_PADDING,
+      top: PAGE_PADDING + level.board[0].length * CELL_WIDTH + 10,
     },
   });
 
@@ -209,8 +234,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                       styles.cell,
                       cell === Cell.AVAILABLE
                         ? styles.available
-                        : styles.occupied,
-                      { justifyContent: 'center', alignItems: 'center' },
+                        : styles.notAvailable,
                     ]}
                   >
                     <Text style={{ fontSize: 12, color: 'black' }}>
@@ -230,15 +254,12 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const renderPieces = () => {
     return (
       <View style={[styles.piecesContainer]}>
-        {pieces.map(gamePiece => {
+        {pieces.map((gamePiece, index) => {
           const matrix = getPieceMatrix(gamePiece.id);
 
           const uiPos = uiPositions[gamePiece.id];
-          const gridX = Math.round(uiPos.left / CELL_WIDTH);
-          const gridY = Math.round(uiPos.top / CELL_HEIGHT);
 
           if (!matrix) return;
-          const fit = canPlace(board, matrix, gridX, gridY);
 
           return (
             <View
@@ -248,7 +269,9 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
               style={[
                 { left: uiPos?.left },
                 { top: uiPos?.top },
-                { position: 'absolute' },
+                {
+                  position: 'absolute',
+                },
               ]}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
             >
@@ -261,11 +284,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
                         style={[
                           styles.cell,
                           cell === 1 ? styles.piece : styles.empty,
+                          gamePiece.placed ? styles.fit : styles.piece,
                         ]}
                       >
-                        <Text style={{ fontSize: 10 }}>
-                          {fit ? 'FIT' : 'NON'}
-                        </Text>
+                        <Text style={{ fontSize: 10 }}></Text>
                       </View>
                     ))}
                   </View>
@@ -282,6 +304,26 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     <View style={[styles.container]}>
       {renderLevel()}
       {renderPieces()}
+
+      <View style={styles.debug}>
+        <Text>
+          curr:{' '}
+          {JSON.stringify(
+            {
+              rotation: pieces.find(
+                piece => piece.id === activePieceIdRef.current,
+              )?.rotation,
+              id: pieces.find(piece => piece.id === activePieceIdRef.current)
+                ?.id,
+              placed: pieces.find(
+                piece => piece.id === activePieceIdRef.current,
+              )?.placed,
+            },
+            null,
+            2,
+          )}
+        </Text>
+      </View>
     </View>
   );
 };
