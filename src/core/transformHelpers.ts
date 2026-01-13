@@ -6,8 +6,6 @@ export const transpose = (arr: PieceMatrix) =>
 export const rotate90CW = (arr: PieceMatrix) =>
   transpose(arr).map(row => row.reverse());
 
-export const rotate90CCW = (arr: PieceMatrix) => transpose(arr).reverse();
-
 export const getRotatedMatrix = (
   base: PieceMatrix,
   rotation: PieceDirection,

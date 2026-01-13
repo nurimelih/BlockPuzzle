@@ -95,8 +95,3 @@ export const canPlace = (
 
 export const getRandomPiece = () =>
   PIECES[Math.floor(Math.random() * PIECES.length)];
-
-// deprecated, sadece board yetmez çünkü board'da işaretleme yapmıyoruz.
-export const isSolved = (board: Board): boolean => {
-  return board.every(row => row.every(cell => cell !== Cell.AVAILABLE));
-};
