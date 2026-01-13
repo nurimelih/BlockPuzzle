@@ -1,15 +1,22 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { LevelDefinition, GamePiece, PieceDirection } from '../types/types.ts';
+import { GamePiece, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, normalizePlacement } from '../core/gameCore.ts';
+import { Level1, Level2, Level3, Level4 } from '../core/levels.ts';
 
-type UseGameStateProps = {
-  level: LevelDefinition;
-};
+const LEVELS = [Level1, Level2, Level3, Level4];
+export const useGameState = (initialLevel: number) => {
+  const [moveCount, setMoveCount] = useState(0);
+  const [startTime] = useState(Date.now());
+  const [currentLevel, setCurrentLevel] = useState(LEVELS[initialLevel]);
+  const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
+  const currentLevelRef = useRef(currentLevel);
+  const [isOver, setIsOver] = useState(false);
+  // const [hintCount, setHintCount] = useState(0);
+  // const [score, setScore] = useState(0);
 
-export const useGameState = ({ level }: UseGameStateProps) => {
   const [pieces, setPieces] = useState<GamePiece[]>(() =>
-    level.pieces.map((matrix, index) => ({
+    currentLevel.pieces.map((matrix, index) => ({
       id: `piece-${index}`,
       baseMatrix: matrix,
       rotation: 0,
@@ -19,36 +26,23 @@ export const useGameState = ({ level }: UseGameStateProps) => {
 
   const piecesRef = useRef<GamePiece[]>(pieces);
 
-  useEffect(() => {
-    piecesRef.current = pieces;
-  }, [pieces]);
-
-  const board = level.board;
-
-  const lockPiece = useCallback((id: string, lock: boolean = true) => {
+  const releaseAndTryLockPiece = (
+    id: string,
+    x: number,
+    y: number,
+    lock: boolean = true,
+  ) => {
     setPieces(prev => {
       return prev.map(piece => {
         if (piece.id !== id) return piece;
 
-        return { ...piece, placed: lock };
+        return { ...piece, boardX: x, boardY: y, placed: lock };
       });
     });
-  }, []);
-
-  const releaseAndTryLockPiece = useCallback(
-    (id: string, x: number, y: number, lock: boolean = true) => {
-      setPieces(prev => {
-        return prev.map(piece => {
-          if (piece.id !== id) return piece;
-
-          return { ...piece, boardX: x, boardY: y, placed: lock };
-        });
-      });
-    },
-    [],
-  );
+  };
 
   const rotatePiece = useCallback((id: string) => {
+    setMoveCount((prev: number) => prev + 1);
     setPieces(prev =>
       prev.map(piece => {
         if (piece.id !== id) return piece;
@@ -78,7 +72,6 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     if (!piece) {
       return undefined;
     }
-    console.log('piece.rotation', piece.rotation);
     return piece.rotation;
   };
 
@@ -108,6 +101,7 @@ export const useGameState = ({ level }: UseGameStateProps) => {
   const tryPlacePiece = (id: string, x: number, y: number) => {
     const freshPieces = piecesRef.current;
     const piece = freshPieces.find(piece => piece.id === id);
+    setMoveCount((prev: number) => prev + 1);
 
     if (!piece) return false;
     const matrix = getRotatedMatrix(piece.baseMatrix, piece.rotation);
@@ -118,8 +112,11 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     );
 
     const normalized = normalizePlacement(matrix, x, y);
-
-    const result = canPlace(board, normalized, occupiedCells);
+    const result = canPlace(
+      currentLevelRef.current.board,
+      normalized,
+      occupiedCells,
+    );
 
     if (!result) return false;
 
@@ -134,12 +131,14 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     return true;
   };
 
-  const isOver = () => {
-    return pieces.every(p => p.placed) ? 'tre' : 'fls';
-  };
+  const checkIsOver = useCallback(() => {
+    return pieces.every(p => p.placed);
+  }, [pieces]);
 
-  const restart = () => {
-    setPieces((curr) => {
+  const restart = useCallback(() => {
+    setMoveCount(0);
+
+    setPieces(curr => {
       return curr.map(currPiece => ({
         ...currPiece,
         placed: false,
@@ -148,10 +147,52 @@ export const useGameState = ({ level }: UseGameStateProps) => {
         rotation: 0,
       }));
     });
+  }, []);
+
+  const handleNextLevel = () => {
+    setCurrentLevelNumber(curr => {
+      const nextLevelIndex = curr + 1;
+      return nextLevelIndex < LEVELS.length ? nextLevelIndex : curr;
+    });
   };
 
+  const handlePrevLevel = () => {
+    setCurrentLevelNumber(curr => {
+      return Math.max(0, curr - 1);
+    });
+  };
+
+  // hooks
+  useEffect(() => {
+    piecesRef.current = pieces;
+  }, [pieces]);
+
+  useEffect(() => {
+    setIsOver(checkIsOver());
+  }, [moveCount, checkIsOver]);
+
+  useEffect(() => {
+    const newLevel = LEVELS[currentLevelNumber];
+    setCurrentLevel(newLevel);
+    currentLevelRef.current = newLevel;
+
+    setPieces(() => {
+      return newLevel.pieces.map((matrix, index) => ({
+        id: `piece-${index}`,
+        baseMatrix: matrix,
+        rotation: 0,
+        placed: false,
+      }));
+    });
+
+    setMoveCount(0);
+    setIsOver(false);
+  }, [currentLevelNumber]);
+
   return {
-    board,
+    currentLevel,
+    currentLevelNumber,
+    board: currentLevel.board,
     pieces,
     setPieces,
     rotatePiece,
@@ -159,7 +200,13 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     getPieceMatrix,
     tryPlacePiece,
     getPieceRotation,
-    isOver,
     restart,
+    moveCount,
+    startTime,
+    isOver,
+    handleNextLevel,
+    handlePrevLevel,
+    //hintCount,
+    //score,
   };
 };

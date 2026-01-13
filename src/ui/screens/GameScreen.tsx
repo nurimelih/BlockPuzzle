@@ -2,54 +2,52 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   PanResponder,
-  Pressable,
   StyleSheet,
-  Text, TouchableOpacity,
-  TouchableWithoutFeedback,
+  Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import { Cell, LevelDefinition } from '../../types/types.ts';
+import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 
 type Props = {
-  level: LevelDefinition;
+  initialLevelNumber: number;
 };
 
-export const GameScreen: React.FC<Props> = ({ level }) => {
-  // ÖNEMLİ
-  // TODO: boardX, boardY şuan için pixel based, grid-based olacak
-
-  const CELL_WIDTH = 40;
-  const CELL_HEIGHT = 40;
-
-  const screenWidth = Dimensions.get('screen').width;
-
-  const PAGE_PADDING = (screenWidth - CELL_WIDTH * level.board[0].length) / 2;
-  const BOARD_TOP_POS = PAGE_PADDING;
-  const BOARD_LEFT_POS = PAGE_PADDING;
-
-  const PIECE_CONTAINER_TOP_PADDING = 10;
-
-  const BOARD_HEIGHT = level.board.length * CELL_HEIGHT;
-
-  const startPos = useRef({ left: 0, top: 0 });
-  const pieceRef = useRef<View>(null);
-
+export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   // manager;
   const {
+    currentLevel,
+    currentLevelNumber,
     board,
     pieces,
     rotatePiece,
     getPieceMatrix,
     releaseAndTryLockPiece,
     tryPlacePiece,
-    getPieceRotation,
     isOver,
     restart,
-  } = useGameState({
-    level,
-  });
+    moveCount,
+    handleNextLevel,
+    handlePrevLevel,
+  } = useGameState(initialLevelNumber);
+
+  const CELL_WIDTH = 40;
+  const CELL_HEIGHT = 40;
+
+  const screenWidth = Dimensions.get('screen').width;
+
+  const PAGE_PADDING =
+    (screenWidth - CELL_WIDTH * currentLevel.board[0].length) / 2;
+  const BOARD_TOP_POS = PAGE_PADDING;
+  const BOARD_LEFT_POS = PAGE_PADDING;
+
+  const PIECE_CONTAINER_TOP_PADDING = 10;
+
+  const BOARD_HEIGHT = currentLevel.board.length * CELL_HEIGHT;
+
+  const startPos = useRef({ left: 0, top: 0 });
 
   // local states
   const [activePieceId, setActivePieceId] = useState<string>();
@@ -57,7 +55,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     Record<string, { top: number; left: number }>
   >(() => {
     const initial: Record<string, { left: number; top: number }> = {};
-    level.pieces.forEach((_, index) => {
+    currentLevel.pieces.forEach((_, index) => {
       initial[`piece-${index}`] = {
         left: 0,
         top: BOARD_HEIGHT + CELL_WIDTH * index,
@@ -78,6 +76,9 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       onMoveShouldSetPanResponder: () => !isRotatingRef.current,
       onPanResponderGrant: () => {
         if (!activePieceIdRef.current) return;
+        const pos = uiPositionsRef.current[activePieceIdRef.current];
+        if (!pos) return;
+
         startPos.current = uiPositionsRef.current[activePieceIdRef.current];
       },
 
@@ -88,7 +89,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         setUiPositions(prev => ({
           ...prev,
           [activePieceIdRef.current as string]: {
-            left: startPos.current.left + dx,
+            left: startPos.current.left + dx, // cannot read property 'left' on undefined
             top: startPos.current.top + dy,
           },
         }));
@@ -124,11 +125,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         }
         releaseAndTryLockPiece(id, gridX, gridY, canPlaceResult);
 
-        if (!canPlaceResult) console.log('Not snapping');
+        if (!canPlaceResult) console.log('Not snapping', gridX, gridY);
       },
     }),
   ).current;
-
 
   // themes
   const styles = StyleSheet.create({
@@ -151,7 +151,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     cell: {
       width: CELL_WIDTH,
       height: CELL_HEIGHT,
-      borderWidth: 0.5,
+      borderWidth: 0.2,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 4,
@@ -172,33 +172,16 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
       borderWidth: 0,
     },
 
-    pieceRow: {
-      flexDirection: 'row',
-    },
-    piece: {
-      backgroundColor: '#A8E6CE',
-      borderWidth: 1,
-      borderRadius: 4,
-    },
-    fit: {
-      backgroundColor: '#DCEDC2',
-    },
-    empty: {
-      opacity: 0,
-      borderWidth: 0,
-    },
-
     debug: {
       position: 'absolute',
       left: PAGE_PADDING,
-      top: PAGE_PADDING + level.board[0].length * CELL_WIDTH + 10,
+      top: PAGE_PADDING + currentLevel.board[0].length * CELL_WIDTH + 10,
     },
     button: {
-      borderWidth: 1,
-      backgroundColor: 'gray',
+      borderWidth: 0,
       borderRadius: 4,
       padding: 2,
-    }
+    },
   });
 
   // hooks
@@ -212,7 +195,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
   useEffect(() => {
     piecesRef.current = pieces;
-  }, [pieces]);
+  }, [pieces, isOver]);
 
   useEffect(() => {
     boardStateRef.current = board;
@@ -222,8 +205,18 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     getPieceMatrixRef.current = getPieceMatrix;
   }, [getPieceMatrix]);
 
-  // functions
+  useEffect(() => {
+    const initial: Record<string, { left: number; top: number }> = {};
+    currentLevel.pieces.forEach((_, index) => {
+      initial[`piece-${index}`] = {
+        left: 0,
+        top: BOARD_HEIGHT + CELL_WIDTH * index,
+      };
+    });
+    setUiPositions(initial);
+  }, [currentLevel, BOARD_HEIGHT]); // pieces array uzunluğu değişince (yeni level)
 
+  // functions
   const resetUiPositions = () => {
     const initial: Record<string, { left: number; top: number }> = {};
     pieces.forEach((_, index) => {
@@ -238,7 +231,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const handleRestart = () => {
     restart();
     resetUiPositions();
-  }
+  };
 
   const renderLevel = useCallback(() => {
     return (
@@ -275,6 +268,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
         {pieces.map(gamePiece => {
           const matrix = getPieceMatrix(gamePiece.id);
           const uiPos = uiPositions[gamePiece.id];
+
           if (!matrix) return;
 
           return (
@@ -286,7 +280,6 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
               panHandlers={panResponder.panHandlers}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
               onPressRotate={() => rotatePiece(gamePiece.id)}
-              onTouchEnd={() => {}}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
               styles={styles}
@@ -307,8 +300,25 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
           top: PIECE_CONTAINER_TOP_PADDING,
         }}
       >
-        <TouchableOpacity style={[styles.button]}  onPress={() => handleRestart()}>
-          <Text>isOver: {isOver()}</Text>
+        <Text>currentLevelNumber: {currentLevelNumber}</Text>
+
+        <TouchableOpacity
+          style={[styles.button]}
+          onPress={() => handleRestart()}
+        >
+          <Text>isOver: {isOver}</Text>
+          <Text>moveCount: {moveCount}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button]} onPress={handleNextLevel}>
+          <Text>next</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button]}
+          onPress={() => handlePrevLevel()}
+        >
+          <Text>prev</Text>
         </TouchableOpacity>
         {renderPieces()}
       </View>
