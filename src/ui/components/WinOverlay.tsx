@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,6 +19,7 @@ type Props = {
   onRestart: () => void;
   currentLevelNumber: number;
   isLastLevel: boolean;
+  onDismiss: () => void;
 };
 
 export const WinOverlay: React.FC<Props> = ({
@@ -21,6 +28,7 @@ export const WinOverlay: React.FC<Props> = ({
   onRestart,
   currentLevelNumber,
   isLastLevel,
+  onDismiss,
 }) => {
   const translateY = useSharedValue(500); // Ekran dışından başla
 
@@ -49,25 +57,35 @@ export const WinOverlay: React.FC<Props> = ({
   if (!visible) return null;
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.overlay, animatedStyle]}>
-        <Text style={styles.title}>Level {currentLevelNumber + 1} Complete!</Text>
+    <Pressable style={styles.container} onPress={onDismiss}>
+      <View style={styles.container}>
+        <Animated.View style={[styles.overlay, animatedStyle]}>
+          <Text style={styles.title}>
+            Level {currentLevelNumber + 1} Complete!
+          </Text>
 
-        <View style={styles.buttonContainer}>
-          {!isLastLevel ? (
-            <TouchableOpacity style={styles.primaryButton} onPress={onNextLevel}>
-              <Text style={styles.primaryButtonText}>Next Level</Text>
+          <View style={styles.buttonContainer}>
+            {!isLastLevel ? (
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={onNextLevel}
+              >
+                <Text style={styles.primaryButtonText}>Next Level</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.completionText}>All levels completed!</Text>
+            )}
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={onRestart}
+            >
+              <Text style={styles.secondaryButtonText}>Restart</Text>
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.completionText}>All levels completed!</Text>
-          )}
-
-          <TouchableOpacity style={styles.secondaryButton} onPress={onRestart}>
-            <Text style={styles.secondaryButtonText}>Restart</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Pressable>
   );
 };
 
@@ -76,6 +94,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Backdrop
+    zIndex: 9,
   },
   overlay: {
     backgroundColor: 'white',

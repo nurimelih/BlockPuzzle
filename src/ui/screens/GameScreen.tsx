@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   PanResponder,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Cell } from '../../types/types.ts';
@@ -51,12 +51,13 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   const startPos = useRef({ left: 0, top: 0 });
 
   // local states
+  const [menuVisible, setMenuVisible]  = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => {
     const initial: Record<string, { left: number; top: number }> = {};
-    currentLevel.pieces.forEach((_, index) => {
+    currentLevel.pieces.forEach((_, index: number) => {
       initial[`piece-${index}`] = {
         left: 0,
         top: BOARD_HEIGHT + CELL_WIDTH * index,
@@ -185,6 +186,10 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     },
   });
 
+  const toggleMenu = () => {
+    setMenuVisible(prev => !prev)
+  }
+
   // hooks
   useEffect(() => {
     uiPositionsRef.current = uiPositions;
@@ -208,7 +213,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
 
   useEffect(() => {
     const initial: Record<string, { left: number; top: number }> = {};
-    currentLevel.pieces.forEach((_, index) => {
+    currentLevel.pieces.forEach((_, index: number) => {
       initial[`piece-${index}`] = {
         left: 0,
         top: BOARD_HEIGHT + CELL_WIDTH * index,
@@ -230,7 +235,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   };
 
   const handleRestart = () => {
-    goLevel(0)
+    goLevel(0);
     restart();
     resetUiPositions();
   };
@@ -304,15 +309,19 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
       >
         <Text>Level: {currentLevelNumber + 1}</Text>
         <Text>Moves: {moveCount}</Text>
+        <Pressable onPress={toggleMenu}>
+          <Text>Open Menu</Text>
+        </Pressable>
         {renderPieces()}
       </View>
 
       <WinOverlay
-        visible={isOver}
+        onDismiss={toggleMenu}
+        visible={isOver || menuVisible}
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === 3}
+        isLastLevel={currentLevelNumber === 9}
       />
     </View>
   );
