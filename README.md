@@ -1,97 +1,101 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+**Block Puzzle Engine / Game**
+Block Puzzle Ancient tarzı, serbest yerleştirmeli puzzle oyunlarından esinlendim
 
-# Getting Started
+Bu proje bir oyun demosu değil, engine + mimari showcase'i.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+-	UI’dan tamamen bağımsız bir oyun core’u (engine) tasarlamak
+-	Oyun kuralları, state ve render katmanlarını kesin sınırlarla ayırmak
+-	Basit bir oyundan ziyade, her katmanın kendi işini yaptığı bir tasarım oluşturmak ve gerekliliğine cevap verebilmek.
 
-## Step 1: Start Metro
+⸻
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Mimari Yapı şu şekilde;
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+**1. Core (Engine / Domain Logic)**
+	•	React / React Native bilmez
+	•	UI bilmez
+	•	State bilmez
+	•	Sadece kurallar ve matematik içerir
 
-```sh
-# Using npm
-npm start
+Sorumluluklar:
+	•	Parça yerleştirilebilir mi (canPlace)
+	•	Matrix normalizasyonu (normalizePlacement)
+	•	Rotasyon ve matrix dönüşümleri
+	•	Board sınır ve çakışma kontrolleri
 
-# OR using Yarn
-yarn start
-```
+Core tamamen platform bağımsızdır.
+Web, RN, desktop veya Node ortamında çalışabilir.
+İleride daha da geliştirip ayrı bir paket haline getirmeyi düşünüyorum.
 
-## Step 2: Build and run your app
+Not:
+	•	Board doluluk state’i tutmaz, orası dummy bir uzay.
+	•	Çakışma kontrolü, dışarıdan verilen occupiedCells üzerinden yapılır.
+	•	Core, tek bir “mutlak truth” dayatmaz; parametriktir. 
+  Şöyle düşündüm; board bir toprak; puzzle parçaları ise o toprağa yerleşen insanlar. 
+  Yeni bir parça yerleşmek istediğinde board'a değil, teker teker diğer insanlara "sen neredesin" diye soruyor.
+  Bunun sebebi board'un sadece bu tarz bir block-puzzle değil, başka tür oyunlarda da kullanılabilecek olması.
+  
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+⸻
 
-### Android
+**2. State Katmanı**
+	•	Oyunun hafızası burada tutulur
+	•	UI ile Core arasındaki tek giriş kapısı
 
-```sh
-# Using npm
-npm run android
+**Bu katmanın amacı ve sorumlulukları:**
+	•	Puzlle parçaları bilgisi ve yönetimi
+	•	baseMatrix, rotation, pozisyon gibi bilgiler
+	•	tryPlacePiece core'a tek giriş yolu
+	•	occupiedCells üretimi ve matrix normalizasyonu
+	•	UI’nın Core’a doğrudan erişimini engellemek
 
-# OR using Yarn
-yarn android
-```
+UI, canPlace gibi kuralları asla doğrudan çağırmaz. onun yerine tryPlacePiece gibi giriş yolları kullanır bu state üzerinden.
 
-### iOS
+⸻
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+**3. UI Katmanı (react native)**
+	•	Render
+	•	Gesture
+	•	Animasyon
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Başka hiçbir şey bilmez.
+	•	Board mantığını bilmez
+	•	Çakışma hesabı yapmaz
+	•	Kurallara dair karar vermez
+  sadece data iletir ve gelen dataya göre elementleri render eder.
 
-```sh
-bundle install
-```
+UI yalnızca niyet iletir:
+	•	konum
+	•	rotation
+	•	etkileşim
 
-Then, and every time you update your native dependencies, run:
+Karar State + Core tarafından verilir.
 
-```sh
-bundle exec pod install
-```
+⸻
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+**Bilinçli Tasarım Kararları**
+	•	Anchor noktası her zaman matrix[0][0]
+	•	UI’dan gelen koordinatlar Core’a normalize edilerek aktarılır
+	•	Gravity, line clear, klasik Tetris kuralları yok. zaten bu bir tetris oyunu değil, tetris parçaları kullanılan bir puzzle oyunu
+Bu engine	serbest yerleştirmeli puzzle kuralları için tasarlanmıştır
 
-```sh
-# Using npm
-npm run ios
+⸻
 
-# OR using Yarn
-yarn ios
-```
+**Proje Durumu**
+	•	Engine tarafı büyük oranda tamamlandı
+	•	Mimari stabil, basit bir ui var ve debug amaçlı oynanabilir durumda. 
+	•	UI geliştirmesi devam edecek (drag, snap preview, animasyon, level, game-over, restart, undo, sesler, efektler) 
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Şuanki durumda core'a yeni bir kural eklemeyi öngörmüyorum.
+⸻
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+**Neden böyle bir proje yapmayı düşündüm?**
 
-## Step 3: Modify your app
+Bu repo şunu göstermek için var:
+	•	Katmanlı mimari nasıl kurulur
+	•	Engine UI’dan nasıl izole edilir
+	•	State neden “tek kapı” olmalıdır
+	•	Küçük bir problem alanı, nasıl temiz bir tasarıma dönüştürülür
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Oyun oynamak için değil, kodu okumak ve mimariyi incelemek için.
+Başta sevdiğim basit bir oyunu taklit etmek istedim, ama sonra katmanlı bir örneğine çevirdim.
