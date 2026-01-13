@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { GamePiece, PieceDirection } from '../types/types.ts';
+import { GamePiece, LevelDefinition, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, normalizePlacement } from '../core/gameCore.ts';
 import {
@@ -30,7 +30,7 @@ const LEVELS = [
 export const useGameState = (initialLevel: number) => {
   const [moveCount, setMoveCount] = useState(0);
   const [startTime] = useState(Date.now());
-  const [currentLevel, setCurrentLevel] = useState(LEVELS[initialLevel]);
+  const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(LEVELS[initialLevel]);
   const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
   const currentLevelRef = useRef(currentLevel);
   const [isOver, setIsOver] = useState(false);
