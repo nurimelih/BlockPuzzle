@@ -51,10 +51,8 @@ export const AnimatedPiece: React.FC<Props> = ({
     if (isRotatingRef.current) return;
 
     isRotatingRef.current = true;
-
-    // Animasyonu başlat (0'dan 90'a)
+    // TODO: animations are still naive. will polish later.
     rotateAnim.value = withTiming(90, { duration: 150 }, () => {
-      // Animasyon bitince matrix'i değiştir ve reset et
       runOnJS(onPressRotate)();
       rotateAnim.value = 0;
       runOnJS(endRotation)();
@@ -70,8 +68,8 @@ export const AnimatedPiece: React.FC<Props> = ({
           position: 'absolute',
           left: uiPos?.left,
           top: uiPos?.top,
-          width: width,
-          height: width,
+          width,
+          height,
           borderWidth: 0
         },
         rotateStyle,
