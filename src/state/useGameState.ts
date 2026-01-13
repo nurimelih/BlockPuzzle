@@ -73,6 +73,15 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     [pieces],
   );
 
+  const getPieceRotation = (id: string) => {
+    const piece = pieces.find(p => p.id === id);
+    if (!piece) {
+      return undefined;
+    }
+    console.log('piece.rotation', piece.rotation);
+    return piece.rotation;
+  };
+
   function getOccupiedCells(pieces: GamePiece[]) {
     const cells: { x: number; y: number }[] = [];
 
@@ -124,6 +133,23 @@ export const useGameState = ({ level }: UseGameStateProps) => {
 
     return true;
   };
+
+  const isOver = () => {
+    return pieces.every(p => p.placed) ? 'tre' : 'fls';
+  };
+
+  const restart = () => {
+    setPieces((curr) => {
+      return curr.map(currPiece => ({
+        ...currPiece,
+        placed: false,
+        boardX: undefined,
+        boardY: undefined,
+        rotation: 0,
+      }));
+    });
+  };
+
   return {
     board,
     pieces,
@@ -132,5 +158,8 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     releaseAndTryLockPiece,
     getPieceMatrix,
     tryPlacePiece,
+    getPieceRotation,
+    isOver,
+    restart,
   };
 };
