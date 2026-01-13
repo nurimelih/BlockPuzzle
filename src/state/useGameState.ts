@@ -149,6 +149,11 @@ export const useGameState = (initialLevel: number) => {
     });
   }, []);
 
+  const goLevel = useCallback((levelNumber: number) => {
+    setCurrentLevelNumber(levelNumber);
+
+  },[])
+
   const handleNextLevel = () => {
     setCurrentLevelNumber(curr => {
       const nextLevelIndex = curr + 1;
@@ -206,6 +211,7 @@ export const useGameState = (initialLevel: number) => {
     isOver,
     handleNextLevel,
     handlePrevLevel,
+    goLevel,
     //hintCount,
     //score,
   };

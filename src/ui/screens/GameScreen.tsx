@@ -10,6 +10,7 @@ import {
 import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
+import { WinOverlay } from '../components/WinOverlay.tsx';
 
 type Props = {
   initialLevelNumber: number;
@@ -30,7 +31,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     restart,
     moveCount,
     handleNextLevel,
-    handlePrevLevel,
+    goLevel,
   } = useGameState(initialLevelNumber);
 
   const CELL_WIDTH = 40;
@@ -229,6 +230,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   };
 
   const handleRestart = () => {
+    goLevel(0)
     restart();
     resetUiPositions();
   };
@@ -300,28 +302,18 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
           top: PIECE_CONTAINER_TOP_PADDING,
         }}
       >
-        <Text>currentLevelNumber: {currentLevelNumber}</Text>
-
-        <TouchableOpacity
-          style={[styles.button]}
-          onPress={() => handleRestart()}
-        >
-          <Text>isOver: {isOver}</Text>
-          <Text>moveCount: {moveCount}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button]} onPress={handleNextLevel}>
-          <Text>next</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button]}
-          onPress={() => handlePrevLevel()}
-        >
-          <Text>prev</Text>
-        </TouchableOpacity>
+        <Text>Level: {currentLevelNumber + 1}</Text>
+        <Text>Moves: {moveCount}</Text>
         {renderPieces()}
       </View>
+
+      <WinOverlay
+        visible={isOver}
+        onNextLevel={handleNextLevel}
+        onRestart={handleRestart}
+        currentLevelNumber={currentLevelNumber}
+        isLastLevel={currentLevelNumber === 3}
+      />
     </View>
   );
 };
