@@ -2,9 +2,31 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { GamePiece, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, normalizePlacement } from '../core/gameCore.ts';
-import { Level1, Level2, Level3, Level4 } from '../core/levels.ts';
+import {
+  Level1,
+  Level2,
+  Level3,
+  Level4,
+  Level5,
+  Level6,
+  Level7,
+  Level8,
+  Level9,
+  Level10,
+} from '../core/levels.ts';
 
-const LEVELS = [Level1, Level2, Level3, Level4];
+const LEVELS = [
+  Level1,
+  Level2,
+  Level3,
+  Level4,
+  Level5,
+  Level6,
+  Level7,
+  Level8,
+  Level9,
+  Level10,
+];
 export const useGameState = (initialLevel: number) => {
   const [moveCount, setMoveCount] = useState(0);
   const [startTime] = useState(Date.now());
