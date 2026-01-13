@@ -37,9 +37,8 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     board,
     pieces,
     rotatePiece,
-    setPieces,
     getPieceMatrix,
-    lockPiece,
+    releaseAndTryLockPiece,
     tryPlacePiece,
   } = useGameState({
     level,
@@ -103,10 +102,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
         const canPlaceResult = tryPlacePiece(gamePiece.id!, gridX, gridY);
 
-        if (canPlaceResult) {
-          const snapLeft = gridX * CELL_WIDTH;
-          const snapTop = gridY * CELL_HEIGHT;
+        const snapLeft = gridX * CELL_WIDTH;
+        const snapTop = gridY * CELL_HEIGHT;
 
+        if (canPlaceResult) {
           setUiPositions(prev => ({
             ...prev,
             [id]: {
@@ -114,24 +113,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
               top: snapTop,
             },
           }));
-          lockPiece(id);
-
-          setPieces(prev =>
-            prev.map(piece => {
-              if (piece.id !== id) return piece;
-              return { ...piece, boardX: gridX, boardY: gridY };
-            }),
-          );
-        } else {
-          console.log('not snapping');
-          setPieces(prev =>
-            prev.map(piece => {
-              if (piece.id !== id) return piece;
-              return { ...piece, boardX: undefined, boardY: undefined };
-            }),
-          );
-          lockPiece(id, false);
         }
+        releaseAndTryLockPiece(id, gridX, gridY, canPlaceResult);
+
+        if (!canPlaceResult) console.log('Not snapping');
       },
     }),
   ).current;

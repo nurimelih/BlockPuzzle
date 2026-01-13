@@ -35,6 +35,19 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     });
   }, []);
 
+  const releaseAndTryLockPiece = useCallback(
+    (id: string, x: number, y: number, lock: boolean = true) => {
+      setPieces(prev => {
+        return prev.map(piece => {
+          if (piece.id !== id) return piece;
+
+          return { ...piece, boardX: x, boardY: y, placed: lock };
+        });
+      });
+    },
+    [],
+  );
+
   const rotatePiece = useCallback((id: string) => {
     setPieces(prev =>
       prev.map(piece => {
@@ -116,7 +129,7 @@ export const useGameState = ({ level }: UseGameStateProps) => {
     pieces,
     setPieces,
     rotatePiece,
-    lockPiece,
+    releaseAndTryLockPiece,
     getPieceMatrix,
     tryPlacePiece,
   };
