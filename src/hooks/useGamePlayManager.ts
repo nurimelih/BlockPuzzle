@@ -62,7 +62,7 @@ export const useGamePlayManager = () => {
 
           // herhangi bir hücre başkasının herhangi bir hücresiyle çakışıyor mu
 
-          for (let placedPiece of pieces) {
+          for (let placedPiece of placedPieces) {
             const rotatedMatrix = getRotatedMatrix(
               placedPiece.baseMatrix,
               placedPiece.rotation,
