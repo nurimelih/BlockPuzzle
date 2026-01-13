@@ -7,9 +7,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Cell, GamePiece, LevelDefinition } from '../types/types.ts';
-import { useGamePlayManager } from '../hooks/useGamePlayManager.ts';
-import { useGameState } from '../hooks/useGameState.ts';
+import { Cell, LevelDefinition } from '../../types/types.ts';
+import { useGameState } from '../../state/useGameState.ts';
 
 type Props = {
   level: LevelDefinition;
@@ -33,12 +32,18 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const startPos = useRef({ left: 0, top: 0 });
   const pieceRef = useRef<View>(null);
 
-  // manager
-  const { canPlace } = useGamePlayManager();
-  const { board, pieces, rotatePiece, setPieces, getPieceMatrix, lockPiece } =
-    useGameState({
-      level,
-    });
+  // manager;
+  const {
+    board,
+    pieces,
+    rotatePiece,
+    setPieces,
+    getPieceMatrix,
+    lockPiece,
+    tryPlacePiece,
+  } = useGameState({
+    level,
+  });
 
   // local states
   const [activePieceId, setActivePieceId] = useState<string>();
@@ -96,13 +101,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
 
         if (!matrix) return;
 
-        const canPlaceResult = canPlace(
-          boardStateRef.current,
-          matrix,
-          gridX,
-          gridY,
-          piecesRef.current
-        );
+        const canPlaceResult = tryPlacePiece(gamePiece.id!, gridX, gridY);
 
         if (canPlaceResult) {
           const snapLeft = gridX * CELL_WIDTH;
@@ -128,11 +127,10 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
           setPieces(prev =>
             prev.map(piece => {
               if (piece.id !== id) return piece;
-              return { ...piece, boardX: 0, boardY: 0 };
+              return { ...piece, boardX: undefined, boardY: undefined };
             }),
           );
           lockPiece(id, false);
-
         }
       },
     }),
@@ -254,7 +252,7 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
   const renderPieces = () => {
     return (
       <View style={[styles.piecesContainer]}>
-        {pieces.map((gamePiece, index) => {
+        {pieces.map(gamePiece => {
           const matrix = getPieceMatrix(gamePiece.id);
           const uiPos = uiPositions[gamePiece.id];
           if (!matrix) return;

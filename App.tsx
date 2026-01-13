@@ -1,7 +1,7 @@
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { GameScreen } from './src/screens/GameScreen.tsx';
-import { Level2, Level3, Level4 } from './src/utils/levels.ts';
+import { GameScreen } from './src/ui/screens/GameScreen.tsx';
+import { Level2, Level3, Level4 } from './src/core/levels.ts';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';

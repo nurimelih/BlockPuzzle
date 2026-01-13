@@ -9,7 +9,7 @@ export enum Cell {
 
 export type Board = Cell[][];
 
-export type OccupiedMask = boolean[][]
+export type OccupiedCell = {x: number, y: number};
 
 export type PieceMatrix = number[][]; // 0 / 1
 
