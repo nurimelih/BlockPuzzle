@@ -43,7 +43,7 @@ Not:
 	•	UI ile Core arasındaki tek giriş kapısı
 
 **Bu katmanın amacı ve sorumlulukları:**
-	•	Puzlle parçaları bilgisi ve yönetimi
+	•	Puzzle parçaları bilgisi ve yönetimi
 	•	baseMatrix, rotation, pozisyon gibi bilgiler
 	•	tryPlacePiece core'a tek giriş yolu
 	•	occupiedCells üretimi ve matrix normalizasyonu
