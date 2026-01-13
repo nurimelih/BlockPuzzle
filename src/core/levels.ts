@@ -48,7 +48,7 @@ export const Level2: LevelDefinition = {
 
 export const Level3: LevelDefinition = {
   board: board3,
-  pieces: [I_PIECE, I_PIECE, I_PIECE, I_PIECE, Z_PIECE],
+  pieces: [Z_PIECE],
 };
 
 export const Level4: LevelDefinition = {
