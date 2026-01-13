@@ -9,12 +9,7 @@ import {
 } from 'react-native';
 import { Cell, LevelDefinition } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  runOnJS,
-} from 'react-native-reanimated';
+import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 
 type Props = {
   level: LevelDefinition;
@@ -66,35 +61,6 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
     });
     return initial;
   });
-
-  // animation state
-  const rotateAnim = useSharedValue(0);
-  const rotateStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${rotateAnim.value}deg` }],
-    };
-  });
-  const isRotatingRef = useRef(false);
-
-  const endRotate = (id) => {
-    isRotatingRef.current = false;
-    rotatePiece(id); // state hemen güncellenir (bilinçli olarak naive)
-
-  };
-
-  const onPressRotate = (id: string) => {
-    if (isRotatingRef.current) return;
-
-    isRotatingRef.current = true;
-
-    rotateAnim.value = withTiming(90, { duration: 500 }, () => {
-      rotateAnim.value = 0;
-      runOnJS(endRotate)(id);
-    });
-
-
-
-  };
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
@@ -286,40 +252,19 @@ export const GameScreen: React.FC<Props> = ({ level }) => {
           const height = matrix.length * CELL_HEIGHT;
 
           return (
-            <Animated.View
+            <AnimatedPiece
               key={gamePiece.id}
-              ref={pieceRef}
-              {...panResponder.panHandlers}
+              gamePiece={gamePiece}
+              matrix={matrix}
+              uiPos={uiPos}
+              panHandlers={panResponder.panHandlers}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
-              style={[
-                {
-                  position: 'absolute',
-                  left: uiPos?.left,
-                  top: uiPos?.top,
-                  width,
-                  height,
-                  borderWidth: 1,
-                },
-                rotateStyle,
-              ]}
-            >
-              <Pressable onPress={() => onPressRotate(gamePiece.id)}>
-                {matrix.map((row, rowIndex) => (
-                  <View style={styles.pieceRow} key={`row-${rowIndex}`}>
-                    {row.map((cell, colIndex) => (
-                      <View
-                        key={`cell-${rowIndex}-${colIndex}`}
-                        style={[
-                          styles.cell,
-                          cell === 1 ? styles.piece : styles.empty,
-                          gamePiece.placed ? styles.fit : styles.piece,
-                        ]}
-                      />
-                    ))}
-                  </View>
-                ))}
-              </Pressable>
-            </Animated.View>
+              onPressRotate={() => rotatePiece(gamePiece.id)}
+              onTouchEnd={() => {}}
+              cellWidth={CELL_WIDTH}
+              cellHeight={CELL_HEIGHT}
+              styles={styles}
+            />
           );
         })}
       </View>
