@@ -93,18 +93,18 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFill,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Backdrop
+    backgroundColor: 'rgba(93, 64, 55, 0.6)', // Kahverengi backdrop
     zIndex: 9,
   },
   overlay: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFF8E1', // Krem
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#5D4037',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -113,10 +113,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    color: '#5D4037', // Koyu kahve
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#8D6E63',
     marginBottom: 32,
   },
   buttonContainer: {
@@ -124,33 +125,33 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#ee5522', // Turuncu (arka plan rengi)
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: 'white',
+    color: '#FFF8E1',
     fontSize: 18,
     fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#FFE082', // Altın sarısı (piece rengi)
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#333',
+    color: '#5D4037',
     fontSize: 16,
     fontWeight: '600',
   },
   completionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#ee5522',
     marginBottom: 16,
     textAlign: 'center',
   },

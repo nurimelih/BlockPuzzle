@@ -340,7 +340,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === 9}
+        isLastLevel={currentLevelNumber === 3}
       />
     </View>
   );
