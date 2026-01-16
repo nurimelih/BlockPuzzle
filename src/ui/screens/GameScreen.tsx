@@ -12,7 +12,6 @@ import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { WinOverlay } from '../components/WinOverlay.tsx';
 import { useTheme } from '@rneui/themed';
-import Background from '../components/Background';
 
 type Props = {
   initialLevelNumber: number;
@@ -319,7 +318,6 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
 
   return (
     <View style={[styles.container]}>
-      <Background />
       {renderLevel()}
       <View
         style={{
