@@ -11,6 +11,8 @@ import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { WinOverlay } from '../components/WinOverlay.tsx';
+import { useTheme } from '@rneui/themed';
+import Background from '../components/Background';
 
 type Props = {
   initialLevelNumber: number;
@@ -34,6 +36,8 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     goLevel,
   } = useGameState(initialLevelNumber);
 
+  const { theme } = useTheme();
+
   const CELL_WIDTH = 40;
   const CELL_HEIGHT = 40;
 
@@ -51,7 +55,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   const startPos = useRef({ left: 0, top: 0 });
 
   // local states
-  const [menuVisible, setMenuVisible]  = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
@@ -164,6 +168,12 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     notAvailable: {
       backgroundColor: '#FF8C94',
     },
+
+    void: {
+      backgroundColor: theme.colors.background,
+      opacity: 0,
+    },
+
     piecesContainer: {
       position: 'absolute',
       top: BOARD_TOP_POS,
@@ -187,8 +197,8 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   });
 
   const toggleMenu = () => {
-    setMenuVisible(prev => !prev)
-  }
+    setMenuVisible(prev => !prev);
+  };
 
   // hooks
   useEffect(() => {
@@ -240,6 +250,17 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     resetUiPositions();
   };
 
+  const generateCellStyle = useCallback((cell: Cell) => {
+    switch (cell) {
+      case Cell.INVALID:
+        return styles.notAvailable;
+      case Cell.AVAILABLE:
+        return styles.available;
+      case Cell.VOID:
+        return styles.void;
+    }
+  }, [styles]);
+
   const renderLevel = useCallback(() => {
     return (
       <View style={[styles.level]}>
@@ -253,12 +274,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
                 return (
                   <View
                     key={`cell-${rowIndex}-${colIndex}`}
-                    style={[
-                      styles.cell,
-                      cell === Cell.AVAILABLE
-                        ? styles.available
-                        : styles.notAvailable,
-                    ]}
+                    style={[styles.cell, generateCellStyle(cell)]}
                   />
                 );
               })}
@@ -267,7 +283,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
         })}
       </View>
     );
-  }, [styles, board]);
+  }, [styles, board, generateCellStyle]);
 
   const renderPieces = () => {
     return (
@@ -299,6 +315,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
 
   return (
     <View style={[styles.container]}>
+      <Background />
       {renderLevel()}
       <View
         style={{
