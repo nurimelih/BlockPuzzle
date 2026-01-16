@@ -8,6 +8,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+// TODO: theme's taşı
+const PIECE_COLORS = {
+  base: '#FFE082',
+  highlight: '#FFF3C4',
+  shadow: '#D4A84B',
+  placedBase: '#E0E0E0',
+  placedHighlight: '#F5F5F5',
+  placedShadow: '#BDBDBD',
+};
+
 type Props = {
   gamePiece: GamePiece;
   matrix: PieceMatrix;
@@ -17,7 +27,7 @@ type Props = {
   onPressRotate: () => void;
   cellWidth: number;
   cellHeight: number;
-  styles: any;
+  styles?: any;
   hasBorders?: {
     top: boolean;
     right: boolean;
@@ -43,7 +53,19 @@ export const AnimatedPiece: React.FC<Props> = ({
   const width = matrix[0].length * cellWidth;
   const height = matrix.length * cellHeight;
 
-  const BORDER_WIDTH = 0.5;
+  // TODO: bu değerler theme gibi bir yapıdan gelsin
+  const BORDER_RADIUS = 6;
+  const colors = gamePiece.placed
+    ? {
+        base: PIECE_COLORS.placedBase,
+        highlight: PIECE_COLORS.placedHighlight,
+        shadow: PIECE_COLORS.placedShadow,
+      }
+    : {
+        base: PIECE_COLORS.base,
+        highlight: PIECE_COLORS.highlight,
+        shadow: PIECE_COLORS.shadow,
+      };
 
   // styles
   const styles = StyleSheet.create({
@@ -60,18 +82,11 @@ export const AnimatedPiece: React.FC<Props> = ({
     cell: {
       width: cellWidth,
       height: cellHeight,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    piece: {
-      backgroundColor: '#B1F1CE',
-      borderRadius: 4,
-    },
-    fit: {
-      backgroundColor: '#DCEDC2',
+      zIndex: 99,
     },
     empty: {
-      opacity: 0,
+      opacity: 1,
+      zIndex: -1
     },
   });
 
@@ -119,44 +134,43 @@ export const AnimatedPiece: React.FC<Props> = ({
                   return (
                     <View
                       key={`cell-${rowIndex}-${colIndex}`}
-                      style={[
-                        styles.cell,
-                        styles.empty,
-                        {
-                          borderRightWidth: hasRight ? BORDER_WIDTH : 0,
-                          borderBottomWidth: hasBottom ? BORDER_WIDTH : 0,
-                          borderLeftWidth: hasLeft ? BORDER_WIDTH : 0,
-                          borderTopWidth: hasTop ? BORDER_WIDTH : 0,
-                          borderTopLeftRadius: hasTop && hasLeft ? 4 : 0,
-                          borderTopRightRadius: hasTop && hasRight ? 4 : 0,
-                          borderBottomLeftRadius: hasBottom && hasLeft ? 4 : 0,
-                          borderBottomRightRadius:
-                            hasBottom && hasRight ? 4 : 0,
-                          borderColor: '#A8E6CE',
-                        },
-                      ]}
+                      pointerEvents="none"
+                      style={[styles.cell, styles.empty]}
                     />
                   );
                 }
 
+                // TODO: style'ları taşı buradan, tepeye koy ya da başka bir sayfaya taşı, parametre alan bir func haline getir.
                 return (
                   <View
                     key={`cell-${rowIndex}-${colIndex}`}
                     style={[
                       styles.cell,
-                      styles.piece,
-                      gamePiece.placed && styles.fit,
                       {
-                        borderLeftWidth: hasLeft ? 0 : BORDER_WIDTH,
-                        borderRightWidth: hasRight ? 0 : BORDER_WIDTH,
-                        borderTopWidth: hasTop ? 0 : BORDER_WIDTH,
-                        borderBottomWidth: hasBottom ? 0 : BORDER_WIDTH,
-                        borderTopLeftRadius: !hasTop && !hasLeft ? 4 : 0,
-                        borderTopRightRadius: !hasTop && !hasRight ? 4 : 0,
-                        borderBottomLeftRadius: !hasBottom && !hasLeft ? 4 : 0,
+                        backgroundColor: colors.base,
+                        borderTopLeftRadius:
+                          !hasTop && !hasLeft ? BORDER_RADIUS : 0,
+                        borderTopRightRadius:
+                          !hasTop && !hasRight ? BORDER_RADIUS : 0,
+                        borderBottomLeftRadius:
+                          !hasBottom && !hasLeft ? BORDER_RADIUS : 0,
                         borderBottomRightRadius:
-                          !hasBottom && !hasRight ? 4 : 0,
-                        borderColor: '#A8E6CE',
+                          !hasBottom && !hasRight ? BORDER_RADIUS : 0,
+
+                        borderTopWidth: hasTop ? 0 : 2,
+                        borderTopColor: colors.highlight,
+                        borderBottomWidth: hasBottom ? 0 : 2,
+                        borderBottomColor: colors.shadow,
+                        borderLeftWidth: hasLeft ? 0 : 2,
+                        borderLeftColor: colors.highlight,
+                        borderRightWidth: hasRight ? 0 : 2,
+                        borderRightColor: colors.shadow,
+
+                        shadowColor: '#000',
+                        shadowOffset: { width: 1, height: 2 },
+                        shadowOpacity: gamePiece.placed ? 0.15 : 0.3,
+                        shadowRadius: gamePiece.placed ? 2 : 4,
+                        elevation: gamePiece.placed ? 2 : 5,
                       },
                     ]}
                   />

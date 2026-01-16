@@ -157,16 +157,18 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     cell: {
       width: CELL_WIDTH,
       height: CELL_HEIGHT,
-      borderWidth: 0.2,
       justifyContent: 'center',
       alignItems: 'center',
+      borderWidth: 0.5,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
       borderRadius: 4,
     },
     available: {
-      backgroundColor: 'pink',
+      backgroundColor: 'rgba(109, 76, 65, 0.5)',
     },
     notAvailable: {
-      backgroundColor: '#FF8C94',
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
+      borderColor: 'rgba(0, 0, 0, 0.1)',
     },
 
     void: {
@@ -250,16 +252,19 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     resetUiPositions();
   };
 
-  const generateCellStyle = useCallback((cell: Cell) => {
-    switch (cell) {
-      case Cell.INVALID:
-        return styles.notAvailable;
-      case Cell.AVAILABLE:
-        return styles.available;
-      case Cell.VOID:
-        return styles.void;
-    }
-  }, [styles]);
+  const generateCellStyle = useCallback(
+    (cell: Cell) => {
+      switch (cell) {
+        case Cell.INVALID:
+          return styles.notAvailable;
+        case Cell.AVAILABLE:
+          return styles.available;
+        case Cell.VOID:
+          return styles.void;
+      }
+    },
+    [styles],
+  );
 
   const renderLevel = useCallback(() => {
     return (
@@ -305,7 +310,6 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
               onPressRotate={() => rotatePiece(gamePiece.id)}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
-              styles={styles}
             />
           );
         })}

@@ -4,7 +4,7 @@
 export enum Cell {
   'INVALID' = 0,
   'AVAILABLE' = 1,
-  'OCCUPIED' = 2,
+  'VOID' = 2,
 }
 
 export type Board = Cell[][];
@@ -38,9 +38,10 @@ export type GamePiece = {
   boardY?: number;
 };
 
-export const SHORT_I_PIECE: PieceMatrix = [[1, 1, 1]];
 
-export const I_PIECE: PieceMatrix = [[1, 1, 1, 1]];
+export const SHORT_I_PIECE: PieceMatrix = [[1, 1]];
+
+export const I_PIECE: PieceMatrix = [[1, 1, 1]];
 
 export const O_PIECE: PieceMatrix = [
   [1, 1],
