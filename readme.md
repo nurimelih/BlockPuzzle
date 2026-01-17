@@ -11,6 +11,7 @@ This project is not a game demo, it's an engine + architecture showcase.
 - Doesn't know UI
 - Doesn't know State
 - Contains only rules and math
+  
 **Responsibilities:**
 - Can a piece be placed `canPlace`
 - Matrix normalization `normalizePlacement`
@@ -19,6 +20,7 @@ This project is not a game demo, it's an engine + architecture showcase.
 Core is completely platform independent.  
 Can run in web, RN, desktop or Node environment.  
 Planning to develop it further and turn it into a separate package.
+
 **Note:**
 - Board doesn't hold occupancy state, it's a dummy space.
 - Collision detection is done through `occupiedCells` provided from outside.
@@ -29,9 +31,11 @@ When a new piece wants to settle, it doesn't ask the board, it asks each person 
 The reason is that board isn't just for this type of block-puzzle,  
 it can be used for other types of games too.
 ---
+
 ## 2. State Layer
 - Game's memory is kept here
 - Single entry point between UI and Core
+  
 **Purpose and responsibilities of this layer:**
 - Puzzle piece information and management
 - Information like `baseMatrix`, rotation, position
@@ -41,21 +45,25 @@ it can be used for other types of games too.
 UI never calls rules like `canPlace` directly.  
 Instead it uses entry points like `tryPlacePiece` through this state.
 ---
+
 ## 3. UI Layer (React Native)
 - Render
 - Gesture
 - Animation
+  
 Knows nothing else.
 - Doesn't know board logic
 - Doesn't calculate collisions
 - Doesn't make decisions about rules
 Only passes data and renders elements according to incoming data.
+
 UI only communicates intent:
 - position
 - rotation
 - interaction
 Decision is made by State + Core.
 ---
+
 # Deliberate Design Decisions
 - Anchor point is always `matrix[0][0]`
 - Coordinates from UI are normalized before passing to Core
@@ -63,6 +71,7 @@ Decision is made by State + Core.
   This isn't a Tetris game anyway, it's a puzzle game using Tetris pieces.
 This engine is designed for free placement puzzle rules.
 ---
+
 # Project Status
 - Engine side is mostly complete
 - Architecture is stable, there's a simple UI and it's playable for debug purposes
@@ -70,6 +79,7 @@ This engine is designed for free placement puzzle rules.
   (drag, snap preview, animation, level, game-over, restart, undo, sounds, effects)
 At the current state, I don't foresee adding new rules to core.
 ---
+
 # Why did I think of making such a project?
 This repo exists to show:
 - How layered architecture is built
