@@ -1,119 +1,81 @@
 # Block Puzzle Engine / Game
-
-Block Puzzle Ancient tarzı, serbest yerleştirmeli puzzle oyunlarından esinlendim.
-
-Bu proje bir oyun demosu değil, engine + mimari showcase'i.
-
-- UI’dan tamamen bağımsız bir oyun core’u (engine) tasarlamak
-- Oyun kuralları, state ve render katmanlarını kesin sınırlarla ayırmak
-- Basit bir oyundan ziyade, her katmanın kendi işini yaptığı bir tasarım oluşturmak ve gerekliliğine cevap verebilmek.
-
+Inspired by Block Puzzle Ancient-style, free placement puzzle games.
+This project is not a game demo, it's an engine + architecture showcase.
+- Design a game core (engine) completely independent from UI
+- Separate game rules, state and render layers with strict boundaries
+- Rather than a simple game, build a design where each layer does its own job and be able to justify its necessity.
 ---
-
-# Mimari Yapı
-
+# Architecture
 ## 1. Core (Engine / Domain Logic)
-
-- React / React Native bilmez
-- UI bilmez
-- State bilmez
-- Sadece kurallar ve matematik içerir
-
-**Sorumluluklar:**
-- Parça yerleştirilebilir mi (`canPlace`)
-- Matrix normalizasyonu (`normalizePlacement`)
-- Rotasyon ve matrix dönüşümleri
-- Board sınır ve çakışma kontrolleri
-
-Core tamamen platform bağımsızdır.  
-Web, RN, desktop veya Node ortamında çalışabilir.  
-İleride daha da geliştirip ayrı bir paket haline getirmeyi düşünüyorum.
-
-**Not:**
-- Board doluluk state’i tutmaz, orası dummy bir uzay.
-- Çakışma kontrolü, dışarıdan verilen `occupiedCells` üzerinden yapılır.
-- Core, tek bir “mutlak truth” dayatmaz; parametriktir.
-
-Şöyle düşündüm; board bir toprak, puzzle parçaları ise o toprağa yerleşen insanlar.  
-Yeni bir parça yerleşmek istediğinde board'a değil, teker teker diğer insanlara  
-"sen neredesin" diye soruyor.
-
-Bunun sebebi board'un sadece bu tarz bir block-puzzle değil,  
-başka tür oyunlarda da kullanılabilecek olması.
-
+- Doesn't know React / React Native
+- Doesn't know UI
+- Doesn't know State
+- Contains only rules and math
+**Responsibilities:**
+- Can a piece be placed `canPlace`
+- Matrix normalization `normalizePlacement`
+- Rotation and matrix transformations
+- Board boundary and collision checks
+Core is completely platform independent.  
+Can run in web, RN, desktop or Node environment.  
+Planning to develop it further and turn it into a separate package.
+**Note:**
+- Board doesn't hold occupancy state, it's a dummy space.
+- Collision detection is done through `occupiedCells` provided from outside.
+- Core doesn't impose a single "absolute truth"; it's parametric.
+I thought of it like this; board is the land, puzzle pieces are people settling on that land.  
+When a new piece wants to settle, it doesn't ask the board, it asks each person individually  
+"where are you".
+The reason is that board isn't just for this type of block-puzzle,  
+it can be used for other types of games too.
 ---
-
-## 2. State Katmanı
-
-- Oyunun hafızası burada tutulur
-- UI ile Core arasındaki tek giriş kapısı
-
-**Bu katmanın amacı ve sorumlulukları:**
-- Puzzle parçaları bilgisi ve yönetimi
-- `baseMatrix`, rotation, pozisyon gibi bilgiler
-- `tryPlacePiece` core'a tek giriş yolu
-- `occupiedCells` üretimi ve matrix normalizasyonu
-- UI’nın Core’a doğrudan erişimini engellemek
-
-UI, `canPlace` gibi kuralları asla doğrudan çağırmaz.  
-Onun yerine `tryPlacePiece` gibi giriş yollarını bu state üzerinden kullanır.
-
+## 2. State Layer
+- Game's memory is kept here
+- Single entry point between UI and Core
+**Purpose and responsibilities of this layer:**
+- Puzzle piece information and management
+- Information like `baseMatrix`, rotation, position
+- `tryPlacePiece` is the only entry to core
+- `occupiedCells` generation and matrix normalization
+- Prevent UI from accessing Core directly
+UI never calls rules like `canPlace` directly.  
+Instead it uses entry points like `tryPlacePiece` through this state.
 ---
-
-## 3. UI Katmanı (React Native)
-
+## 3. UI Layer (React Native)
 - Render
 - Gesture
-- Animasyon
-
-Başka hiçbir şey bilmez.
-
-- Board mantığını bilmez
-- Çakışma hesabı yapmaz
-- Kurallara dair karar vermez
-
-Sadece data iletir ve gelen dataya göre elementleri render eder.
-
-UI yalnızca niyet iletir:
-- konum
+- Animation
+Knows nothing else.
+- Doesn't know board logic
+- Doesn't calculate collisions
+- Doesn't make decisions about rules
+Only passes data and renders elements according to incoming data.
+UI only communicates intent:
+- position
 - rotation
-- etkileşim
-
-Karar State + Core tarafından verilir.
-
+- interaction
+Decision is made by State + Core.
 ---
-
-# Bilinçli Tasarım Kararları
-
-- Anchor noktası her zaman `matrix[0][0]`
-- UI’dan gelen koordinatlar Core’a normalize edilerek aktarılır
-- Gravity, line clear, klasik Tetris kuralları yok.  
-  Zaten bu bir tetris oyunu değil, tetris parçaları kullanılan bir puzzle oyunu.
-
-Bu engine serbest yerleştirmeli puzzle kuralları için tasarlanmıştır.
-
+# Deliberate Design Decisions
+- Anchor point is always `matrix[0][0]`
+- Coordinates from UI are normalized before passing to Core
+- No gravity, line clear, classic Tetris rules.  
+  This isn't a Tetris game anyway, it's a puzzle game using Tetris pieces.
+This engine is designed for free placement puzzle rules.
 ---
-
-# Proje Durumu
-
-- Engine tarafı büyük oranda tamamlandı
-- Mimari stabil, basit bir UI var ve debug amaçlı oynanabilir durumda
-- UI geliştirmesi devam edecek  
-  (drag, snap preview, animasyon, level, game-over, restart, undo, sesler, efektler)
-
-Şu anki durumda core'a yeni bir kural eklemeyi öngörmüyorum.
-
+# Project Status
+- Engine side is mostly complete
+- Architecture is stable, there's a simple UI and it's playable for debug purposes
+- UI development will continue  
+  (drag, snap preview, animation, level, game-over, restart, undo, sounds, effects)
+At the current state, I don't foresee adding new rules to core.
 ---
-
-# Neden böyle bir proje yapmayı düşündüm?
-
-Bu repo şunu göstermek için var:
-- Katmanlı mimari nasıl kurulur
-- Engine UI’dan nasıl izole edilir
-- State neden “tek kapı” olmalıdır
-- Küçük bir problem alanı, nasıl temiz bir tasarıma dönüştürülür
-
-Oyun oynamak için değil, kodu okumak ve mimariyi incelemek için.
-
-Başta sevdiğim basit bir oyunu taklit etmek istedim,  
-ama sonra katmanlı bir örneğine çevirdim.
+# Why did I think of making such a project?
+This repo exists to show:
+- How layered architecture is built
+- How engine is isolated from UI
+- Why state should be a "single gate"
+- How a small problem domain can be transformed into clean design
+Not for playing the game, but for reading the code and examining the architecture.
+Initially I wanted to mimic a simple game I liked,  
+but then turned it into a layered example.
