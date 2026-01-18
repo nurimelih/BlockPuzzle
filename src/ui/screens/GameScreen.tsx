@@ -12,6 +12,7 @@ import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { WinOverlay } from '../components/WinOverlay.tsx';
 import { useTheme } from '@rneui/themed';
+import { LEVELS } from '../../core/levels.ts';
 
 type Props = {
   initialLevelNumber: number;
@@ -41,6 +42,9 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   const CELL_HEIGHT = 40;
 
   const screenWidth = Dimensions.get('screen').width;
+  const screenHeight = Dimensions.get('screen').height;
+  const BOARD_HEIGHT = currentLevel.board.length * CELL_HEIGHT;
+  const BOARD_WIDTH = currentLevel.board[0].length * CELL_WIDTH;
 
   const PAGE_PADDING =
     (screenWidth - CELL_WIDTH * currentLevel.board[0].length) / 2;
@@ -49,7 +53,21 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
 
   const PIECE_CONTAINER_TOP_PADDING = 10;
 
-  const BOARD_HEIGHT = currentLevel.board.length * CELL_HEIGHT;
+
+  const generateScatteredPositions = (pieceCount: number) => {
+    const positions: Record<string, { left: number; top: number }> = {};
+
+    const minLeft = CELL_WIDTH;
+    const maxLeft = screenWidth - CELL_WIDTH * 5;
+
+    for (let i = 0; i < pieceCount; i++) {
+      const left = minLeft + Math.random() * (maxLeft - minLeft);
+      const top = 100 + Math.random() * 300;
+
+      positions[`piece-${i}`] = { left, top };
+    }
+    return positions;
+  };
 
   const startPos = useRef({ left: 0, top: 0 });
 
@@ -58,16 +76,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   const [activePieceId, setActivePieceId] = useState<string>();
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
-  >(() => {
-    const initial: Record<string, { left: number; top: number }> = {};
-    currentLevel.pieces.forEach((_, index: number) => {
-      initial[`piece-${index}`] = {
-        left: 0,
-        top: BOARD_HEIGHT + CELL_WIDTH * index,
-      };
-    });
-    return initial;
-  });
+  >(() => generateScatteredPositions(currentLevel.pieces.length));
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
@@ -223,26 +232,12 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
   }, [getPieceMatrix]);
 
   useEffect(() => {
-    const initial: Record<string, { left: number; top: number }> = {};
-    currentLevel.pieces.forEach((_, index: number) => {
-      initial[`piece-${index}`] = {
-        left: 0,
-        top: BOARD_HEIGHT + CELL_WIDTH * index,
-      };
-    });
-    setUiPositions(initial);
-  }, [currentLevel, BOARD_HEIGHT]); // pieces array uzunluğu değişince (yeni level)
+    setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
+  }, [currentLevel]); // yeni level
 
   // functions
   const resetUiPositions = () => {
-    const initial: Record<string, { left: number; top: number }> = {};
-    pieces.forEach((_, index) => {
-      initial[`piece-${index}`] = {
-        left: 0,
-        top: BOARD_HEIGHT + CELL_WIDTH * index,
-      };
-    });
-    setUiPositions(initial);
+    setUiPositions(generateScatteredPositions(pieces.length));
   };
 
   const handleRestart = () => {
@@ -340,7 +335,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === 3}
+        isLastLevel={currentLevelNumber === LEVELS.length}
       />
     </View>
   );
