@@ -10,7 +10,7 @@ import { Text } from '../components/AppText.tsx';
 import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
-import { WinOverlay } from '../components/WinOverlay.tsx';
+import { MenuOverlay } from '../components/MenuOverlay.tsx';
 import { LEVELS } from '../../core/levels.ts';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
@@ -19,7 +19,7 @@ import { colors, spacing, typography } from '../../theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
-export const GameScreen: React.FC<Props> = ({ route }) => {
+export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { levelNumber } = route.params;
   const {
     currentLevel,
@@ -182,6 +182,11 @@ export const GameScreen: React.FC<Props> = ({ route }) => {
     goLevel(0);
     restart();
     resetUiPositions();
+    setMenuVisible(false);
+  };
+
+  const handleHome = () => {
+    navigation.navigate('HomeScreen');
   };
 
   const generateCellStyle = useCallback((cell: Cell) => {
@@ -277,17 +282,20 @@ export const GameScreen: React.FC<Props> = ({ route }) => {
 
       {renderPieces()}
 
-      <Icon
-        style={styles.settingsIcon}
-        name="settings-outline"
-        size={20}
-        color={colors.piece.base}
-      />
-      <WinOverlay
+      <Pressable onPress={toggleMenu} style={styles.settingsIcon}>
+        <Icon
+          name="settings-outline"
+          size={24}
+          color={colors.piece.base}
+        />
+      </Pressable>
+      <MenuOverlay
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
+        isWin={isOver}
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
+        onHome={handleHome}
         currentLevelNumber={currentLevelNumber}
         isLastLevel={currentLevelNumber === LEVELS.length}
       />

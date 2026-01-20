@@ -11,17 +11,21 @@ import { colors, spacing, typography } from '../../theme';
 
 type Props = {
   visible: boolean;
+  isWin: boolean;
   onNextLevel: () => void;
   onRestart: () => void;
+  onHome: () => void;
   currentLevelNumber: number;
   isLastLevel: boolean;
   onDismiss: () => void;
 };
 
-export const WinOverlay: React.FC<Props> = ({
+export const MenuOverlay: React.FC<Props> = ({
   visible,
+  isWin,
   onNextLevel,
   onRestart,
+  onHome,
   currentLevelNumber,
   isLastLevel,
   onDismiss,
@@ -54,20 +58,35 @@ export const WinOverlay: React.FC<Props> = ({
     <Pressable style={styles.container} onPress={onDismiss}>
       <View style={styles.container}>
         <Animated.View style={[styles.overlay, animatedStyle]}>
-          <Text style={styles.title}>
-            Level {currentLevelNumber + 1} Complete!
-          </Text>
+          {isWin ? (
+            <Text style={styles.title}>
+              Level {currentLevelNumber + 1} Complete!
+            </Text>
+          ) : (
+            <Text style={styles.title}>Paused</Text>
+          )}
 
           <View style={styles.buttonContainer}>
-            {!isLastLevel ? (
+            {isWin && !isLastLevel && (
               <TouchableOpacity
                 style={styles.primaryButton}
                 onPress={onNextLevel}
               >
                 <Text style={styles.primaryButtonText}>Next Level</Text>
               </TouchableOpacity>
-            ) : (
+            )}
+
+            {isWin && isLastLevel && (
               <Text style={styles.completionText}>All levels completed!</Text>
+            )}
+
+            {!isWin && (
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={onDismiss}
+              >
+                <Text style={styles.primaryButtonText}>Resume</Text>
+              </TouchableOpacity>
             )}
 
             <TouchableOpacity
@@ -75,6 +94,13 @@ export const WinOverlay: React.FC<Props> = ({
               onPress={onRestart}
             >
               <Text style={styles.secondaryButtonText}>Restart</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={onHome}
+            >
+              <Text style={styles.secondaryButtonText}>Home</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
