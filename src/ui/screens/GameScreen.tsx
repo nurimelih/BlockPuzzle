@@ -4,22 +4,23 @@ import {
   PanResponder,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
+import { Text } from '../components/AppText.tsx';
 import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { WinOverlay } from '../components/WinOverlay.tsx';
-import { useTheme } from '@rneui/themed';
 import { LEVELS } from '../../core/levels.ts';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../types/navigation.ts';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { colors, spacing, typography } from '../../theme';
 
-type Props = {
-  initialLevelNumber: number;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
-export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
-  // manager;
+export const GameScreen: React.FC<Props> = ({ route }) => {
+  const { levelNumber } = route.params;
   const {
     currentLevel,
     currentLevelNumber,
@@ -34,40 +35,39 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     moveCount,
     handleNextLevel,
     goLevel,
-  } = useGameState(initialLevelNumber);
+  } = useGameState(levelNumber);
 
-  const { theme } = useTheme();
-
-  const CELL_WIDTH = 40;
-  const CELL_HEIGHT = 40;
+  const CELL_WIDTH = spacing.cell.width;
+  const CELL_HEIGHT = spacing.cell.height;
 
   const screenWidth = Dimensions.get('screen').width;
   const screenHeight = Dimensions.get('screen').height;
-  const BOARD_HEIGHT = currentLevel.board.length * CELL_HEIGHT;
-  const BOARD_WIDTH = currentLevel.board[0].length * CELL_WIDTH;
 
-  const PAGE_PADDING =
-    (screenWidth - CELL_WIDTH * currentLevel.board[0].length) / 2;
-  const BOARD_TOP_POS = PAGE_PADDING;
-  const BOARD_LEFT_POS = PAGE_PADDING;
+  const BOARD_WIDTH = CELL_WIDTH * currentLevel.board[0].length;
+  const BOARD_HEIGHT = CELL_HEIGHT * currentLevel.board.length;
 
-  const PIECE_CONTAINER_TOP_PADDING = 10;
+  const BOARD_LEFT_POS = (screenWidth - BOARD_WIDTH) / 2;
+  const BOARD_TOP_POS = (screenHeight - BOARD_HEIGHT) / 4;
 
+  const PIECE_CONTAINER_TOP_PADDING = 0;
 
-  const generateScatteredPositions = (pieceCount: number) => {
-    const positions: Record<string, { left: number; top: number }> = {};
+  const generateScatteredPositions = useCallback(
+    (pieceCount: number) => {
+      const positions: Record<string, { left: number; top: number }> = {};
 
-    const minLeft = CELL_WIDTH;
-    const maxLeft = screenWidth - CELL_WIDTH * 5;
+      const minLeft = CELL_WIDTH;
+      const maxLeft = screenWidth - CELL_WIDTH * 5;
 
-    for (let i = 0; i < pieceCount; i++) {
-      const left = minLeft + Math.random() * (maxLeft - minLeft);
-      const top = 100 + Math.random() * 300;
+      for (let i = 0; i < pieceCount; i++) {
+        const left = minLeft + Math.random() * (maxLeft - minLeft);
+        const top = 100 + Math.random() * 300;
 
-      positions[`piece-${i}`] = { left, top };
-    }
-    return positions;
-  };
+        positions[`piece-${i}`] = { left, top };
+      }
+      return positions;
+    },
+    [screenWidth, CELL_WIDTH],
+  );
 
   const startPos = useRef({ left: 0, top: 0 });
 
@@ -103,12 +103,12 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
         setUiPositions(prev => ({
           ...prev,
           [activePieceIdRef.current as string]: {
-            left: startPos.current.left + dx, // cannot read property 'left' on undefined
+            left: startPos.current.left + dx,
             top: startPos.current.top + dy,
           },
         }));
       },
-      onPanResponderRelease: (_, _gestureState) => {
+      onPanResponderRelease: () => {
         const id = activePieceIdRef.current as string;
         const { left, top } = uiPositionsRef.current[id];
         const gridX = Math.round(left / CELL_WIDTH);
@@ -144,68 +144,6 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     }),
   ).current;
 
-  // themes
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    level: {
-      position: 'absolute',
-      top: PAGE_PADDING,
-      left: PAGE_PADDING,
-    },
-
-    row: {
-      flexDirection: 'row',
-      borderLeftWidth: 0,
-    },
-    topBorder: { borderTopWidth: 0 },
-    cell: {
-      width: CELL_WIDTH,
-      height: CELL_HEIGHT,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 0.5,
-      borderColor: 'rgba(255, 255, 255, 0.3)',
-      borderRadius: 4,
-    },
-    available: {
-      backgroundColor: 'rgba(109, 76, 65, 0.5)',
-    },
-    notAvailable: {
-      backgroundColor: 'rgba(0, 0, 0, 0.2)',
-      borderColor: 'rgba(0, 0, 0, 0.1)',
-    },
-
-    void: {
-      backgroundColor: theme.colors.background,
-      opacity: 0,
-    },
-
-    piecesContainer: {
-      position: 'absolute',
-      top: BOARD_TOP_POS,
-      left: BOARD_LEFT_POS,
-      zIndex: 1,
-      width: 160,
-      height: 240,
-      borderWidth: 0,
-    },
-
-    debug: {
-      position: 'absolute',
-      left: PAGE_PADDING,
-      top: PAGE_PADDING + currentLevel.board[0].length * CELL_WIDTH + 10,
-    },
-    button: {
-      borderWidth: 0,
-      borderRadius: 4,
-      padding: 2,
-    },
-  });
-
   const toggleMenu = () => {
     setMenuVisible(prev => !prev);
   };
@@ -233,7 +171,7 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
 
   useEffect(() => {
     setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
-  }, [currentLevel]); // yeni level
+  }, [currentLevel, generateScatteredPositions]);
 
   // functions
   const resetUiPositions = () => {
@@ -246,23 +184,22 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     resetUiPositions();
   };
 
-  const generateCellStyle = useCallback(
-    (cell: Cell) => {
-      switch (cell) {
-        case Cell.INVALID:
-          return styles.notAvailable;
-        case Cell.AVAILABLE:
-          return styles.available;
-        case Cell.VOID:
-          return styles.void;
-      }
-    },
-    [styles],
-  );
+  const generateCellStyle = useCallback((cell: Cell) => {
+    switch (cell) {
+      case Cell.INVALID:
+        return styles.notAvailable;
+      case Cell.AVAILABLE:
+        return styles.available;
+      case Cell.VOID:
+        return styles.void;
+    }
+  }, []);
 
-  const renderLevel = useCallback(() => {
+  const renderBoard = useCallback(() => {
     return (
-      <View style={[styles.level]}>
+      <View
+        style={[styles.level, { top: BOARD_TOP_POS, left: BOARD_LEFT_POS }]}
+      >
         {board.map((row: Cell[], rowIndex: number) => {
           return (
             <View
@@ -282,11 +219,16 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
         })}
       </View>
     );
-  }, [styles, board, generateCellStyle]);
+  }, [board, generateCellStyle, BOARD_TOP_POS, BOARD_LEFT_POS]);
 
   const renderPieces = () => {
     return (
-      <View style={[styles.piecesContainer]}>
+      <View
+        style={[
+          styles.piecesContainer,
+          { top: BOARD_TOP_POS, left: BOARD_LEFT_POS },
+        ]}
+      >
         {pieces.map(gamePiece => {
           const matrix = getPieceMatrix(gamePiece.id);
           const uiPos = uiPositions[gamePiece.id];
@@ -311,24 +253,36 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     );
   };
 
-  return (
-    <View style={[styles.container]}>
-      {renderLevel()}
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: PIECE_CONTAINER_TOP_PADDING,
-        }}
-      >
-        <Text>Level: {currentLevelNumber + 1}</Text>
-        <Text>Moves: {moveCount}</Text>
-        <Pressable onPress={toggleMenu}>
-          <Text>Open Menu</Text>
-        </Pressable>
-        {renderPieces()}
-      </View>
+  const renderHeader = () => {
+    return (
+      <View>
+        <View style={styles.headerRow}>
+          <Text style={styles.levelText}>Level {currentLevelNumber + 1}</Text>
+          <Text style={styles.movesText}>Moves {moveCount}</Text>
+        </View>
 
+        <View style={styles.timerRow}>
+          <Text style={styles.timerText}>00:01</Text>
+        </View>
+
+        <Pressable onPress={toggleMenu} />
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {renderBoard()}
+      {renderHeader()}
+
+      {renderPieces()}
+
+      <Icon
+        style={styles.settingsIcon}
+        name="settings-outline"
+        size={20}
+        color={colors.piece.base}
+      />
       <WinOverlay
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
@@ -340,3 +294,77 @@ export const GameScreen: React.FC<Props> = ({ initialLevelNumber }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  level: {
+    position: 'absolute',
+  },
+  row: {
+    flexDirection: 'row',
+    borderLeftWidth: 0,
+  },
+  topBorder: {
+    borderTopWidth: 0,
+  },
+  cell: {
+    width: spacing.cell.width,
+    height: spacing.cell.height,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: colors.board.cellBorder,
+    borderRadius: spacing.borderRadius.sm,
+  },
+  available: {
+    backgroundColor: colors.board.cellAvailable,
+  },
+  notAvailable: {
+    backgroundColor: colors.board.cellInvalid,
+    borderColor: colors.board.cellBorderInvalid,
+  },
+  void: {
+    backgroundColor: colors.background.transparent,
+    opacity: 0,
+  },
+  piecesContainer: {
+    position: 'absolute',
+    zIndex: 1,
+    width: 160,
+    height: 240,
+    borderWidth: 0,
+  },
+  headerRow: {
+    width: '100%',
+    paddingHorizontal: spacing.xxxxl,
+    paddingVertical: spacing.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  levelText: {
+    fontSize: typography.fontSize.xl,
+    color: colors.piece.base,
+  },
+  movesText: {
+    fontSize: typography.fontSize.xl,
+    color: colors.piece.base,
+  },
+  timerRow: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  timerText: {
+    fontSize: typography.fontSize.xl,
+    color: colors.piece.base,
+  },
+  settingsIcon: {
+    paddingBottom: spacing.xl,
+  },
+});
