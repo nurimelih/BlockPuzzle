@@ -5,23 +5,29 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "ios:device": "react-native run-ios --device nurinet",
+    "ios:sim": "react-native run-ios --simulator 'iPhone 17 Pro'",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
     "pod-install": "cd ios && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
     "pod-install-hard": "cd ios && rm -rf Podfile.lock && rm -rf Pods && rm -rf build && rm -rf ~/Library/Developer/Xcode/DerivedData && pod cache clean --all && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --repo-update",
-    "reset1": "rm -rf node_modules && rm -rf ios/Pods && rm -rf && rm -rf ios/Podfile.lock && rm -rf ~/Library/Developer/Xcode/DerivedData && rm -rf ios/build && rm -rf android/app/build && rm -rf android/build && yarn cache clean && yarn && yarn pod-install-hard",
-    "reset": "rm -rf node_modules && rm -rf ios/Pods && rm -rf && rm -rf ios/Podfile.lock && rm -rf ~/Library/Developer/Xcode/DerivedData && rm -rf ios/build && rm -rf android/app/build && rm -rf android/build && yarn cache clean && yarn"
+    "reset-hard": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build ~/Library/Developer/Xcode/DerivedData && yarn cache clean && yarn && yarn pod-install-hard",
+    "reset": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build && yarn cache clean && yarn"
   },
   "dependencies": {
     "@react-native-vector-icons/ionicons": "^12.3.0",
     "@react-native/new-app-screen": "0.83.1",
+    "@react-navigation/elements": "^2.9.5",
+    "@react-navigation/native": "^7.1.28",
+    "@react-navigation/native-stack": "^7.10.1",
     "@rneui/base": "^4.0.0-rc.8",
     "@rneui/themed": "^4.0.0-rc.8",
     "react": "19.2.0",
     "react-native": "0.83.1",
     "react-native-reanimated": "^4.2.1",
     "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.20.0",
     "react-native-svg": "^15.15.1",
     "react-native-vector-icons": "^10.3.0",
     "react-native-worklets": "^0.7.1"
