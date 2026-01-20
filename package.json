@@ -14,6 +14,7 @@
     "reset": "rm -rf node_modules && rm -rf ios/Pods && rm -rf && rm -rf ios/Podfile.lock && rm -rf ~/Library/Developer/Xcode/DerivedData && rm -rf ios/build && rm -rf android/app/build && rm -rf android/build && yarn cache clean && yarn"
   },
   "dependencies": {
+    "@react-native-vector-icons/ionicons": "^12.3.0",
     "@react-native/new-app-screen": "0.83.1",
     "@rneui/base": "^4.0.0-rc.8",
     "@rneui/themed": "^4.0.0-rc.8",
