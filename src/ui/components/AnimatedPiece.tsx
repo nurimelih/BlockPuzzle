@@ -7,16 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-
-// TODO: theme's taşı
-const PIECE_COLORS = {
-  base: '#FFE082',
-  highlight: '#FFF3C4',
-  shadow: '#D4A84B',
-  placedBase: '#E0E0E0',
-  placedHighlight: '#F5F5F5',
-  placedShadow: '#BDBDBD',
-};
+import { colors, spacing } from '../../theme';
 
 type Props = {
   gamePiece: GamePiece;
@@ -27,13 +18,6 @@ type Props = {
   onPressRotate: () => void;
   cellWidth: number;
   cellHeight: number;
-  styles?: any;
-  hasBorders?: {
-    top: boolean;
-    right: boolean;
-    bottom: boolean;
-    left: boolean;
-  };
 };
 
 export const AnimatedPiece: React.FC<Props> = ({
@@ -46,49 +30,13 @@ export const AnimatedPiece: React.FC<Props> = ({
   cellWidth,
   cellHeight,
 }) => {
-  // ref
   const rotateAnim = useSharedValue(0);
   const isRotatingRef = useRef(false);
 
   const width = matrix[0].length * cellWidth;
   const height = matrix.length * cellHeight;
 
-  // TODO: bu değerler theme gibi bir yapıdan gelsin
-  const BORDER_RADIUS = 6;
-  const colors = gamePiece.placed
-    ? {
-        base: PIECE_COLORS.placedBase,
-        highlight: PIECE_COLORS.placedHighlight,
-        shadow: PIECE_COLORS.placedShadow,
-      }
-    : {
-        base: PIECE_COLORS.base,
-        highlight: PIECE_COLORS.highlight,
-        shadow: PIECE_COLORS.shadow,
-      };
-
-  // styles
-  const styles = StyleSheet.create({
-    container: {
-      position: 'absolute',
-      left: uiPos?.left,
-      top: uiPos?.top,
-      width,
-      height,
-    },
-    pieceRow: {
-      flexDirection: 'row',
-    },
-    cell: {
-      width: cellWidth,
-      height: cellHeight,
-      zIndex: 99,
-    },
-    empty: {
-      opacity: 1,
-      zIndex: -1
-    },
-  });
+  const pieceColors = gamePiece.placed ? colors.piecePlaced : colors.piece;
 
   const rotateStyle = useAnimatedStyle(() => {
     return { transform: [{ rotate: `${rotateAnim.value}deg` }] };
@@ -102,7 +50,6 @@ export const AnimatedPiece: React.FC<Props> = ({
     if (isRotatingRef.current) return;
 
     isRotatingRef.current = true;
-    // TODO: animations are still naive. will polish later.
     rotateAnim.value = withTiming(90, { duration: 250 }, () => {
       runOnJS(onPressRotate)();
       rotateAnim.value = 0;
@@ -110,11 +57,19 @@ export const AnimatedPiece: React.FC<Props> = ({
     });
   };
 
+  const containerStyle = {
+    position: 'absolute' as const,
+    left: uiPos?.left,
+    top: uiPos?.top,
+    width,
+    height,
+  };
+
   return (
     <Animated.View
       {...panHandlers}
       onTouchStart={onTouchStart}
-      style={[styles.container, rotateStyle]}
+      style={[containerStyle, rotateStyle]}
     >
       <Pressable onPress={handleRotate}>
         {matrix.map((row, rowIndex) => {
@@ -135,38 +90,37 @@ export const AnimatedPiece: React.FC<Props> = ({
                     <View
                       key={`cell-${rowIndex}-${colIndex}`}
                       pointerEvents="none"
-                      style={[styles.cell, styles.empty]}
+                      style={[styles.cell, styles.empty, { width: cellWidth, height: cellHeight }]}
                     />
                   );
                 }
 
-                // TODO: style'ları taşı buradan, tepeye koy ya da başka bir sayfaya taşı, parametre alan bir func haline getir.
                 return (
                   <View
                     key={`cell-${rowIndex}-${colIndex}`}
                     style={[
                       styles.cell,
                       {
-                        backgroundColor: colors.base,
+                        width: cellWidth,
+                        height: cellHeight,
+                        backgroundColor: pieceColors.base,
                         borderTopLeftRadius:
-                          !hasTop && !hasLeft ? BORDER_RADIUS : 0,
+                          !hasTop && !hasLeft ? spacing.borderRadius.md : 0,
                         borderTopRightRadius:
-                          !hasTop && !hasRight ? BORDER_RADIUS : 0,
+                          !hasTop && !hasRight ? spacing.borderRadius.md : 0,
                         borderBottomLeftRadius:
-                          !hasBottom && !hasLeft ? BORDER_RADIUS : 0,
+                          !hasBottom && !hasLeft ? spacing.borderRadius.md : 0,
                         borderBottomRightRadius:
-                          !hasBottom && !hasRight ? BORDER_RADIUS : 0,
-
+                          !hasBottom && !hasRight ? spacing.borderRadius.md : 0,
                         borderTopWidth: hasTop ? 0 : 2,
-                        borderTopColor: colors.highlight,
+                        borderTopColor: pieceColors.highlight,
                         borderBottomWidth: hasBottom ? 0 : 2,
-                        borderBottomColor: colors.shadow,
+                        borderBottomColor: pieceColors.shadow,
                         borderLeftWidth: hasLeft ? 0 : 2,
-                        borderLeftColor: colors.highlight,
+                        borderLeftColor: pieceColors.highlight,
                         borderRightWidth: hasRight ? 0 : 2,
-                        borderRightColor: colors.shadow,
-
-                        shadowColor: '#000',
+                        borderRightColor: pieceColors.shadow,
+                        shadowColor: colors.black,
                         shadowOffset: { width: 1, height: 2 },
                         shadowOpacity: gamePiece.placed ? 0.15 : 0.3,
                         shadowRadius: gamePiece.placed ? 2 : 4,
@@ -183,3 +137,16 @@ export const AnimatedPiece: React.FC<Props> = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  pieceRow: {
+    flexDirection: 'row',
+  },
+  cell: {
+    zIndex: 99,
+  },
+  empty: {
+    opacity: 1,
+    zIndex: -1,
+  },
+});
