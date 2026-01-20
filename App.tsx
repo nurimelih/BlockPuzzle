@@ -1,6 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
+import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
+import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import Background from './src/ui/components/Background.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -24,17 +26,20 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function RootStack() {
   return (
     <Stack.Navigator
-      initialRouteName="GameScreen"
+      initialRouteName="HomeScreen"
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: 'transparent' },
       }}
     >
+      <Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen
         name="GameScreen"
         component={GameScreen}
         initialParams={{ levelNumber: 1 }}
+        options={{ gestureEnabled: false }}
       />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }
