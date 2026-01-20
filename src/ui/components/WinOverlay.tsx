@@ -1,17 +1,13 @@
 import React, { useEffect } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from './AppText.tsx';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { colors, spacing, typography } from '../../theme';
 
 type Props = {
   visible: boolean;
@@ -30,23 +26,21 @@ export const WinOverlay: React.FC<Props> = ({
   isLastLevel,
   onDismiss,
 }) => {
-  const translateY = useSharedValue(500); // Ekran dışından başla
+  const translateY = useSharedValue(500);
 
   useEffect(() => {
     if (visible) {
-      // Aşağıdan yukarı slide
       translateY.value = withTiming(0, {
         duration: 400,
         easing: Easing.out(Easing.cubic),
       });
     } else {
-      // Yukarıdan aşağı slide (gizle)
       translateY.value = withTiming(500, {
         duration: 300,
         easing: Easing.in(Easing.cubic),
       });
     }
-  }, [visible]);
+  }, [translateY, visible]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -91,68 +85,63 @@ export const WinOverlay: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(93, 64, 55, 0.6)', // Kahverengi backdrop
+    backgroundColor: colors.background.overlay,
     zIndex: 9,
   },
   overlay: {
-    backgroundColor: '#FFF8E1', // Krem
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 32,
+    backgroundColor: colors.background.cream,
+    borderTopLeftRadius: spacing.borderRadius.xl,
+    borderTopRightRadius: spacing.borderRadius.xl,
+    padding: spacing.xxxl,
     alignItems: 'center',
-    shadowColor: '#5D4037',
+    shadowColor: colors.brown.dark,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: typography.fontSize.xxl,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing.sm,
     textAlign: 'center',
-    color: '#5D4037', // Koyu kahve
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#8D6E63',
-    marginBottom: 32,
+    color: colors.text.primary,
   },
   buttonContainer: {
     width: '100%',
-    gap: 12,
+    gap: spacing.md,
   },
   primaryButton: {
-    backgroundColor: '#ee5522', // Turuncu (arka plan rengi)
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxxl,
+    borderRadius: spacing.borderRadius.lg,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: '#FFF8E1',
-    fontSize: 18,
-    fontWeight: '600',
+    color: colors.text.light,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
   },
   secondaryButton: {
-    backgroundColor: '#FFE082', // Altın sarısı (piece rengi)
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
+    backgroundColor: colors.piece.base,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxxl,
+    borderRadius: spacing.borderRadius.lg,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#5D4037',
-    fontSize: 16,
-    fontWeight: '600',
+    color: colors.text.primary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.semibold,
   },
   completionText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ee5522',
-    marginBottom: 16,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
+    marginBottom: spacing.lg,
     textAlign: 'center',
   },
 });
