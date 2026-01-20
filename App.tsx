@@ -3,6 +3,9 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import Background from './src/ui/components/Background.tsx';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import type { RootStackParamList } from './src/types/navigation.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -16,24 +19,40 @@ const theme = createTheme({
   mode: 'light',
 });
 
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function RootStack() {
+  return (
+    <Stack.Navigator
+      initialRouteName="GameScreen"
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: 'transparent' },
+      }}
+    >
+      <Stack.Screen
+        name="GameScreen"
+        component={GameScreen}
+        initialParams={{ levelNumber: 1 }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <SafeAreaProvider>
-        <AppContent />
+        <View style={styles.container}>
+          <Background />
+          <SafeAreaView style={styles.safeArea}>
+            <NavigationContainer>
+              <RootStack />
+            </NavigationContainer>
+          </SafeAreaView>
+        </View>
       </SafeAreaProvider>
     </ThemeProvider>
-  );
-}
-
-function AppContent() {
-  return (
-    <View style={styles.container}>
-      <Background />
-      <SafeAreaView style={styles.safeArea}>
-        <GameScreen initialLevelNumber={1} />
-      </SafeAreaView>
-    </View>
   );
 }
 
