@@ -2,8 +2,6 @@ import {
   CORNER_PIECE,
   I_PIECE,
   LevelDefinition,
-  T_PIECE,
-  Z_PIECE,
   L_PIECE,
   J_PIECE,
   S_PIECE,
