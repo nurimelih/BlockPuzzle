@@ -13,7 +13,7 @@ let audioContext: AudioContext | null = null;
 let currentTrackIndex = 0;
 let isBackgroundPlaying = false;
 let backgroundVolume = 0.5;
-let effectsVolume = 1.0;
+let effectsVolume = 0.5;
 let isMusicMuted = false;
 let isEffectsMuted = false;
 let currentSource: AudioBufferSourceNode | null = null;
@@ -129,21 +129,22 @@ export const SoundManager = {
     if (!buffer) return;
 
     const effectGain = audioContext.createGain();
-    effectGain.gain.value = effectsVolume;
+    effectGain.gain.value = effectsVolume ;
     effectGain.connect(audioContext.destination);
 
     const source = audioContext.createBufferSource();
+    source.playbackRate.value = 1;
     source.buffer = buffer;
     source.connect(effectGain);
     source.start();
   },
 
   playPlaceEffect: (): void => {
-    // SoundManager.playEffect(require('../../assets/sounds/place.mp3'));
+    SoundManager.playEffect(require('../../assets/sounds/placed.mp3'));
   },
 
   playRotateEffect: (): void => {
-    // SoundManager.playEffect(require('../../assets/sounds/rotate.mp3'));
+    SoundManager.playEffect(require('../../assets/sounds/rotated.mp3'));
   },
 
   playWinEffect: (): void => {
