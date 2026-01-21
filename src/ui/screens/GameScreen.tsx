@@ -16,11 +16,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
+import { formatTime } from '../../core/utils.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
 export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { levelNumber } = route.params;
+  console.log("levelNumber", levelNumber)
   const {
     currentLevel,
     currentLevelNumber,
@@ -33,9 +35,21 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     isOver,
     restart,
     moveCount,
+    startTime,
     handleNextLevel,
+    handlePrevLevel,
     goLevel,
   } = useGameState(levelNumber);
+
+  const [gameTime, setGameTime] = useState("00:00");
+
+  useEffect(() => {
+    // todo: her level'de süreyi ayrı tutsun, menüye basınca ya da level bitince süre donsun.
+    // level süresini useGameState içinde ayarla
+    setInterval(() => {
+      setGameTime(formatTime((Date.now() - startTime) / 1000));
+    }, 1000);
+  }, []);
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -179,7 +193,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const handleRestart = () => {
-    goLevel(0);
     restart();
     resetUiPositions();
     setMenuVisible(false);
@@ -267,7 +280,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
 
         <View style={styles.timerRow}>
-          <Text style={styles.timerText}>00:01</Text>
+          <Text style={styles.timerText}>{gameTime}</Text>
         </View>
 
         <Pressable onPress={toggleMenu} />
@@ -283,17 +296,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       {renderPieces()}
 
       <Pressable onPress={toggleMenu} style={styles.settingsIcon}>
-        <Icon
-          name="settings-outline"
-          size={24}
-          color={colors.piece.base}
-        />
+        <Icon name="settings-outline" size={24} color={colors.piece.base} />
       </Pressable>
       <MenuOverlay
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
         isWin={isOver}
         onNextLevel={handleNextLevel}
+        onPreviousLevel={handlePrevLevel}
         onRestart={handleRestart}
         onHome={handleHome}
         currentLevelNumber={currentLevelNumber}
