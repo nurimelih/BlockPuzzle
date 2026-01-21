@@ -13,6 +13,7 @@ type Props = {
   visible: boolean;
   isWin: boolean;
   onNextLevel: () => void;
+  onPreviousLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
   currentLevelNumber: number;
@@ -24,6 +25,7 @@ export const MenuOverlay: React.FC<Props> = ({
   visible,
   isWin,
   onNextLevel,
+  onPreviousLevel,
   onRestart,
   onHome,
   currentLevelNumber,
@@ -93,13 +95,29 @@ export const MenuOverlay: React.FC<Props> = ({
               style={styles.secondaryButton}
               onPress={onRestart}
             >
-              <Text style={styles.secondaryButtonText}>Restart</Text>
+              <Text style={styles.secondaryButtonText}>Restart Level</Text>
+            </TouchableOpacity>
+
+
+
+            {/*Debug*/}
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={onNextLevel}
+            >
+              <Text style={styles.secondaryButtonText}>Next Level</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={onHome}
+              onPress={onPreviousLevel}
             >
+              <Text style={styles.secondaryButtonText}>Previous Level</Text>
+            </TouchableOpacity>
+
+
+
+            <TouchableOpacity style={styles.secondaryButton} onPress={onHome}>
               <Text style={styles.secondaryButtonText}>Home</Text>
             </TouchableOpacity>
           </View>
@@ -141,27 +159,27 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xxxl,
     borderRadius: spacing.borderRadius.lg,
     alignItems: 'center',
   },
   primaryButtonText: {
     color: colors.text.light,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
   },
   secondaryButton: {
     backgroundColor: colors.piece.base,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xxxl,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: spacing.borderRadius.lg,
     alignItems: 'center',
   },
   secondaryButtonText: {
     color: colors.text.primary,
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.semibold,
+    fontSize: typography.fontSize.xl,
+    fontWeight: typography.fontWeight.bold,
   },
   completionText: {
     fontSize: typography.fontSize.lg,
