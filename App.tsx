@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
@@ -8,6 +9,7 @@ import Background from './src/ui/components/Background.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
+import { SoundManager } from './src/services/SoundManager.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -45,6 +47,18 @@ function RootStack() {
 }
 
 function App() {
+  useEffect(() => {
+    const initSound = async () => {
+      await SoundManager.init();
+      SoundManager.playBackgroundMusic();
+    };
+    initSound();
+
+    return () => {
+      SoundManager.release();
+    };
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <SafeAreaProvider>
