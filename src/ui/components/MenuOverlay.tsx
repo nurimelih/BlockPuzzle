@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text } from './AppText.tsx';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,6 +7,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { colors, spacing, typography } from '../../theme';
+import { LabelButton } from './base/LabelButton.tsx';
 
 type Props = {
   visible: boolean;
@@ -61,11 +61,11 @@ export const MenuOverlay: React.FC<Props> = ({
       <View style={styles.container}>
         <Animated.View style={[styles.overlay, animatedStyle]}>
           {isWin ? (
-            <Text style={styles.title}>
+            <LabelButton style={styles.title}>
               Level {currentLevelNumber + 1} Complete!
-            </Text>
+            </LabelButton>
           ) : (
-            <Text style={styles.title}>Paused</Text>
+            <LabelButton style={styles.title}>Paused</LabelButton>
           )}
 
           <View style={styles.buttonContainer}>
@@ -74,52 +74,70 @@ export const MenuOverlay: React.FC<Props> = ({
                 style={styles.primaryButton}
                 onPress={onNextLevel}
               >
-                <Text style={styles.primaryButtonText}>Next Level</Text>
+                <LabelButton style={styles.primaryButtonText}>
+                  Next Level
+                </LabelButton>
               </TouchableOpacity>
             )}
 
             {isWin && isLastLevel && (
-              <Text style={styles.completionText}>All levels completed!</Text>
+              <LabelButton style={styles.completionText}>
+                All levels completed!
+              </LabelButton>
             )}
 
             {!isWin && (
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={onDismiss}
+              <LabelButton
+                pressableProps={{
+                  onPress: onDismiss,
+                  style: [styles.primaryButton],
+                }}
+                style={styles.primaryButtonText}
               >
-                <Text style={styles.primaryButtonText}>Resume</Text>
-              </TouchableOpacity>
+                Resume
+              </LabelButton>
             )}
 
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={onRestart}
+            <LabelButton
+              pressableProps={{
+                onPress: onRestart,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
             >
-              <Text style={styles.secondaryButtonText}>Restart Level</Text>
-            </TouchableOpacity>
-
-
+              Restart Level
+            </LabelButton>
 
             {/*Debug*/}
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={onNextLevel}
+            <LabelButton
+              pressableProps={{
+                onPress: onNextLevel,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
             >
-              <Text style={styles.secondaryButtonText}>Next Level</Text>
-            </TouchableOpacity>
+              Next Level
+            </LabelButton>
 
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={onPreviousLevel}
+            <LabelButton
+              pressableProps={{
+                onPress: onPreviousLevel,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
             >
-              <Text style={styles.secondaryButtonText}>Previous Level</Text>
-            </TouchableOpacity>
+              Previous Level
+            </LabelButton>
 
-
-
-            <TouchableOpacity style={styles.secondaryButton} onPress={onHome}>
-              <Text style={styles.secondaryButtonText}>Home</Text>
-            </TouchableOpacity>
+            <LabelButton
+              pressableProps={{
+                onPress: onHome,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
+            >
+              Home
+            </LabelButton>
           </View>
         </Animated.View>
       </View>

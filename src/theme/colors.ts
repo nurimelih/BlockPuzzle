@@ -28,6 +28,7 @@ export const colors = {
   // Background colors
   background: {
     cream: '#FFF8E1',
+    brownWithOpacity: 'rgba(109, 76, 65, .4)',
     overlay: 'rgba(93, 64, 55, 0.6)',
     transparent: 'transparent',
   },

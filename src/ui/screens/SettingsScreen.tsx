@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Switch, View } from 'react-native';
-import { Text } from '../components/AppText.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
 import { SoundManager } from '../../services/SoundManager.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { LabelButton } from '../components/base/LabelButton.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -45,13 +45,13 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Pressable onPress={handleBack} style={styles.backButton}>
           <Icon name="arrow-back" size={28} color={colors.text.light} />
         </Pressable>
-        <Text style={styles.title}>Settings</Text>
+        <LabelButton style={styles.title}>Settings</LabelButton>
         <View style={styles.placeholder} />
       </View>
 
       <View style={styles.content}>
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Music</Text>
+          <LabelButton style={styles.settingLabel}>Music</LabelButton>
           <Switch
             value={musicEnabled}
             onValueChange={handleMusicToggle}
@@ -70,48 +70,54 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 styles.volumeButton,
                 musicVolume === 0.25 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(0.25)}>
-              <Text
+              onPress={() => handleVolumeChange(0.25)}
+            >
+              <LabelButton
                 style={[
                   styles.volumeButtonText,
                   musicVolume === 0.25 && styles.volumeButtonTextActive,
-                ]}>
+                ]}
+              >
                 Low
-              </Text>
+              </LabelButton>
             </Pressable>
             <Pressable
               style={[
                 styles.volumeButton,
                 musicVolume === 0.5 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(0.5)}>
-              <Text
+              onPress={() => handleVolumeChange(0.5)}
+            >
+              <LabelButton
                 style={[
                   styles.volumeButtonText,
                   musicVolume === 0.5 && styles.volumeButtonTextActive,
-                ]}>
+                ]}
+              >
                 Mid
-              </Text>
+              </LabelButton>
             </Pressable>
             <Pressable
               style={[
                 styles.volumeButton,
                 musicVolume === 1.0 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(1.0)}>
-              <Text
+              onPress={() => handleVolumeChange(1.0)}
+            >
+              <LabelButton
                 style={[
                   styles.volumeButtonText,
                   musicVolume === 1.0 && styles.volumeButtonTextActive,
-                ]}>
+                ]}
+              >
                 High
-              </Text>
+              </LabelButton>
             </Pressable>
           </View>
         )}
 
         <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>Sound Effects</Text>
+          <LabelButton style={styles.settingLabel}>Sound Effects</LabelButton>
           <Switch
             value={effectsEnabled}
             onValueChange={handleEffectsToggle}
@@ -122,7 +128,6 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             thumbColor={colors.text.light}
           />
         </View>
-
       </View>
     </View>
   );

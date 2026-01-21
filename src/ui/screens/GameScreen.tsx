@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Text } from '../components/AppText.tsx';
 import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
@@ -17,6 +16,7 @@ import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
+import { LabelButton } from '../components/base/LabelButton.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -287,12 +287,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <View>
         <View style={styles.headerRow}>
-          <Text style={styles.levelText}>Level {currentLevelNumber + 1}</Text>
-          <Text style={styles.movesText}>Moves {moveCount}</Text>
+          <LabelButton style={styles.levelText}>
+            Level {currentLevelNumber + 1}
+          </LabelButton>
+          <LabelButton style={styles.movesText}>Moves {moveCount}</LabelButton>
         </View>
 
         <View style={styles.timerRow}>
-          <Text style={styles.timerText}>{gameTime}</Text>
+          <LabelButton style={styles.timerText}>{gameTime}</LabelButton>
         </View>
 
         <Pressable onPress={toggleMenu} />

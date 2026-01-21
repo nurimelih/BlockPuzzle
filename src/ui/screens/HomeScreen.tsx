@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Text } from '../components/AppText.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
@@ -9,6 +8,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { LabelButton } from '../components/base/LabelButton.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -49,30 +49,43 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Block Puzzle</Text>
+        <LabelButton style={styles.title}>Block Puzzle</LabelButton>
       </View>
 
       <View style={styles.menuContainer}>
-        <Pressable onPress={togglePlayMenu}>
-          <Text style={styles.menuItem}>Play</Text>
-        </Pressable>
+        <LabelButton
+          pressableProps={{ onPress: togglePlayMenu }}
+          style={styles.menuItem}
+        >
+          Play
+        </LabelButton>
 
         <Animated.View style={[styles.subMenu, animatedMenuStyle]}>
-          <Pressable onPress={handleNewGame}>
-            <Text style={styles.subMenuItem}>New Game</Text>
-          </Pressable>
-          <Pressable onPress={handleLoadGame}>
-            <Text style={styles.subMenuItem}>Level Select</Text>
-          </Pressable>
+          <LabelButton
+            pressableProps={{ onPress: handleNewGame }}
+            style={[styles.subMenuItem]}
+          >
+            New Games
+          </LabelButton>
+
+          <LabelButton
+            pressableProps={{ onPress: handleLoadGame }}
+            style={styles.subMenuItem}
+          >
+            Level Select
+          </LabelButton>
         </Animated.View>
 
-        <Pressable onPress={handleSettings}>
-          <Text style={styles.menuItem}>Settings</Text>
-        </Pressable>
+        <LabelButton
+          pressableProps={{ onPress: handleSettings }}
+          style={styles.menuItem}
+        >
+          Settings
+        </LabelButton>
       </View>
 
       <View style={styles.versionContainer}>
-        <Text style={styles.versionText}>v 0.0.1</Text>
+        <LabelButton style={styles.versionText}>v 0.0.1</LabelButton>
       </View>
     </View>
   );
@@ -89,8 +102,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxxxl,
   },
   title: {
-    fontSize: 48,
+    fontSize: 64,
     color: colors.text.light,
+    shadowColor: colors.brown.dark,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   menuContainer: {
     alignItems: 'center',
@@ -99,6 +117,9 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: colors.text.light,
     marginVertical: spacing.md,
+    backgroundColor: colors.background.brownWithOpacity,
+    borderRadius: spacing.borderRadius.lg,
+    paddingHorizontal: spacing.md,
   },
   subMenu: {
     alignItems: 'center',
