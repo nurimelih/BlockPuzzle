@@ -148,7 +148,7 @@ export const SoundManager = {
   },
 
   playWinEffect: (): void => {
-    // SoundManager.playEffect(require('../../assets/sounds/win.mp3'));
+    SoundManager.playEffect(require('../../assets/sounds/win.mp3'));
   },
 
   setBackgroundVolume: (volume: number): void => {

@@ -16,6 +16,7 @@ import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
+import { SoundManager } from '../../services/SoundManager.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
@@ -136,6 +137,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         const snapTop = gridY * CELL_HEIGHT - PIECE_CONTAINER_TOP_PADDING;
 
         if (canPlaceResult) {
+          SoundManager.playPlaceEffect();
           setUiPositions(prev => ({
             ...prev,
             [id]: {
@@ -174,6 +176,12 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return () => clearInterval(interval);
   }, [isPaused, getElapsedTime, currentLevelNumber]);
 
+
+  useEffect(() => {
+    if (isOver) {
+      SoundManager.playWinEffect();
+    }
+  }, [isOver]);
 
   useEffect(() => {
     uiPositionsRef.current = uiPositions;
@@ -273,7 +281,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
               uiPos={uiPos}
               panHandlers={panResponder.panHandlers}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
-              onPressRotate={() => rotatePiece(gamePiece.id)}
+              onPressRotate={() => {
+                SoundManager.playRotateEffect();
+                rotatePiece(gamePiece.id);
+              }}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
             />
