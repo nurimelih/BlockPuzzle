@@ -4,11 +4,12 @@ import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, normalizePlacement } from '../core/gameCore.ts';
 import { LEVELS } from '../core/levels.ts';
 
-
 export const useGameState = (initialLevel: number) => {
   const [moveCount, setMoveCount] = useState(0);
   const [startTime] = useState(Date.now());
-  const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(LEVELS[initialLevel]);
+  const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(
+    LEVELS[initialLevel],
+  );
   const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
   const currentLevelRef = useRef(currentLevel);
   const [isOver, setIsOver] = useState(false);
@@ -131,9 +132,16 @@ export const useGameState = (initialLevel: number) => {
     return true;
   };
 
-  const checkIsOver = useCallback(() => {
-    return pieces.every(p => p.placed);
-  }, [pieces]);
+  const checkIsOver = useCallback(
+    (endWithMissingPieces: boolean = false) => {
+      return endWithMissingPieces
+        ? pieces.every(p => p.placed)
+        : pieces.every(p => p.placed) &&
+            currentLevel.board.flat().filter(c => c === 1).length ===
+              pieces.flatMap(p => p.baseMatrix.flat()).filter(i => i).length;
+    },
+    [pieces, currentLevel.board],
+  );
 
   const restart = useCallback(() => {
     setMoveCount(0);
@@ -151,8 +159,7 @@ export const useGameState = (initialLevel: number) => {
 
   const goLevel = useCallback((levelNumber: number) => {
     setCurrentLevelNumber(levelNumber);
-
-  },[])
+  }, []);
 
   const handleNextLevel = () => {
     setCurrentLevelNumber(curr => {
