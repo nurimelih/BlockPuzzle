@@ -1,16 +1,129 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Text } from '../components/AppText.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
-import { colors, typography } from '../../theme';
+import { colors, spacing, typography } from '../../theme';
+import { SoundManager } from '../../services/SoundManager.ts';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
-export const SettingsScreen: React.FC<Props> = () => {
+export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
+  const [musicEnabled, setMusicEnabled] = useState(
+    !SoundManager.isMusicMutedState(),
+  );
+  const [effectsEnabled, setEffectsEnabled] = useState(
+    !SoundManager.isEffectsMutedState(),
+  );
+  const [musicVolume, setMusicVolume] = useState(
+    SoundManager.getBackgroundVolume(),
+  );
+
+  const handleMusicToggle = (value: boolean) => {
+    setMusicEnabled(value);
+    SoundManager.setMusicMuted(!value);
+  };
+
+  const handleEffectsToggle = (value: boolean) => {
+    setEffectsEnabled(value);
+    SoundManager.setEffectsMuted(!value);
+  };
+
+  const handleVolumeChange = (volume: number) => {
+    setMusicVolume(volume);
+    SoundManager.setBackgroundVolume(volume);
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+      <View style={styles.header}>
+        <Pressable onPress={handleBack} style={styles.backButton}>
+          <Icon name="arrow-back" size={28} color={colors.text.light} />
+        </Pressable>
+        <Text style={styles.title}>Settings</Text>
+        <View style={styles.placeholder} />
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>Music</Text>
+          <Switch
+            value={musicEnabled}
+            onValueChange={handleMusicToggle}
+            trackColor={{
+              false: colors.brown.medium,
+              true: colors.primary,
+            }}
+            thumbColor={colors.text.light}
+          />
+        </View>
+
+        {musicEnabled && (
+          <View style={styles.volumeRow}>
+            <Pressable
+              style={[
+                styles.volumeButton,
+                musicVolume === 0.25 && styles.volumeButtonActive,
+              ]}
+              onPress={() => handleVolumeChange(0.25)}>
+              <Text
+                style={[
+                  styles.volumeButtonText,
+                  musicVolume === 0.25 && styles.volumeButtonTextActive,
+                ]}>
+                Low
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.volumeButton,
+                musicVolume === 0.5 && styles.volumeButtonActive,
+              ]}
+              onPress={() => handleVolumeChange(0.5)}>
+              <Text
+                style={[
+                  styles.volumeButtonText,
+                  musicVolume === 0.5 && styles.volumeButtonTextActive,
+                ]}>
+                Mid
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.volumeButton,
+                musicVolume === 1.0 && styles.volumeButtonActive,
+              ]}
+              onPress={() => handleVolumeChange(1.0)}>
+              <Text
+                style={[
+                  styles.volumeButtonText,
+                  musicVolume === 1.0 && styles.volumeButtonTextActive,
+                ]}>
+                High
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>Sound Effects</Text>
+          <Switch
+            value={effectsEnabled}
+            onValueChange={handleEffectsToggle}
+            trackColor={{
+              false: colors.brown.medium,
+              true: colors.primary,
+            }}
+            thumbColor={colors.text.light}
+          />
+        </View>
+
+      </View>
     </View>
   );
 };
@@ -18,11 +131,64 @@ export const SettingsScreen: React.FC<Props> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: spacing.xxxxl,
+  },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+  },
+  backButton: {
+    padding: spacing.sm,
   },
   title: {
     fontSize: typography.fontSize.xxl,
+    color: colors.text.light,
+  },
+  placeholder: {
+    width: 44,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.xxxl,
+    paddingTop: spacing.xxxl,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.brown.medium,
+  },
+  settingLabel: {
+    fontSize: typography.fontSize.xl,
+    color: colors.text.light,
+  },
+  volumeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    gap: spacing.md,
+  },
+  volumeButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: colors.brown.medium,
+    alignItems: 'center',
+  },
+  volumeButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  volumeButtonText: {
+    fontSize: typography.fontSize.lg,
+    color: colors.text.light,
+  },
+  volumeButtonTextActive: {
     color: colors.text.light,
   },
 });
