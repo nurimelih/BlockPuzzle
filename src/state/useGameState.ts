@@ -3,16 +3,21 @@ import { GamePiece, LevelDefinition, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, normalizePlacement } from '../core/gameCore.ts';
 import { LEVELS } from '../core/levels.ts';
+import { SoundManager } from '../services/SoundManager.ts';
 
 export const useGameState = (initialLevel: number) => {
   const [moveCount, setMoveCount] = useState(0);
-  const [startTime] = useState(Date.now());
   const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(
     LEVELS[initialLevel],
   );
   const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
   const currentLevelRef = useRef(currentLevel);
   const [isOver, setIsOver] = useState(false);
+
+  const [isPaused, setIsPaused] = useState(false);
+  const startTimeRef = useRef(Date.now());
+  const totalPausedTimeRef = useRef(0);
+  const pauseStartTimeRef = useRef<number | null>(null);
   // const [hintCount, setHintCount] = useState(0);
   // const [score, setScore] = useState(0);
 
@@ -146,6 +151,11 @@ export const useGameState = (initialLevel: number) => {
   const restart = useCallback(() => {
     setMoveCount(0);
 
+    startTimeRef.current = Date.now();
+    totalPausedTimeRef.current = 0;
+    pauseStartTimeRef.current = null;
+    setIsPaused(false);
+
     setPieces(curr => {
       return curr.map(currPiece => ({
         ...currPiece,
@@ -155,6 +165,32 @@ export const useGameState = (initialLevel: number) => {
         rotation: 0,
       }));
     });
+  }, []);
+
+  const pauseTimer = useCallback(() => {
+    if (!isPaused && pauseStartTimeRef.current === null) {
+      pauseStartTimeRef.current = Date.now();
+      setIsPaused(true);
+    }
+  }, [isPaused]);
+
+  const resumeTimer = useCallback(() => {
+    if (isPaused && pauseStartTimeRef.current !== null) {
+      totalPausedTimeRef.current += Date.now() - pauseStartTimeRef.current;
+      pauseStartTimeRef.current = null;
+      setIsPaused(false);
+    }
+  }, [isPaused]);
+
+  const getElapsedTime = useCallback(() => {
+    const now = Date.now();
+    let elapsed = now - startTimeRef.current - totalPausedTimeRef.current;
+
+    if (pauseStartTimeRef.current !== null) {
+      elapsed -= now - pauseStartTimeRef.current;
+    }
+
+    return Math.max(0, Math.floor(elapsed / 1000));
   }, []);
 
   const goLevel = useCallback((levelNumber: number) => {
@@ -180,8 +216,19 @@ export const useGameState = (initialLevel: number) => {
   }, [pieces]);
 
   useEffect(() => {
-    setIsOver(checkIsOver());
-  }, [moveCount, checkIsOver]);
+    const gameOver = checkIsOver();
+    setIsOver(gameOver);
+    if (gameOver) {
+      pauseTimer();
+    }
+  }, [moveCount, checkIsOver, pauseTimer]);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+    totalPausedTimeRef.current = 0;
+    pauseStartTimeRef.current = null;
+    setIsPaused(false);
+  }, [currentLevelNumber]);
 
   useEffect(() => {
     const newLevel = LEVELS[currentLevelNumber];
@@ -214,12 +261,13 @@ export const useGameState = (initialLevel: number) => {
     getPieceRotation,
     restart,
     moveCount,
-    startTime,
     isOver,
     handleNextLevel,
     handlePrevLevel,
     goLevel,
-    //hintCount,
-    //score,
+    isPaused,
+    pauseTimer,
+    resumeTimer,
+    getElapsedTime,
   };
 };

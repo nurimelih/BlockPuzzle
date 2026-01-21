@@ -22,7 +22,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
 export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { levelNumber } = route.params;
-  console.log("levelNumber", levelNumber)
   const {
     currentLevel,
     currentLevelNumber,
@@ -35,21 +34,15 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     isOver,
     restart,
     moveCount,
-    startTime,
     handleNextLevel,
     handlePrevLevel,
-    goLevel,
+    isPaused,
+    pauseTimer,
+    resumeTimer,
+    getElapsedTime,
   } = useGameState(levelNumber);
 
-  const [gameTime, setGameTime] = useState("00:00");
-
-  useEffect(() => {
-    // todo: her level'de süreyi ayrı tutsun, menüye basınca ya da level bitince süre donsun.
-    // level süresini useGameState içinde ayarla
-    setInterval(() => {
-      setGameTime(formatTime((Date.now() - startTime) / 1000));
-    }, 1000);
-  }, []);
+  const [gameTime, setGameTime] = useState('00:00');
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -159,10 +152,29 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   ).current;
 
   const toggleMenu = () => {
-    setMenuVisible(prev => !prev);
+    setMenuVisible(prev => {
+      const newVisible = !prev;
+      if (newVisible) {
+        pauseTimer();
+      } else {
+        resumeTimer();
+      }
+      return newVisible;
+    });
   };
 
-  // hooks
+  useEffect(() => {
+    if (isPaused) return;
+
+    setGameTime(formatTime(getElapsedTime()));
+    const interval = setInterval(() => {
+      setGameTime(formatTime(getElapsedTime()));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, getElapsedTime, currentLevelNumber]);
+
+
   useEffect(() => {
     uiPositionsRef.current = uiPositions;
   }, [uiPositions]);
