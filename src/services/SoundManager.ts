@@ -7,9 +7,6 @@ import {
 
 const BACKGROUND_TRACKS = [
   require('../../assets/sounds/music.mp3'),
-  require('../../assets/sounds/music1.mp3'),
-  require('../../assets/sounds/music2.mp3'),
-  require('../../assets/sounds/music3.mp3'),
 ];
 
 let audioContext: AudioContext | null = null;
@@ -66,14 +63,14 @@ const playCurrentTrack = async (): Promise<void> => {
   currentSource.buffer = buffer;
   currentSource.connect(gainNode);
 
-  currentSource.onended = () => {
+  currentSource.onEnded = () => {
     if (isBackgroundPlaying) {
       currentTrackIndex = (currentTrackIndex + 1) % BACKGROUND_TRACKS.length;
       playCurrentTrack();
     }
   };
 
-  currentSource.start();
+  currentSource.start(0, 7);
   console.log(`Playing track ${currentTrackIndex}`);
 };
 
