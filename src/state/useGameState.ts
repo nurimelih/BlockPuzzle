@@ -48,6 +48,8 @@ export const useGameState = (initialLevel: number) => {
   };
 
   const rotatePiece = useCallback((id: string) => {
+    SoundManager.playRotateEffect();
+
     setMoveCount((prev: number) => prev + 1);
     setPieces(prev =>
       prev.map(piece => {
@@ -125,6 +127,9 @@ export const useGameState = (initialLevel: number) => {
     );
 
     if (!result) return false;
+
+
+    SoundManager.playPlaceEffect();
 
     setPieces(prev =>
       prev.map(p =>
