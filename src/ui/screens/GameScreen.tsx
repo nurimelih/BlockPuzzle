@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
 import { SoundManager } from '../../services/SoundManager.ts';
+import { GameStorage } from '../../services/GameStorage.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
@@ -176,12 +177,12 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return () => clearInterval(interval);
   }, [isPaused, getElapsedTime, currentLevelNumber]);
 
-
   useEffect(() => {
     if (isOver) {
       SoundManager.playWinEffect();
+      GameStorage.saveCompletedLevel(currentLevelNumber, moveCount, getElapsedTime());
     }
-  }, [isOver]);
+  }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
 
   useEffect(() => {
     uiPositionsRef.current = uiPositions;
@@ -346,6 +347,12 @@ const styles = StyleSheet.create({
   },
   level: {
     position: 'absolute',
+    shadowColor: "black",
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: .4,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1,
   },
   row: {
     flexDirection: 'row',

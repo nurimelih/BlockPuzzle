@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
@@ -34,11 +34,11 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleNewGame = () => {
-    navigation.navigate('GameScreen', { levelNumber: 1 });
+    navigation.navigate('GameScreen', { levelNumber: 0 });
   };
 
-  const handleLoadGame = () => {
-    navigation.navigate('GameScreen', { levelNumber: 1 });
+  const handleLevelSelect = () => {
+    navigation.navigate('LevelSelect');
   };
 
   const handleSettings = () => {
@@ -74,7 +74,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </LabelButton>
 
           <LabelButton
-            pressableProps={{ onPress: handleLoadGame }}
+            pressableProps={{ onPress: handleLevelSelect }}
             style={styles.subMenuItem}
           >
             Level Select
