@@ -5,12 +5,10 @@ import {
   GainNode,
 } from 'react-native-audio-api';
 
-const BACKGROUND_TRACKS = [
-  require('../../assets/sounds/music.mp3'),
-];
+const HOMESCREEN_TRACK = require('../../assets/sounds/homescreen.mp3');
+const GAME_TRACK = require('../../assets/sounds/music.mp3');
 
 let audioContext: AudioContext | null = null;
-let currentTrackIndex = 0;
 let isBackgroundPlaying = false;
 let backgroundVolume = 0.5;
 let effectsVolume = 0.5;
@@ -18,6 +16,7 @@ let isMusicMuted = false;
 let isEffectsMuted = false;
 let currentSource: AudioBufferSourceNode | null = null;
 let gainNode: GainNode | null = null;
+let currentTrack: number | null = null;
 const audioBuffers = new Map<number, AudioBuffer>();
 
 const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
@@ -30,7 +29,6 @@ const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
   try {
     const buffer = await audioContext.decodeAudioData(assetModule);
     audioBuffers.set(assetModule, buffer);
-    console.log(`Loaded sound asset: ${assetModule}`);
     return buffer;
   } catch (error) {
     console.log('Failed to load sound:', assetModule, error);
@@ -38,40 +36,37 @@ const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
   }
 };
 
-const playCurrentTrack = async (): Promise<void> => {
-  if (!audioContext || !gainNode || !isBackgroundPlaying || isMusicMuted) {
-    return;
-  }
+const playTrack = async (track: number, loop: boolean = true): Promise<void> => {
+  if (!audioContext || !gainNode || isMusicMuted) return;
 
-  const currentAsset = BACKGROUND_TRACKS[currentTrackIndex];
-  const buffer = audioBuffers.get(currentAsset);
-
-  if (!buffer) {
-    console.log('Buffer not found for track:', currentTrackIndex);
-    return;
-  }
-
+  // Stop current track if playing
   if (currentSource) {
     try {
       currentSource.stop();
     } catch {
-      // Ignore if already stopped
+      // Ignore
     }
+    currentSource = null;
   }
+
+  const buffer = await loadSound(track);
+  if (!buffer) return;
 
   currentSource = audioContext.createBufferSource();
   currentSource.buffer = buffer;
   currentSource.connect(gainNode);
+  currentTrack = track;
+  isBackgroundPlaying = true;
 
-  currentSource.onEnded = () => {
-    if (isBackgroundPlaying) {
-      currentTrackIndex = (currentTrackIndex + 1) % BACKGROUND_TRACKS.length;
-      playCurrentTrack();
-    }
-  };
+  if (loop) {
+    currentSource.onEnded = () => {
+      if (isBackgroundPlaying && currentTrack === track) {
+        playTrack(track, true);
+      }
+    };
+  }
 
-  currentSource.start(0, 7);
-  console.log(`Playing track ${currentTrackIndex}`);
+  currentSource.start();
 };
 
 export const SoundManager = {
@@ -80,20 +75,19 @@ export const SoundManager = {
     gainNode = audioContext.createGain();
     gainNode.connect(audioContext.destination);
     gainNode.gain.value = backgroundVolume;
-
-    for (const track of BACKGROUND_TRACKS) {
-      await loadSound(track);
-    }
   },
 
-  playBackgroundMusic: async (): Promise<void> => {
-    if (!audioContext || isMusicMuted) return;
-    isBackgroundPlaying = true;
-    await playCurrentTrack();
+  playHomeMusic: async (): Promise<void> => {
+    await playTrack(HOMESCREEN_TRACK, true);
+  },
+
+  playGameMusic: async (): Promise<void> => {
+    await playTrack(GAME_TRACK, true);
   },
 
   stopBackgroundMusic: (): void => {
     isBackgroundPlaying = false;
+    currentTrack = null;
     if (currentSource) {
       try {
         currentSource.stop();
@@ -117,9 +111,8 @@ export const SoundManager = {
   },
 
   resumeBackgroundMusic: (): void => {
-    if (isMusicMuted) return;
-    isBackgroundPlaying = true;
-    playCurrentTrack();
+    if (isMusicMuted || !currentTrack) return;
+    playTrack(currentTrack, true);
   },
 
   playEffect: async (assetModule: number): Promise<void> => {

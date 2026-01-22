@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { LabelButton } from '../components/base/LabelButton.tsx';
+import { SoundManager } from '../../services/SoundManager.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -16,6 +17,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [playMenuOpen, setPlayMenuOpen] = useState(false);
   const menuHeight = useSharedValue(0);
   const menuOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    SoundManager.playHomeMusic();
+  }, []);
 
   const togglePlayMenu = () => {
     if (playMenuOpen) {
