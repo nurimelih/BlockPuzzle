@@ -4,8 +4,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
+import { LevelSelectScreen } from './src/ui/screens/LevelSelectScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import Background from './src/ui/components/Background.tsx';
+import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
@@ -42,18 +44,14 @@ function RootStack() {
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="LevelSelect" component={LevelSelectScreen} />
     </Stack.Navigator>
   );
 }
 
 function App() {
   useEffect(() => {
-    const initSound = async () => {
-      await SoundManager.init();
-      SoundManager.playBackgroundMusic();
-    };
-    initSound();
-
+    SoundManager.init();
     return () => {
       SoundManager.release();
     };
@@ -63,7 +61,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <SafeAreaProvider>
         <View style={styles.container}>
-          <Background />
+          <BackgroundImage />
           <SafeAreaView style={styles.safeArea}>
             <NavigationContainer>
               <RootStack />
