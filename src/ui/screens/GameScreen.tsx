@@ -46,6 +46,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const [gameTime, setGameTime] = useState('00:00');
 
+  useEffect(() => {
+    // SoundManager.playGameMusic();
+  }, []);
+
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
 
