@@ -6,6 +6,7 @@ import {
   PressableProps,
   TextProps,
   ViewStyle,
+  Platform,
 } from 'react-native';
 
 type Props = TextProps & {
@@ -18,9 +19,16 @@ export const LabelButton: React.FC<Props> = ({
   children,
   ...textProps
 }) => {
+
+  const FONT_FAMILY =
+    Platform.OS === 'ios'
+      ? 'Just Me Again Down Here'
+      : 'JustMeAgainDownHereRegular';
+
+
   const styles = StyleSheet.create({
     default: {
-      fontFamily: 'Just Me Again Down Here',
+      fontFamily: FONT_FAMILY,
     },
   });
 
