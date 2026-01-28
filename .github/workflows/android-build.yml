@@ -48,6 +48,11 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
+      - name: Bump version code
+        run: |
+          # GitHub run number olarak version code kullan
+          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/" android/app/build.gradle
+
       - name: Build Release AAB
         working-directory: android
         env:
