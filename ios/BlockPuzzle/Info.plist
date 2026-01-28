@@ -37,6 +37,8 @@
 	<string/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app does not use the microphone</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
