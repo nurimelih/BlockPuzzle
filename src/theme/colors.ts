@@ -13,9 +13,9 @@ export const colors = {
 
   // Placed piece colors
   piecePlaced: {
-    base: '#E0E0E0',
-    highlight: '#F5F5F5',
-    shadow: '#BDBDBD',
+    base: '#FFCC80',
+    highlight: '#D7CCC8',
+    shadow: '#8D6E63',
   },
 
   // Brown palette

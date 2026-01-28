@@ -18,6 +18,7 @@ type Props = {
   onPressRotate: () => void;
   cellWidth: number;
   cellHeight: number;
+  isActive: boolean;
 };
 
 export const AnimatedPiece: React.FC<Props> = ({
@@ -29,6 +30,7 @@ export const AnimatedPiece: React.FC<Props> = ({
   onPressRotate,
   cellWidth,
   cellHeight,
+  isActive,
 }) => {
   const rotateAnim = useSharedValue(0);
   const isRotatingRef = useRef(false);
@@ -65,13 +67,21 @@ export const AnimatedPiece: React.FC<Props> = ({
     height,
   };
 
+  const activeStyle = {
+    opacity: isActive ? 0.7 : 1,
+    transform: [{ scale: isActive ? 1.1 : 1 }],
+  };
+
   return (
     <Animated.View
       {...panHandlers}
       onTouchStart={onTouchStart}
       style={[containerStyle, rotateStyle]}
     >
-      <Pressable onPress={handleRotate}>
+      <Pressable
+        onPress={handleRotate}
+        style={activeStyle}
+      >
         {matrix.map((row, rowIndex) => {
           return (
             <View style={styles.pieceRow} key={`row-${rowIndex}`}>
@@ -90,7 +100,11 @@ export const AnimatedPiece: React.FC<Props> = ({
                     <View
                       key={`cell-${rowIndex}-${colIndex}`}
                       pointerEvents="none"
-                      style={[styles.cell, styles.empty, { width: cellWidth, height: cellHeight }]}
+                      style={[
+                        styles.cell,
+                        styles.empty,
+                        { width: cellWidth, height: cellHeight },
+                      ]}
                     />
                   );
                 }

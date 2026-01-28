@@ -152,6 +152,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           }));
         }
         releaseAndTryLockPiece(id, gridX, gridY, canPlaceResult);
+        setActivePieceId(undefined);
 
         if (!canPlaceResult) console.log('Not snapping', gridX, gridY);
       },
@@ -184,7 +185,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     if (isOver) {
       SoundManager.playWinEffect();
-      GameStorage.saveCompletedLevel(currentLevelNumber, moveCount, getElapsedTime());
+      GameStorage.saveCompletedLevel(
+        currentLevelNumber,
+        moveCount,
+        getElapsedTime(),
+      );
     }
   }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
 
@@ -292,6 +297,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
               }}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
+              isActive={activePieceId === gamePiece.id}
             />
           );
         })}
@@ -351,9 +357,9 @@ const styles = StyleSheet.create({
   },
   level: {
     position: 'absolute',
-    shadowColor: "black",
+    shadowColor: 'black',
     shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: .4,
+    shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 5,
     zIndex: 1,
