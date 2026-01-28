@@ -19,6 +19,7 @@ import { formatTime } from '../../core/utils.ts';
 import { SoundManager } from '../../services/SoundManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
+import { Analytics } from '../../services/Analytics.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -48,7 +49,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     // SoundManager.playGameMusic();
-  }, []);
+    Analytics.logLevelStart(currentLevelNumber);
+  }, [currentLevelNumber]);
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -184,6 +186,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     if (isOver) {
+      Analytics.logLevelComplete(currentLevelNumber, moveCount, getElapsedTime());
       SoundManager.playWinEffect();
       GameStorage.saveCompletedLevel(
         currentLevelNumber,
