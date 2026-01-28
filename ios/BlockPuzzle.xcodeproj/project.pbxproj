@@ -16,6 +16,7 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		AE53159F8ADD7E9570917EAE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		C42F116573FF4FFABCF698C4 /* music.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 28D5F0CF57D34030A3553F66 /* music.mp3 */; };
+		D4465A602F2A5E1200F8A2E0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D4465A5F2F2A5E1200F8A2E0 /* GoogleService-Info.plist */; };
 		DA41853A39AB44229AB11225 /* music1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7C98EE75A42C40BDB99147DB /* music1.mp3 */; };
 /* End PBXBuildFile section */
 
@@ -34,6 +35,7 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BlockPuzzle/AppDelegate.swift; sourceTree = "<group>"; };
 		7C98EE75A42C40BDB99147DB /* music1.mp3 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = music1.mp3; path = ../assets/sounds/music1.mp3; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BlockPuzzle/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		D4465A5F2F2A5E1200F8A2E0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -56,6 +58,7 @@
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
+				D4465A5F2F2A5E1200F8A2E0 /* GoogleService-Info.plist */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 			);
 			name = BlockPuzzle;
@@ -184,6 +187,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				D4465A602F2A5E1200F8A2E0 /* GoogleService-Info.plist in Resources */,
 				AE53159F8ADD7E9570917EAE /* PrivacyInfo.xcprivacy in Resources */,
 				2918BF493E2F416FBDDA61B0 /* JustMeAgainDownHereRegular.ttf in Resources */,
 				C42F116573FF4FFABCF698C4 /* music.mp3 in Resources */,
