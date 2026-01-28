@@ -6,7 +6,7 @@ import {
 } from 'react-native-audio-api';
 
 const HOMESCREEN_TRACK = require('../../assets/sounds/homescreen.mp3');
-const GAME_TRACK = require('../../assets/sounds/music.mp3');
+// const GAME_TRACK = require('../../assets/sounds/music.mp3');
 
 let audioContext: AudioContext | null = null;
 let isBackgroundPlaying = false;
@@ -82,7 +82,7 @@ export const SoundManager = {
   },
 
   playGameMusic: async (): Promise<void> => {
-    await playTrack(GAME_TRACK, true);
+    // await playTrack(GAME_TRACK, true);
   },
 
   stopBackgroundMusic: (): void => {
