@@ -27,7 +27,9 @@ echo "Installing CocoaPods dependencies..."
 cd ios
 export USE_FRAMEWORKS=static
 export RCT_NEW_ARCH_ENABLED=1
-bundle install
-bundle exec pod install
+
+# Install CocoaPods directly via gem (skip bundler)
+gem install cocoapods
+pod install
 
 echo "===== Post Clone Script Complete ====="
