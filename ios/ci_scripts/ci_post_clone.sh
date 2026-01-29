@@ -6,6 +6,10 @@ echo "===== Xcode Cloud Post Clone Script ====="
 # Navigate to project root
 cd "$CI_PRIMARY_REPOSITORY_PATH"
 
+# Decode GoogleService-Info.plist from environment variable
+echo "Creating GoogleService-Info.plist..."
+echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > ios/GoogleService-Info.plist
+
 # Install Node.js using Homebrew
 echo "Installing Node.js..."
 brew install node@22
