@@ -28,8 +28,8 @@ cd ios
 export USE_FRAMEWORKS=static
 export RCT_NEW_ARCH_ENABLED=1
 
-# Install CocoaPods directly via gem (skip bundler)
-gem install cocoapods
+# Install CocoaPods via Homebrew (system Ruby has no write permission)
+brew install cocoapods
 pod install
 
 echo "===== Post Clone Script Complete ====="
