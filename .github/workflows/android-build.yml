@@ -42,6 +42,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -73,3 +78,11 @@ jobs:
         with:
           name: app-release
           path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload to Play Console (Internal Testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.nurimelih.blockpuzzle
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
