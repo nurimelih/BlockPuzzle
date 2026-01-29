@@ -1,12 +1,7 @@
-import {
-  AudioContext,
-  AudioBuffer,
-  AudioBufferSourceNode,
-  GainNode,
-} from 'react-native-audio-api';
+import {AudioBuffer, AudioBufferSourceNode, AudioContext, GainNode,} from 'react-native-audio-api';
+import {Image} from 'react-native';
 
 const HOMESCREEN_TRACK = require('../../assets/sounds/homescreen.mp3');
-// const GAME_TRACK = require('../../assets/sounds/music.mp3');
 
 let audioContext: AudioContext | null = null;
 let isBackgroundPlaying = false;
@@ -27,7 +22,12 @@ const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
   }
 
   try {
-    const buffer = await audioContext.decodeAudioData(assetModule);
+    const assetSource = Image.resolveAssetSource(assetModule);
+    const uri = assetSource?.uri;
+
+    if (!uri) return null;
+
+    const buffer = await audioContext.decodeAudioData(uri);
     audioBuffers.set(assetModule, buffer);
     return buffer;
   } catch (error) {
@@ -39,7 +39,10 @@ const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
 const playTrack = async (track: number, loop: boolean = true): Promise<void> => {
   if (!audioContext || !gainNode || isMusicMuted) return;
 
-  // Stop current track if playing
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume();
+  }
+
   if (currentSource) {
     try {
       currentSource.stop();
@@ -71,10 +74,19 @@ const playTrack = async (track: number, loop: boolean = true): Promise<void> => 
 
 export const SoundManager = {
   init: async (): Promise<void> => {
-    audioContext = new AudioContext();
-    gainNode = audioContext.createGain();
-    gainNode.connect(audioContext.destination);
-    gainNode.gain.value = backgroundVolume;
+    try {
+      audioContext = new AudioContext();
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      gainNode = audioContext.createGain();
+      gainNode.connect(audioContext.destination);
+      gainNode.gain.value = backgroundVolume;
+    } catch (error) {
+      console.error('SoundManager init failed:', error);
+    }
   },
 
   playHomeMusic: async (): Promise<void> => {
@@ -122,7 +134,7 @@ export const SoundManager = {
     if (!buffer) return;
 
     const effectGain = audioContext.createGain();
-    effectGain.gain.value = effectsVolume ;
+    effectGain.gain.value = effectsVolume;
     effectGain.connect(audioContext.destination);
 
     const source = audioContext.createBufferSource();
@@ -133,7 +145,11 @@ export const SoundManager = {
   },
 
   playPlaceEffect: (): void => {
-    SoundManager.playEffect(require('../../assets/sounds/placed.mp3'));
+    try {
+      SoundManager.playEffect(require('../../assets/sounds/placed.mp3'));
+    } catch (error) {
+      console.error('playPlaceEffect failed:', error);
+    }
   },
 
   playRotateEffect: (): void => {
