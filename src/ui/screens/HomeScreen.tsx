@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { SoundManager } from '../../services/SoundManager.ts';
+import DeviceInfo from 'react-native-device-info';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -90,7 +91,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.versionContainer}>
-        <LabelButton style={styles.versionText}>v 0.0.1</LabelButton>
+        <LabelButton style={styles.versionText}>v {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})</LabelButton>
       </View>
     </View>
   );
