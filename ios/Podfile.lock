@@ -2760,6 +2760,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNDeviceInfo (15.0.1):
+    - React-Core
   - RNFBAnalytics (23.8.3):
     - boost
     - DoubleConversion
@@ -3229,6 +3231,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNAudioAPI (from `../node_modules/react-native-audio-api`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -3412,6 +3415,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-audio-api"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -3518,6 +3523,7 @@ SPEC CHECKSUMS:
   ReactCommon: 15e1e727fa34f760beb7dd52928687fda8edf8dc
   RNAudioAPI: a4f89cf576ee1c8bb1bd77ae93b405156d4868ae
   RNCAsyncStorage: fd44f4b03e007e642e98df6726737bc66e9ba609
+  RNDeviceInfo: 36d7f232bfe7c9b5c494cb7793230424ed32c388
   RNFBAnalytics: 2305a40e83a0d79f9a5c7b58a5d842692acf5920
   RNFBApp: fe515c180ffb9267935050177db2c1e9fe3878ae
   RNReanimated: fbcb7fd8da5b0b088401542c58fb5d266388f1cf
