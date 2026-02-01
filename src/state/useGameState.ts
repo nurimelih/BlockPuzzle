@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GamePiece, LevelDefinition, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
-import { canPlace, normalizePlacement } from '../core/gameCore.ts';
+import { canPlace, getAdjustedPlacement } from '../core/gameCore.ts';
 import { LEVELS } from '../core/levels.ts';
 
 export const useGameState = (initialLevel: number) => {
@@ -116,7 +116,7 @@ export const useGameState = (initialLevel: number) => {
       freshPieces.filter(p => p.placed && p.id !== id),
     );
 
-    const normalized = normalizePlacement(matrix, x, y);
+    const normalized = getAdjustedPlacement(matrix, x, y);
     const result = canPlace(
       currentLevelRef.current.board,
       normalized,

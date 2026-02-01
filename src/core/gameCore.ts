@@ -23,7 +23,9 @@ export const PIECES = [
   Z_PIECE,
 ];
 
-export const normalizePlacement = (
+
+// Re-anchors placement to the first filled cell
+export const getAdjustedPlacement = (
   matrix: PieceMatrix,
   gridX: number,
   gridY: number,
