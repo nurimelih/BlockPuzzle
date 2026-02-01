@@ -16,6 +16,7 @@ type Props = {
   onPreviousLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
+  onSettings: () => void;
   currentLevelNumber: number;
   isLastLevel: boolean;
   onDismiss: () => void;
@@ -28,6 +29,7 @@ export const MenuOverlay: React.FC<Props> = ({
   onPreviousLevel,
   onRestart,
   onHome,
+  onSettings,
   currentLevelNumber,
   isLastLevel,
   onDismiss,
@@ -108,17 +110,6 @@ export const MenuOverlay: React.FC<Props> = ({
               Restart Level
             </LabelButton>
 
-            {/*Debug*/}
-            <LabelButton
-              pressableProps={{
-                onPress: onNextLevel,
-                style: [styles.secondaryButton],
-              }}
-              style={styles.secondaryButtonText}
-            >
-              Next Level
-            </LabelButton>
-
             <LabelButton
               pressableProps={{
                 onPress: onPreviousLevel,
@@ -127,6 +118,16 @@ export const MenuOverlay: React.FC<Props> = ({
               style={styles.secondaryButtonText}
             >
               Previous Level
+            </LabelButton>
+
+            <LabelButton
+              pressableProps={{
+                onPress: onSettings,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
+            >
+              Settings
             </LabelButton>
 
             <LabelButton

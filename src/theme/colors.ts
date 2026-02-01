@@ -29,13 +29,13 @@ export const colors = {
   background: {
     cream: '#FFF8E1',
     brownWithOpacity: 'rgba(109, 76, 65, .4)',
-    overlay: 'rgba(93, 64, 55, 0.6)',
+    overlay: 'rgba(93, 64, 55, 0.4)',
     transparent: 'transparent',
   },
 
   // Board colors
   board: {
-    cellAvailable: 'rgba(109, 76, 65, 0.5)',
+    cellAvailable: 'rgba(109, 76, 65, 0.7)',
     cellInvalid: 'rgba(0, 0, 0, 0.2)',
     cellBorder: 'rgba(255, 255, 255, 0.3)',
     cellBorderInvalid: 'rgba(0, 0, 0, 0.1)',

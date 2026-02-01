@@ -48,7 +48,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [gameTime, setGameTime] = useState('00:00');
 
   useEffect(() => {
-    // SoundManager.playGameMusic();
     Analytics.logLevelStart(currentLevelNumber);
   }, [currentLevelNumber]);
 
@@ -234,6 +233,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleHome = () => {
     navigation.navigate('HomeScreen');
   };
+  const handleSettings = () => {
+    navigation.navigate('Settings');
+  };
 
   const generateCellStyle = useCallback((cell: Cell) => {
     switch (cell) {
@@ -335,7 +337,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       {renderPieces()}
 
       <Pressable onPress={toggleMenu} style={styles.settingsIcon}>
-        <Icon name="settings-outline" size={24} color={colors.piece.base} />
+        <View style={styles.iconShadow}>
+          <Icon name="settings-outline" size={22} color={colors.white} />
+        </View>
       </Pressable>
       <MenuOverlay
         onDismiss={toggleMenu}
@@ -345,6 +349,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onPreviousLevel={handlePrevLevel}
         onRestart={handleRestart}
         onHome={handleHome}
+        onSettings={handleSettings}
         currentLevelNumber={currentLevelNumber}
         isLastLevel={currentLevelNumber === LEVELS.length}
       />
@@ -362,7 +367,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     shadowColor: 'black',
     shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 1,
     shadowRadius: 4,
     elevation: 5,
     zIndex: 1,
@@ -411,11 +416,17 @@ const styles = StyleSheet.create({
 
   levelText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   movesText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   timerRow: {
     flex: 1,
@@ -425,9 +436,18 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   settingsIcon: {
     paddingBottom: spacing.xl,
+  },
+  iconShadow: {
+    shadowColor: 'rgba(0, 0, 0, 0.75)',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
   },
 });

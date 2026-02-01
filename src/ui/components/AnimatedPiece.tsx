@@ -65,10 +65,10 @@ export const AnimatedPiece: React.FC<Props> = ({
     top: uiPos?.top,
     width,
     height,
+    zIndex: isActive ? 100 : gamePiece.placed ? 1 : 50,
   };
 
   const activeStyle = {
-    opacity: isActive ? 0.7 : 1,
     transform: [{ scale: isActive ? 1.1 : 1 }],
   };
 
@@ -135,8 +135,8 @@ export const AnimatedPiece: React.FC<Props> = ({
                         borderRightWidth: hasRight ? 0 : 2,
                         borderRightColor: pieceColors.shadow,
                         shadowColor: colors.black,
-                        shadowOffset: { width: 1, height: 2 },
-                        shadowOpacity: gamePiece.placed ? 0.15 : 0.3,
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: gamePiece.placed ? .5 : 0.3,
                         shadowRadius: gamePiece.placed ? 2 : 4,
                         elevation: gamePiece.placed ? 2 : 5,
                       },
