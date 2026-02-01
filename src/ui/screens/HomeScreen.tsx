@@ -19,10 +19,6 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const menuHeight = useSharedValue(0);
   const menuOpacity = useSharedValue(0);
 
-  useEffect(() => {
-    SoundManager.playHomeMusic();
-  }, []);
-
   const togglePlayMenu = () => {
     if (playMenuOpen) {
       menuHeight.value = withTiming(0, { duration: 200 });
