@@ -1,6 +1,9 @@
 ENV['USE_FRAMEWORKS'] = 'static'
 ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 
+# Firebase: skip Firebase pods when FIREBASE_ENABLED=false
+$FirebaseEnabled = ENV['FIREBASE_ENABLED'] != 'false'
+
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -15,7 +18,10 @@ linkage = ENV['USE_FRAMEWORKS']
 Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
 
 target 'BlockPuzzle' do
-  config = use_native_modules!
+  config = use_native_modules!(
+    # Disable Firebase when FIREBASE_ENABLED=false
+    :excluded => $FirebaseEnabled ? [] : ['@react-native-firebase/app', '@react-native-firebase/analytics']
+  )
   use_frameworks! :linkage => :static
 
   use_react_native!(

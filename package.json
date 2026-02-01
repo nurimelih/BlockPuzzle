@@ -13,7 +13,11 @@
     "pod-install": "cd ios && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
     "pod-install-hard": "cd ios && rm -rf Podfile.lock && rm -rf Pods && rm -rf build && rm -rf ~/Library/Developer/Xcode/DerivedData && pod cache clean --all && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --repo-update",
     "reset-hard": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build ~/Library/Developer/Xcode/DerivedData && yarn cache clean && yarn && yarn pod-install-hard",
-    "reset": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build && yarn cache clean && yarn"
+    "reset": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build && yarn cache clean && yarn",
+    "android:bump-version": "node -e \"const fs=require('fs'); const file='android/app/build.gradle'; let content=fs.readFileSync(file,'utf8'); const match=content.match(/versionCode (\\d+)/); const newVersion=parseInt(match[1])+1; content=content.replace(/versionCode \\d+/,'versionCode '+newVersion); fs.writeFileSync(file,content); console.log('versionCode bumped to',newVersion);\"",
+    "android:fast": "FIREBASE_ENABLED=false react-native run-android",
+    "ios:fast": "FIREBASE_ENABLED=false react-native run-ios",
+    "pod-install:fast": "cd ios && FIREBASE_ENABLED=false USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 pod install"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -48,6 +52,7 @@
     "@react-native/metro-config": "0.83.1",
     "@react-native/typescript-config": "0.83.1",
     "@types/jest": "29.5.13",
+    "@types/node": "25.1.0",
     "@types/react": "19.2.0",
     "@types/react-test-renderer": "19.1.0",
     "eslint": "8.19.0",
