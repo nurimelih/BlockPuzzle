@@ -39,6 +39,8 @@ const loadSound = async (assetModule: number): Promise<AudioBuffer | null> => {
 const playTrack = async (track: number, loop: boolean = true): Promise<void> => {
   if (!audioContext || !gainNode || isMusicMuted) return;
 
+  if (currentTrack === track && isBackgroundPlaying) return;
+
   if (audioContext.state === 'suspended') {
     await audioContext.resume();
   }
