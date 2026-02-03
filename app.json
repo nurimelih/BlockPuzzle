@@ -1,4 +1,14 @@
 {
   "name": "BlockPuzzle",
-  "displayName": "BlockPuzzle"
+  "displayName": "BlockPuzzle",
+  "expo": {
+    "jsEngine": "jsc"
+  },
+  "android": {
+    "package": "com.nurimelih.blockpuzzle"
+  },
+  "ios": {
+    "bundleIdentifier": "com.nurimelih.blockpuzzle",
+    "jsEngine": "jsc"
+  }
 }
