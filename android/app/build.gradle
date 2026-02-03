@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-apply plugin: "expo.modules.plugin.gradle"
+apply plugin: "expo-autolinking"
 
 // Firebase: only apply google-services plugin when FIREBASE_ENABLED is not 'false'
 if (System.getenv("FIREBASE_ENABLED") != "false") {
