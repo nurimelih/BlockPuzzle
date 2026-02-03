@@ -4,9 +4,9 @@ PODS:
   - EXAV (16.0.8):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
-  - EXConstants (18.0.13):
+  - EXConstants (55.0.3):
     - ExpoModulesCore
-  - Expo (54.0.33):
+  - Expo (55.0.0-preview.8):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -37,17 +37,22 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - ExpoAsset (12.0.12):
+  - ExpoAsset (55.0.3):
     - ExpoModulesCore
-  - ExpoFileSystem (19.0.21):
+  - ExpoDomWebView (55.0.2):
     - ExpoModulesCore
-  - ExpoFont (14.0.11):
+  - ExpoFileSystem (55.0.4):
     - ExpoModulesCore
-  - ExpoKeepAwake (15.0.8):
+  - ExpoFont (55.0.3):
     - ExpoModulesCore
-  - ExpoModulesCore (3.0.29):
+  - ExpoKeepAwake (55.0.2):
+    - ExpoModulesCore
+  - ExpoLogBox (55.0.4):
+    - React-Core
+  - ExpoModulesCore (55.0.6):
     - boost
     - DoubleConversion
+    - ExpoModulesJSI
     - fast_float
     - fmt
     - glog
@@ -72,8 +77,13 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - RNWorklets
     - SocketRocket
     - Yoga
+  - ExpoModulesJSI (55.0.6):
+    - hermes-engine
+    - React-Core
+    - ReactCommon
   - fast_float (8.0.0)
   - FBLazyVector (0.83.1)
   - Firebase/CoreOnly (12.8.0):
@@ -3111,10 +3121,13 @@ DEPENDENCIES:
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
+  - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoModulesJSI (from `../node_modules/expo-modules-core`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -3229,13 +3242,19 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoDomWebView:
+    :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
+  ExpoLogBox:
+    :path: "../node_modules/@expo/log-box"
   ExpoModulesCore:
+    :path: "../node_modules/expo-modules-core"
+  ExpoModulesJSI:
     :path: "../node_modules/expo-modules-core"
   fast_float:
     :podspec: "../node_modules/react-native/third-party-podspecs/fast_float.podspec"
@@ -3413,13 +3432,16 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: b60fcf142fae6684d295bc28cd7cfcb3335570ea
-  EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
-  Expo: ec20d60a9ba93352323b8f773c0e59bc7aa1c492
-  ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
-  ExpoFileSystem: 858a44267a3e6e9057e0888ad7c7cfbf55d52063
-  ExpoFont: f543ce20a228dd702813668b1a07b46f51878d47
-  ExpoKeepAwake: 55f75eca6499bb9e4231ebad6f3e9cb8f99c0296
-  ExpoModulesCore: 9f05757867a80c8637f4c94b758891ad8a250754
+  EXConstants: 9b0ceaa3eb81fc2501ba4f857c1c108a5148c792
+  Expo: 07a01e239d31cd723338fd7107cfaae84777952f
+  ExpoAsset: 247242c8177e7d9f80ce5590119b5dd09d97db10
+  ExpoDomWebView: c0343b93dabed758db1e14ef1d1e570a1498562a
+  ExpoFileSystem: 134b6426e62c1a4e8a75504a3d01bf79b752dbac
+  ExpoFont: f01db35a4e4efef9c0d06fdbadee21c889cb13cb
+  ExpoKeepAwake: 101e3e70d6e082813949e31c966e10783f87dddb
+  ExpoLogBox: ecf60d496a29ab167c50f438646509f92c22e6b6
+  ExpoModulesCore: f884e15881bfaed9be26c5519e17bf3d9dbda70b
+  ExpoModulesJSI: 01024ab7a3106bf797b1fcf750b1738cc7102cff
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 309703e71d3f2f1ed7dc7889d58309c9d77a95a4
   Firebase: 9a58fdbc9d8655ed7b79a19cf9690bb007d3d46d
