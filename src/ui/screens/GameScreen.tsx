@@ -20,6 +20,7 @@ import { SoundManager } from '../../services/SoundManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { Analytics } from '../../services/Analytics.ts';
+import { useAppStore } from '../../state/useAppStore.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -46,10 +47,17 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   } = useGameState(levelNumber);
 
   const [gameTime, setGameTime] = useState('00:00');
+  const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
+  const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
 
   useEffect(() => {
+    setCurrentScreen('game');
+  }, [setCurrentScreen]);
+
+  useEffect(() => {
+    setCurrentLevel(currentLevelNumber);
     Analytics.logLevelStart(currentLevelNumber);
-  }, [currentLevelNumber]);
+  }, [currentLevelNumber, setCurrentLevel]);
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;

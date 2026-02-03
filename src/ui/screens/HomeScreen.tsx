@@ -11,13 +11,19 @@ import Animated, {
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { SoundManager } from '../../services/SoundManager.ts';
 import DeviceInfo from 'react-native-device-info';
+import { useAppStore } from '../../state/useAppStore.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const [playMenuOpen, setPlayMenuOpen] = useState(false);
   const menuHeight = useSharedValue(0);
   const menuOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    setCurrentScreen('home');
+  }, [setCurrentScreen]);
 
   const togglePlayMenu = () => {
     if (playMenuOpen) {

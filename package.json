@@ -15,6 +15,7 @@
     "pod-install-hard": "cd ios && rm -rf Podfile.lock && rm -rf Pods && rm -rf build && rm -rf ~/Library/Developer/Xcode/DerivedData && pod cache clean --all && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --repo-update",
     "reset-hard": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build ~/Library/Developer/Xcode/DerivedData && yarn cache clean && yarn && yarn pod-install-hard",
     "reset": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build && yarn cache clean && yarn",
+    "icon-make": "sips -z 48 48 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-mdpi/ic_launcher.png && sips -z 72 72 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-hdpi/ic_launcher.png && sips -z 96 96 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xhdpi/ic_launcher.png && sips -z 144 144 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png && sips -z 192 192 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png && sips -z 48 48 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png && sips -z 72 72 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png && sips -z 96 96 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png && sips -z 144 144 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png && sips -z 192 192 ios/BlockPuzzle/Images.xcassets/AppIcon.appiconset/1024.png --out android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png && echo 'Android icons generated from iOS 1024.png'",
     "android:bump-version": "node -e \"const fs=require('fs'); const file='android/app/build.gradle'; let content=fs.readFileSync(file,'utf8'); const match=content.match(/versionCode (\\d+)/); const newVersion=parseInt(match[1])+1; content=content.replace(/versionCode \\d+/,'versionCode '+newVersion); fs.writeFileSync(file,content); console.log('versionCode bumped to',newVersion);\"",
     "android:fast": "FIREBASE_ENABLED=false react-native run-android",
     "ios:fast": "FIREBASE_ENABLED=false react-native run-ios --scheme BlockPuzzle-Dev",
@@ -40,7 +41,8 @@
     "react-native-screens": "4.20.0",
     "react-native-svg": "15.15.1",
     "react-native-vector-icons": "10.3.0",
-    "react-native-worklets": "0.7.1"
+    "react-native-worklets": "0.7.1",
+    "zustand": "5.0.11"
   },
   "devDependencies": {
     "@babel/core": "7.25.2",
