@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -74,10 +74,7 @@ export const MenuOverlay: React.FC<Props> = ({
             {isWin && !isLastLevel && (
               <LabelButton
                 pressableProps={{
-                  onPress: (e) => {
-                    e.stopPropagation();
-                    onNextLevel();
-                  },
+                  onPress: onNextLevel,
                   style: [styles.primaryButton],
                 }}
                 style={styles.primaryButtonText}
@@ -144,9 +141,8 @@ export const MenuOverlay: React.FC<Props> = ({
               Home
             </LabelButton>
           </View>
-        </Animated.View>
-      </View>
-    </Pressable>
+      </Animated.View>
+    </View>
   );
 };
 
@@ -154,8 +150,11 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    backgroundColor: colors.background.overlay,
     zIndex: 9,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.background.overlay,
   },
   overlay: {
     backgroundColor: colors.background.cream,
