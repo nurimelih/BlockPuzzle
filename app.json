@@ -1,4 +1,26 @@
 {
   "name": "BlockPuzzle",
-  "displayName": "BlockPuzzle"
+  "displayName": "BlockPuzzle",
+  "expo": {
+    "name": "BlockPuzzle",
+    "slug": "block-puzzle",
+    "owner": "nurimelih",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/10f43049-6f71-4498-a61b-f384fb000dbe",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "10f43049-6f71-4498-a61b-f384fb000dbe"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.nurimelih.blockpuzzle"
+    },
+    "android": {
+      "package": "com.nurimelih.blockpuzzle"
+    }
+  }
 }
