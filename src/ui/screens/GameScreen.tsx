@@ -343,7 +343,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <View>
         <View style={styles.headerRow}>
-          <LabelButton style={styles.levelText}>
+          <LabelButton style={styles.levelText} onPress={handleNextLevel}>
             Level {currentLevelNumber + 1}
           </LabelButton>
           <LabelButton style={styles.movesText}>Moves {moveCount}</LabelButton>

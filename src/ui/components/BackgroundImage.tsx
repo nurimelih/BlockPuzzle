@@ -55,9 +55,9 @@ export default function BackgroundImage() {
     };
 
     if (currentScreen === 'home') {
-      // Home ekranında sol üst, normal zoom
-      translateX.value = withTiming(0, timingConfig);
-      translateY.value = withTiming(0, timingConfig);
+      // Home ekranında resmin orta taraflarına zoom yapılmış halde
+      translateX.value = withTiming(-SCREEN_WIDTH / 2, timingConfig);
+      translateY.value = withTiming(-SCREEN_WIDTH / 2, timingConfig);
       imageWidth.value = withTiming(SCREEN_WIDTH * 2, timingConfig);
       imageHeight.value = withTiming(SCREEN_HEIGHT * 2, timingConfig);
     } else if (currentScreen === 'game') {
