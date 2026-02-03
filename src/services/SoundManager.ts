@@ -1,6 +1,11 @@
 import {Audio, AVPlaybackStatus} from 'expo-av';
 
 const HOMESCREEN_TRACK = require('../../assets/sounds/homescreen.mp3');
+const GAME_TRACKS = [
+  require('../../assets/sounds/game1.mp3'),
+  require('../../assets/sounds/game2.mp3'),
+  require('../../assets/sounds/game3.mp3'),
+];
 
 let backgroundSound: Audio.Sound | null = null;
 let isBackgroundPlaying = false;
@@ -9,6 +14,8 @@ let effectsVolume = 0.5;
 let isMusicMuted = false;
 let isEffectsMuted = false;
 let currentTrack: number | null = null;
+let currentPlaylist: number[] | null = null;
+let currentPlaylistIndex = 0;
 
 const effectSounds = new Map<number, Audio.Sound>();
 
@@ -25,6 +32,13 @@ const loadEffect = async (assetModule: number): Promise<Audio.Sound | null> => {
     console.log('Failed to load effect:', assetModule, error);
     return null;
   }
+};
+
+const playNextInPlaylist = async (): Promise<void> => {
+  if (!currentPlaylist || currentPlaylist.length === 0) return;
+
+  currentPlaylistIndex = (currentPlaylistIndex + 1) % currentPlaylist.length;
+  await playTrack(currentPlaylist[currentPlaylistIndex], false);
 };
 
 const playTrack = async (track: number, loop: boolean = true): Promise<void> => {
@@ -53,8 +67,11 @@ const playTrack = async (track: number, loop: boolean = true): Promise<void> => 
     isBackgroundPlaying = true;
 
     sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-      if (status.isLoaded && status.didJustFinish && !loop) {
+      if (status.isLoaded && status.didJustFinish) {
         isBackgroundPlaying = false;
+        if (!loop && currentPlaylist) {
+          playNextInPlaylist();
+        }
       }
     });
 
@@ -77,16 +94,21 @@ export const SoundManager = {
   },
 
   playHomeMusic: async (): Promise<void> => {
+    currentPlaylist = null;
     await playTrack(HOMESCREEN_TRACK, true);
   },
 
   playGameMusic: async (): Promise<void> => {
-    // await playTrack(GAME_TRACK, true);
+    currentPlaylist = GAME_TRACKS;
+    currentPlaylistIndex = 0;
+    await playTrack(GAME_TRACKS[0], false);
   },
 
   stopBackgroundMusic: async (): Promise<void> => {
     isBackgroundPlaying = false;
     currentTrack = null;
+    currentPlaylist = null;
+    currentPlaylistIndex = 0;
     if (backgroundSound) {
       try {
         await backgroundSound.stopAsync();

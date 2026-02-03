@@ -52,13 +52,15 @@ function RootStack() {
 function App() {
   const init_sound = async () => {
     await SoundManager.init();
-    SoundManager.playHomeMusic();
+    SoundManager.playGameMusic();
   };
 
   useEffect(() => {
     init_sound();
 
-    return () => SoundManager.release();
+    return () => {
+      SoundManager.release();
+    };
   }, []);
 
   return (
