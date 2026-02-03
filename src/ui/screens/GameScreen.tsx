@@ -385,8 +385,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
         isWin={isOver}
-        onNextLevel={handleNextLevel}
-        onPreviousLevel={handlePrevLevel}
+        onNextLevel={() => {
+          setMenuVisible(false);
+          handleNextLevel();
+        }}
+        onPreviousLevel={() => {
+          setMenuVisible(false);
+          handlePrevLevel();
+        }}
         onRestart={handleRestart}
         onHome={handleHome}
         onSettings={handleSettings}

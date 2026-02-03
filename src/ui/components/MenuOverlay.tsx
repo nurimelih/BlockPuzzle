@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -59,9 +59,9 @@ export const MenuOverlay: React.FC<Props> = ({
   if (!visible) return null;
 
   return (
-    <Pressable style={styles.container} onPress={onDismiss}>
-      <View style={styles.container}>
-        <Animated.View style={[styles.overlay, animatedStyle]}>
+    <View style={styles.container}>
+      <Pressable style={styles.backdrop} onPress={onDismiss} />
+      <Animated.View style={[styles.overlay, animatedStyle]}>
           {isWin ? (
             <LabelButton style={styles.title}>
               Level {currentLevelNumber + 1} Complete!
@@ -72,14 +72,18 @@ export const MenuOverlay: React.FC<Props> = ({
 
           <View style={styles.buttonContainer}>
             {isWin && !isLastLevel && (
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={onNextLevel}
+              <LabelButton
+                pressableProps={{
+                  onPress: (e) => {
+                    e.stopPropagation();
+                    onNextLevel();
+                  },
+                  style: [styles.primaryButton],
+                }}
+                style={styles.primaryButtonText}
               >
-                <LabelButton style={styles.primaryButtonText}>
-                  Next Level
-                </LabelButton>
-              </TouchableOpacity>
+                Next Level
+              </LabelButton>
             )}
 
             {isWin && isLastLevel && (
