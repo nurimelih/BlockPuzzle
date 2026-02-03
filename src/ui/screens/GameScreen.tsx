@@ -98,6 +98,40 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const boardStateRef = useRef(board);
   const getPieceMatrixRef = useRef(getPieceMatrix);
   const isRotatingRef = useRef(false);
+  const rotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const attemptPlacementRef = useRef<(pieceId: string) => void>(() => {});
+
+  attemptPlacementRef.current = (pieceId: string) => {
+    const pos = uiPositionsRef.current[pieceId];
+    if (!pos) return;
+
+    const gridX = Math.round(pos.left / CELL_WIDTH);
+    const gridY = Math.round(pos.top / CELL_HEIGHT);
+
+    const canPlace = tryPlacePiece(pieceId, gridX, gridY);
+
+    if (canPlace) {
+      SoundManager.playPlaceEffect();
+      setUiPositions(prev => ({
+        ...prev,
+        [pieceId]: {
+          left: gridX * CELL_WIDTH,
+          top: gridY * CELL_HEIGHT - PIECE_CONTAINER_TOP_PADDING,
+        },
+      }));
+    }
+
+    releaseAndTryLockPiece(pieceId, gridX, gridY, canPlace);
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -123,39 +157,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         }));
       },
       onPanResponderRelease: () => {
-        const id = activePieceIdRef.current as string;
-        const { left, top } = uiPositionsRef.current[id];
-        const gridX = Math.round(left / CELL_WIDTH);
-        const gridY = Math.round(top / CELL_HEIGHT);
+        const id = activePieceIdRef.current;
+        if (!id) return;
 
-        const gamePiece = piecesRef.current.find(
-          piece => piece.id === (activePieceIdRef.current as string),
-        );
-
-        if (!gamePiece) return;
-        const matrix = getPieceMatrixRef.current(gamePiece.id);
-
-        if (!matrix) return;
-
-        const canPlaceResult = tryPlacePiece(gamePiece.id!, gridX, gridY);
-
-        const snapLeft = gridX * CELL_WIDTH;
-        const snapTop = gridY * CELL_HEIGHT - PIECE_CONTAINER_TOP_PADDING;
-
-        if (canPlaceResult) {
-          SoundManager.playPlaceEffect();
-          setUiPositions(prev => ({
-            ...prev,
-            [id]: {
-              left: snapLeft,
-              top: snapTop,
-            },
-          }));
-        }
-        releaseAndTryLockPiece(id, gridX, gridY, canPlaceResult);
+        attemptPlacementRef.current(id);
         setActivePieceId(undefined);
-
-        if (!canPlaceResult) console.log('Not snapping', gridX, gridY);
       },
     }),
   ).current;
@@ -185,7 +191,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     if (isOver) {
-      Analytics.logLevelComplete(currentLevelNumber, moveCount, getElapsedTime());
+      Analytics.logLevelComplete(
+        currentLevelNumber,
+        moveCount,
+        getElapsedTime(),
+      );
       SoundManager.playWinEffect();
       GameStorage.saveCompletedLevel(
         currentLevelNumber,
@@ -299,6 +309,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
               onPressRotate={() => {
                 SoundManager.playRotateEffect();
                 rotatePiece(gamePiece.id);
+                rotateTimeoutRef.current = setTimeout(() => {
+                  attemptPlacementRef.current(gamePiece.id);
+                  setActivePieceId(undefined);
+                }, 0);
               }}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
