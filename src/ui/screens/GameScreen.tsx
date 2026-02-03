@@ -96,6 +96,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   // local states
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
+  const [isMusicMuted, setIsMusicMuted] = useState(SoundManager.isMusicMutedState());
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => generateScatteredPositions(currentLevel.pieces.length));
@@ -255,6 +256,12 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const toggleMusic = () => {
+    const newMuted = !isMusicMuted;
+    setIsMusicMuted(newMuted);
+    SoundManager.setMusicMuted(newMuted);
+  };
+
   const generateCellStyle = useCallback((cell: Cell) => {
     switch (cell) {
       case Cell.INVALID:
@@ -358,11 +365,22 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {renderPieces()}
 
-      <Pressable onPress={toggleMenu} style={styles.settingsIcon}>
-        <View style={styles.iconShadow}>
-          <Icon name="settings-outline" size={22} color={colors.white} />
-        </View>
-      </Pressable>
+      <View style={styles.footerIcons}>
+        <Pressable onPress={toggleMenu} style={styles.footerIcon}>
+          <View style={styles.iconShadow}>
+            <Icon name="settings-outline" size={22} color={colors.white} />
+          </View>
+        </Pressable>
+        <Pressable onPress={toggleMusic} style={styles.footerIcon}>
+          <View style={styles.iconShadow}>
+            <Icon
+              name={isMusicMuted ? 'volume-mute' : 'musical-notes'}
+              size={22}
+              color={colors.white}
+            />
+          </View>
+        </Pressable>
+      </View>
       <MenuOverlay
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
@@ -463,8 +481,14 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 3,
   },
-  settingsIcon: {
+  footerIcons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.lg,
     paddingBottom: spacing.xl,
+  },
+  footerIcon: {
+    padding: spacing.sm,
   },
   iconShadow: {
     shadowColor: 'rgba(0, 0, 0, 0.75)',
