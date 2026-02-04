@@ -12,6 +12,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
+import { fetchAllLevels } from './src/services/supabase.ts';
+import { useAppStore } from './src/state/useAppStore.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -50,18 +52,25 @@ function RootStack() {
 }
 
 function App() {
-  const init_sound = async () => {
-    await SoundManager.init();
-    SoundManager.playGameMusic();
-  };
+  const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
 
   useEffect(() => {
-    init_sound();
+    const init = async () => {
+      await SoundManager.init();
+      SoundManager.playGameMusic();
+
+      const levels = await fetchAllLevels();
+      if (levels.length > 0) {
+        setRemoteLevels(levels);
+      }
+    };
+
+    init();
 
     return () => {
       SoundManager.release();
     };
-  }, []);
+  }, [setRemoteLevels]);
 
   return (
     <ThemeProvider theme={theme}>

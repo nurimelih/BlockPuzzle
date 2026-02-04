@@ -2,12 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { GamePiece, LevelDefinition, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, getAdjustedPlacement } from '../core/gameCore.ts';
-import { LEVELS } from '../core/levels.ts';
+import { useAppStore } from './useAppStore.ts';
 
 export const useGameState = (initialLevel: number) => {
+  const levels = useAppStore(state => state.levels);
   const [moveCount, setMoveCount] = useState(0);
   const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(
-    LEVELS[initialLevel],
+    levels[initialLevel],
   );
   const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
   const currentLevelRef = useRef(currentLevel);
@@ -199,7 +200,7 @@ export const useGameState = (initialLevel: number) => {
   const handleNextLevel = () => {
     setCurrentLevelNumber(curr => {
       const nextLevelIndex = curr + 1;
-      return nextLevelIndex < LEVELS.length ? nextLevelIndex : curr;
+      return nextLevelIndex < levels.length ? nextLevelIndex : curr;
     });
   };
 
@@ -230,7 +231,7 @@ export const useGameState = (initialLevel: number) => {
   }, [currentLevelNumber]);
 
   useEffect(() => {
-    const newLevel = LEVELS[currentLevelNumber];
+    const newLevel = levels[currentLevelNumber];
     setCurrentLevel(newLevel);
     currentLevelRef.current = newLevel;
 
@@ -245,7 +246,7 @@ export const useGameState = (initialLevel: number) => {
 
     setMoveCount(0);
     setIsOver(false);
-  }, [currentLevelNumber]);
+  }, [currentLevelNumber, levels]);
 
   return {
     currentLevel,

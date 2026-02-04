@@ -10,7 +10,6 @@ import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
-import { LEVELS } from '../../core/levels.ts';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -49,6 +48,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [gameTime, setGameTime] = useState('00:00');
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
+  const levels = useAppStore(state => state.levels);
 
   useEffect(() => {
     setCurrentScreen('game');
@@ -397,7 +397,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onHome={handleHome}
         onSettings={handleSettings}
         currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === LEVELS.length}
+        isLastLevel={currentLevelNumber === levels.length - 1}
       />
     </View>
   );
