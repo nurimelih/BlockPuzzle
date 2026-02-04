@@ -1,3 +1,6 @@
+[TR Readme](https://github.com/nurimelih/BlockPuzzle/blob/main/README.tr.md)
+
+
 # Block Puzzle Engine / Game
 Inspired by Block Puzzle Ancient-style, free placement puzzle games.
 This project is not a game demo, it's an engine + architecture showcase.
