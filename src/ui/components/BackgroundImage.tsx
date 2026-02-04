@@ -1,13 +1,15 @@
-import React, {useEffect} from 'react';
-import {Image, StyleSheet, View, Dimensions} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, View, Dimensions} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import FastImage, {Source} from 'react-native-fast-image';
 import {Bird} from './Bird';
 import {useAppStore} from '../../state/useAppStore';
+import {fetchBackgroundUrls} from '../../services/supabase';
 
 const BIRDS = [
   {id: 1, startY: 80, size: 6, duration: 25000, delay: 0, flapSpeed: 300},
@@ -16,8 +18,7 @@ const BIRDS = [
   {id: 4, startY: 140, size: 7, duration: 22000, delay: 12000, flapSpeed: 280},
 ];
 
-// Background resimleri - yeni resim eklemek için buraya ekle
-const BACKGROUNDS = [
+const FALLBACK_BACKGROUNDS: Source[] = [
   require('../../../assets/background.jpg'),
   require('../../../assets/background2.jpg'),
 ];
@@ -43,8 +44,27 @@ export default function BackgroundImage() {
   const imageWidth = useSharedValue(SCREEN_WIDTH * 2);
   const imageHeight = useSharedValue(SCREEN_HEIGHT * 2);
 
-  // Hangi resim ve hangi pozisyon/zoom durumu
-  const imageIndex = Math.floor(currentLevel / LEVELS_PER_IMAGE) % BACKGROUNDS.length;
+  const [backgrounds, setBackgrounds] = useState<Source[]>(FALLBACK_BACKGROUNDS);
+
+  // App başlangıcında remote URL'leri fetch et ve preload yap
+  useEffect(() => {
+    fetchBackgroundUrls().then(urls => {
+      if (urls.length > 0) {
+        const remoteSources: Source[] = urls.map(url => ({
+          uri: url,
+          priority: FastImage.priority.high,
+        }));
+
+        // Tüm remote image'ları preload et
+        FastImage.preload(remoteSources);
+
+        setBackgrounds([...FALLBACK_BACKGROUNDS, ...remoteSources]);
+      }
+    });
+  }, []);
+
+  // resimlerin pozisyon ve zoom durumları
+  const imageIndex = Math.floor(currentLevel / LEVELS_PER_IMAGE) % backgrounds.length;
   const levelInCycle = currentLevel % LEVELS_PER_IMAGE;
   const isZoomOut = levelInCycle === 4; // 5. level (index 4) zoom out
 
@@ -62,13 +82,13 @@ export default function BackgroundImage() {
       imageHeight.value = withTiming(SCREEN_HEIGHT * 2, timingConfig);
     } else if (currentScreen === 'game') {
       if (isZoomOut) {
-        // Zoom out - tam resim ekrana sığsın
+        // Zoom out - tam resim ekrana sığsın, resmin tümü görünür
         translateX.value = withTiming(0, timingConfig);
         translateY.value = withTiming(0, timingConfig);
         imageWidth.value = withTiming(SCREEN_WIDTH, timingConfig);
         imageHeight.value = withTiming(SCREEN_HEIGHT, timingConfig);
       } else {
-        // Pan - köşelere git, resim 2x boyutunda
+        // Pan - köşelere git, resim 2x boyutunda, resmin dörte biri görünür
         const pos = LEVEL_POSITIONS[levelInCycle];
         translateX.value = withTiming(pos.x, timingConfig);
         translateY.value = withTiming(pos.y, timingConfig);
@@ -90,7 +110,11 @@ export default function BackgroundImage() {
   return (
     <View style={styles.container} pointerEvents="none">
       <Animated.View style={[styles.imageWrapper, animatedStyle]}>
-        <Image style={styles.image} source={BACKGROUNDS[imageIndex]} />
+        <FastImage
+          style={styles.image}
+          source={backgrounds[imageIndex]}
+          resizeMode={FastImage.resizeMode.cover}
+        />
       </Animated.View>
       {BIRDS.map(bird => (
         <Bird
@@ -117,6 +141,5 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
 });

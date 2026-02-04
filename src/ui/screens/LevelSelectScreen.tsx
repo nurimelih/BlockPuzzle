@@ -3,15 +3,16 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
-import { LEVELS } from '../../core/levels.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useAppStore } from '../../state/useAppStore.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LevelSelect'>;
 
 export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
+  const levels = useAppStore(state => state.levels);
   const [completedLevels, setCompletedLevels] = useState<number[]>([]);
 
   useFocusEffect(
@@ -45,7 +46,7 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.grid}>
-        {LEVELS.map((_, index) => (
+        {levels.map((_, index) => (
           <Pressable
             key={index}
             style={[styles.levelCard, isCompleted(index) && styles.levelCardCompleted]}
