@@ -8,6 +8,12 @@ This project is not a game demo, it's an engine + architecture showcase.
 - Separate game rules, state and render layers with strict boundaries
 - Rather than a simple game, build a design where each layer does its own job and be able to justify its necessity.
 ---
+
+
+<img width="282" height="633" alt="IMG_0935" src="https://github.com/user-attachments/assets/04c52fc5-b4ff-4e2c-9f0b-4fb9f6c4e81d" />
+<img width="282" height="633" alt="IMG_0938" src="https://github.com/user-attachments/assets/6fa16866-c9e4-43e0-904c-b2c45ee158fc" />
+
+---
 # Architecture
 ## 1. Core (Engine / Domain Logic)
 - Doesn't know React / React Native
@@ -92,7 +98,4 @@ This repo exists to show:
 Not for playing the game, but for reading the code and examining the architecture.
 Initially I wanted to mimic a simple game I liked,  
 but then turned it into a layered example.
-
-<img width="282" height="633" alt="IMG_0935" src="https://github.com/user-attachments/assets/04c52fc5-b4ff-4e2c-9f0b-4fb9f6c4e81d" />
-<img width="282" height="633" alt="IMG_0938" src="https://github.com/user-attachments/assets/6fa16866-c9e4-43e0-904c-b2c45ee158fc" />
 
