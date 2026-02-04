@@ -152,6 +152,18 @@ PODS:
   - hermes-engine (0.81.5):
     - hermes-engine/Pre-built (= 0.81.5)
   - hermes-engine/Pre-built (0.81.5)
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
   - nanopb (3.30910.0):
     - nanopb/decode (= 3.30910.0)
     - nanopb/encode (= 3.30910.0)
@@ -2520,6 +2532,10 @@ PODS:
     - Yoga
   - RNDeviceInfo (15.0.1):
     - React-Core
+  - RNFastImage (8.6.3):
+    - React-Core
+    - SDWebImage (~> 5.11.1)
+    - SDWebImageWebPCoder (~> 0.8.4)
   - RNFBAnalytics (23.8.3):
     - boost
     - DoubleConversion
@@ -2905,6 +2921,12 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - SDWebImage (5.11.1):
+    - SDWebImage/Core (= 5.11.1)
+  - SDWebImage/Core (5.11.1)
+  - SDWebImageWebPCoder (0.8.5):
+    - libwebp (~> 1.0)
+    - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
 
@@ -2991,6 +3013,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
+  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -3010,8 +3033,11 @@ SPEC REPOS:
     - FirebaseInstallations
     - GoogleAppMeasurement
     - GoogleUtilities
+    - libwebp
     - nanopb
     - PromisesObjC
+    - SDWebImage
+    - SDWebImageWebPCoder
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -3178,6 +3204,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
+  RNFastImage:
+    :path: "../node_modules/react-native-fast-image"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -3218,6 +3246,7 @@ SPEC CHECKSUMS:
   GoogleAppMeasurement: 72c9a682fec6290327ea5e3c4b829b247fcb2c17
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
@@ -3286,6 +3315,7 @@ SPEC CHECKSUMS:
   ReactCommon: 6d0fa86a4510730da7c72560e0ced14258292ab9
   RNCAsyncStorage: fd44f4b03e007e642e98df6726737bc66e9ba609
   RNDeviceInfo: 36d7f232bfe7c9b5c494cb7793230424ed32c388
+  RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFBAnalytics: 2305a40e83a0d79f9a5c7b58a5d842692acf5920
   RNFBApp: fe515c180ffb9267935050177db2c1e9fe3878ae
   RNReanimated: e79d7f42b76ba026e7dc5fb3e3f81991c590d3af
@@ -3293,6 +3323,8 @@ SPEC CHECKSUMS:
   RNSVG: 63f96b45c10e8b6b4e1c4df831223f0e6af39e5e
   RNVectorIcons: e355dd0998d6b9020e560922a66614eb9636501b
   RNWorklets: 416ef974c176d76634e34c0aeda83f6b67084a88
+  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
+  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: cc4a6600d61e4e9276e860d4d68eebb834a050ba
 
