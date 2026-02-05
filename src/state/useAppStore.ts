@@ -27,6 +27,7 @@ export const useAppStore = create<AppState>((set) => ({
   appSettings: {
     rewardedAdsActive: false,
     interstitialAdsActive: false,
+    forceToShowHints: false,
   },
   setCurrentScreen: (screen: ScreenName) => set({currentScreen: screen}),
   setCurrentLevel: (level: number) => set({currentLevel: level}),
