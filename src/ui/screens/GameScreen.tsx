@@ -20,6 +20,11 @@ import { GameStorage } from '../../services/GameStorage.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { Analytics } from '../../services/Analytics.ts';
 import { useAppStore } from '../../state/useAppStore.ts';
+import {
+  showRewardedAd,
+  showInterstitialIfReady,
+  isRewardedAdReady,
+} from '../../services/AdManager.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -49,6 +54,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
   const levels = useAppStore(state => state.levels);
+  const isRewardedAdsActive = useAppStore(state => state.appSettings).rewardedAdsActive
 
   useEffect(() => {
     setCurrentScreen('game');
@@ -100,6 +106,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => generateScatteredPositions(currentLevel.pieces.length));
+  const [showingHint, setShowingHint] = useState(false);
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
@@ -211,6 +218,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         moveCount,
         getElapsedTime(),
       );
+      // Show interstitial ad after level completion
+      showInterstitialIfReady();
     }
   }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
 
@@ -260,6 +269,24 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     const newMuted = !isMusicMuted;
     setIsMusicMuted(newMuted);
     SoundManager.setMusicMuted(newMuted);
+  };
+
+  const handleHint = async () => {
+    // Find an unplaced piece
+    const unplacedPiece = pieces.find(p => !p.placed);
+    if (!unplacedPiece) return;
+
+    const rewarded = await showRewardedAd();
+    if (rewarded) {
+      // Show hint: flash the piece's correct position
+      // For now, we'll just highlight the piece
+      setShowingHint(true);
+      setActivePieceId(unplacedPiece.id);
+      setTimeout(() => {
+        setShowingHint(false);
+        setActivePieceId(undefined);
+      }, 2000);
+    }
   };
 
   const generateCellStyle = useCallback((cell: Cell) => {
@@ -371,6 +398,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
             <Icon name="settings-outline" size={22} color={colors.white} />
           </View>
         </Pressable>
+        {!isOver && isRewardedAdReady() && isRewardedAdsActive && (
+          <Pressable onPress={handleHint} style={styles.footerIcon}>
+            <View style={styles.iconShadow}>
+              <Icon name="bulb-outline" size={22} color={colors.white} />
+            </View>
+          </Pressable>
+        )}
         <Pressable onPress={toggleMusic} style={styles.footerIcon}>
           <View style={styles.iconShadow}>
             <Icon

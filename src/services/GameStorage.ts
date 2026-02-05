@@ -21,7 +21,11 @@ export const GameStorage = {
     }
   },
 
-  saveCompletedLevel: async (levelIndex: number, moves: number, time: number): Promise<void> => {
+  saveCompletedLevel: async (
+    levelIndex: number,
+    moves: number,
+    time: number,
+  ): Promise<void> => {
     try {
       const completed = await GameStorage.getCompletedLevels();
       const existing = completed.find(l => l.levelIndex === levelIndex);
@@ -36,7 +40,10 @@ export const GameStorage = {
         completed.push({ levelIndex, moves, time });
       }
 
-      await AsyncStorage.setItem(STORAGE_KEYS.COMPLETED_LEVELS, JSON.stringify(completed));
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.COMPLETED_LEVELS,
+        JSON.stringify(completed),
+      );
     } catch (error) {
       console.log('Failed to save completed level:', error);
     }
@@ -63,7 +70,10 @@ export const GameStorage = {
 
   saveCurrentLevel: async (levelIndex: number): Promise<void> => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_LEVEL, levelIndex.toString());
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.CURRENT_LEVEL,
+        levelIndex.toString(),
+      );
     } catch (error) {
       console.log('Failed to save current level:', error);
     }
@@ -74,6 +84,19 @@ export const GameStorage = {
     if (completed.length === 0) return 0;
     const maxCompleted = Math.max(...completed.map(l => l.levelIndex));
     return maxCompleted + 1;
+  },
+
+  saveSoundSettings: async (muted: boolean, volume: number): Promise<void> => {
+    try {
+      await AsyncStorage.setItem('music_state', muted ? 'muted' : 'unmuted');
+      await AsyncStorage.setItem('music_volume', volume.toString());
+    } catch (error) {
+      console.log('Failed to save sound settings:', error);
+    }
+  },
+
+  getSoundSettings: async (): Promise<{ muted: boolean; volume: number }> => {
+    return await GameStorage.getSoundSettings();
   },
 
   clearAll: async (): Promise<void> => {
