@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
@@ -14,6 +14,8 @@ import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
 import { fetchAllLevels } from './src/services/supabase.ts';
 import { useAppStore } from './src/state/useAppStore.ts';
+import { initAds } from './src/services/AdManager.ts';
+import { GameStorage } from './src/services/GameStorage.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -57,7 +59,10 @@ function App() {
   useEffect(() => {
     const init = async () => {
       await SoundManager.init();
-      SoundManager.playGameMusic();
+      const musicSettings = await GameStorage.getSoundSettings();
+
+      !musicSettings.muted && SoundManager.playGameMusic();
+      initAds();
 
       const levels = await fetchAllLevels();
       if (levels.length > 0) {

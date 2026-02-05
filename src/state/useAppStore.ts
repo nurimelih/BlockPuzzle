@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {LevelDefinition} from '../types/types';
+import { AppSettings, LevelDefinition } from '../types/types';
 import {LEVELS} from '../core/levels';
 
 export type ScreenName = 'home' | 'game' | 'settings' | 'levelSelect';
@@ -11,10 +11,12 @@ interface AppState {
   currentScreen: ScreenName;
   currentLevel: number;
   remoteLevels: LevelDefinition[];
+  levels: LevelDefinition[];
+  appSettings: AppSettings;
   setCurrentScreen: (screen: ScreenName) => void;
   setCurrentLevel: (level: number) => void;
   setRemoteLevels: (levels: LevelDefinition[]) => void;
-  levels: LevelDefinition[];
+  setAppSettings: (settings: AppSettings) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -22,6 +24,10 @@ export const useAppStore = create<AppState>((set) => ({
   currentLevel: 0,
   remoteLevels: [],
   levels: LOCAL_LEVELS,
+  appSettings: {
+    rewardedAdsActive: false,
+    interstitialAdsActive: false,
+  },
   setCurrentScreen: (screen: ScreenName) => set({currentScreen: screen}),
   setCurrentLevel: (level: number) => set({currentLevel: level}),
   setRemoteLevels: (remoteLevels: LevelDefinition[]) =>
@@ -29,4 +35,8 @@ export const useAppStore = create<AppState>((set) => ({
       remoteLevels,
       levels: [...LOCAL_LEVELS, ...remoteLevels],
     }),
+  setAppSettings: (settings: AppSettings) => {
+    set({appSettings: settings})
+  }
+
 }));

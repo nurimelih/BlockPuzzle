@@ -1,4 +1,9 @@
-import {LevelDefinition, PieceMatrix, Board} from '../types/types.ts';
+import {
+  LevelDefinition,
+  PieceMatrix,
+  Board,
+  AppSettings,
+} from '../types/types.ts';
 
 const SUPABASE_URL = 'https://zngtmhzwpsqfqkfawobr.supabase.co';
 const SUPABASE_ANON_KEY =
@@ -36,6 +41,32 @@ export async function fetchBackgroundUrls(): Promise<string[]> {
   }
 }
 
+export async  function fetchAdSettings(): Promise<AppSettings> {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/app_config?key=eq.ad_settings&select=value`,
+      {headers},
+    );
+
+    if (!response.ok) {
+      console.log('Failed to fetch background URLs:', response.status);
+      return {};
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      return {};
+    }
+
+    console.log("result:", JSON.parse(data[0].value))
+    return JSON.parse(data[0].value);
+
+  } catch (error) {
+    console.log('Failed to fetch background URLs:', error);
+    return {};
+  }
+}
 
 
 export async function fetchAllLevels(): Promise<LevelDefinition[]> {
