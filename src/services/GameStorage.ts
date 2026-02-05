@@ -1,9 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export type SoundSettings = {
+  musicEnabled: boolean;
+  effectsEnabled: boolean;
+  musicVolume: number;
+  effectsVolume: number;
+};
+
+const DEFAULT_SOUND_SETTINGS: SoundSettings = {
+  musicEnabled: true,
+  effectsEnabled: true,
+  musicVolume: 0.5,
+  effectsVolume: 0.5,
+};
+
 const STORAGE_KEYS = {
   COMPLETED_LEVELS: 'completedLevels',
   CURRENT_LEVEL: 'currentLevel',
-};
+  SOUND_SETTINGS: 'soundSettings',
+} as const;
 
 type CompletedLevel = {
   levelIndex: number;
@@ -86,17 +101,34 @@ export const GameStorage = {
     return maxCompleted + 1;
   },
 
-  saveSoundSettings: async (muted: boolean, volume: number): Promise<void> => {
+  saveSoundSettings: async (settings: SoundSettings): Promise<void> => {
     try {
-      await AsyncStorage.setItem('music_state', muted ? 'muted' : 'unmuted');
-      await AsyncStorage.setItem('music_volume', volume.toString());
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.SOUND_SETTINGS,
+        JSON.stringify(settings),
+      );
     } catch (error) {
       console.log('Failed to save sound settings:', error);
     }
   },
 
-  getSoundSettings: async (): Promise<{ muted: boolean; volume: number }> => {
-    return await GameStorage.getSoundSettings();
+  getSoundSettings: async (): Promise<SoundSettings> => {
+    try {
+      const result = await AsyncStorage.getItem(STORAGE_KEYS.SOUND_SETTINGS);
+      return result ? JSON.parse(result) : DEFAULT_SOUND_SETTINGS;
+    } catch (e) {
+      console.log('Error when getting sound setting', e);
+      return DEFAULT_SOUND_SETTINGS;
+    }
+  },
+
+  getAllSettings: async () => {
+    return {
+      completedLevels: await GameStorage.getCompletedLevels(),
+      currentLevel: await GameStorage.getCurrentLevel(),
+      highestUnlockedLevel: await GameStorage.getHighestUnlockedLevel(),
+      soundSettings: await GameStorage.getSoundSettings(),
+    };
   },
 
   clearAll: async (): Promise<void> => {

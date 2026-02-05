@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
 import { SoundManager } from '../../services/SoundManager.ts';
+import { GameStorage } from '../../services/GameStorage.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 
@@ -20,19 +21,35 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     SoundManager.getBackgroundVolume(),
   );
 
+  const saveSettings = (overrides: Partial<{
+    music: boolean;
+    effects: boolean;
+    volume: number;
+  }>) => {
+    GameStorage.saveSoundSettings({
+      musicEnabled: overrides.music ?? musicEnabled,
+      effectsEnabled: overrides.effects ?? effectsEnabled,
+      musicVolume: overrides.volume ?? musicVolume,
+      effectsVolume: SoundManager.getEffectsVolume(),
+    });
+  };
+
   const handleMusicToggle = (value: boolean) => {
     setMusicEnabled(value);
     SoundManager.setMusicMuted(!value);
+    saveSettings({ music: value });
   };
 
   const handleEffectsToggle = (value: boolean) => {
     setEffectsEnabled(value);
     SoundManager.setEffectsMuted(!value);
+    saveSettings({ effects: value });
   };
 
   const handleVolumeChange = (volume: number) => {
     setMusicVolume(volume);
     SoundManager.setBackgroundVolume(volume);
+    saveSettings({ volume });
   };
 
   const handleBack = () => {

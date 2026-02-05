@@ -59,9 +59,16 @@ function App() {
   useEffect(() => {
     const init = async () => {
       await SoundManager.init();
-      const musicSettings = await GameStorage.getSoundSettings();
+      const settings = await GameStorage.getSoundSettings();
 
-      !musicSettings.muted && SoundManager.playGameMusic();
+      SoundManager.setMusicMuted(!settings.musicEnabled);
+      SoundManager.setEffectsMuted(!settings.effectsEnabled);
+      await SoundManager.setBackgroundVolume(settings.musicVolume);
+      SoundManager.setEffectsVolume(settings.effectsVolume);
+
+      if (settings.musicEnabled) {
+        SoundManager.playGameMusic();
+      }
       initAds();
 
       const levels = await fetchAllLevels();

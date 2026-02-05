@@ -13,6 +13,7 @@ import { SoundManager } from '../../services/SoundManager.ts';
 import DeviceInfo from 'react-native-device-info';
 import { useAppStore } from '../../state/useAppStore.ts';
 import { fetchAdSettings } from '../../services/supabase.ts';
+import { GameStorage } from '../../services/GameStorage.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -22,6 +23,23 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [playMenuOpen, setPlayMenuOpen] = useState(false);
   const menuHeight = useSharedValue(0);
   const menuOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (__DEV__) {
+      const _getAllSettings = async () => {
+        try {
+
+        const settings = await GameStorage.getAllSettings();
+        console.log("All Settings", JSON.stringify(settings, null, 2));
+        }
+        catch (e){
+          console.log("error getting settings", e);
+        }
+      };
+
+      _getAllSettings();
+    }
+  }, []);
 
   useEffect(() => {
     setCurrentScreen('home');
