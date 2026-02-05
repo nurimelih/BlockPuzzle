@@ -1,4 +1,8 @@
 {
   "name": "BlockPuzzle",
-  "displayName": "BlockPuzzle"
+  "displayName": "BlockPuzzle",
+  "react-native-google-mobile-ads": {
+    "ios_app_id": "ca-app-pub-8246871597477592~6792527952",
+    "android_app_id": "ca-app-pub-8246871597477592~6134052402"
+  }
 }
