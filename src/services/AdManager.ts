@@ -33,6 +33,9 @@ const getAdUnitId = (type: 'rewarded' | 'interstitial') => {
   return AD_UNIT_IDS[platform][type];
 };
 
+// When true in DEV mode, ads behave as if ready (skip actual ad, grant reward)
+let adsAreActiveInTest = true;
+
 // Rewarded Ad instance
 let rewardedAd: RewardedAd | null = null;
 let isRewardedAdLoaded = false;
@@ -99,6 +102,11 @@ export const showRewardedAd = (): Promise<boolean> => {
   return new Promise(resolve => {
     if (!rewardedAd || !isRewardedAdLoaded) {
       console.log('[AdManager] Rewarded ad not ready');
+      if (__DEV__ && adsAreActiveInTest) {
+        console.log('[AdManager] DEV mode - granting reward without ad');
+        resolve(true);
+        return;
+      }
       resolve(false);
       return;
     }
@@ -128,7 +136,8 @@ export const showRewardedAd = (): Promise<boolean> => {
 /**
  * Check if rewarded ad is ready
  */
-export const isRewardedAdReady = () => isRewardedAdLoaded;
+export const isRewardedAdReady = () =>
+  (__DEV__ && adsAreActiveInTest) || isRewardedAdLoaded;
 
 /**
  * Load an interstitial ad
@@ -183,6 +192,10 @@ export const showInterstitialIfReady = (): Promise<boolean> => {
 
     if (!interstitialAd || !isInterstitialAdLoaded) {
       console.log('[AdManager] Interstitial ad not ready');
+      if (__DEV__ && adsAreActiveInTest) {
+        console.log('[AdManager] DEV mode - skipping interstitial');
+        levelsSinceLastAd = 0;
+      }
       resolve(false);
       return;
     }
@@ -206,6 +219,13 @@ export const showInterstitialIfReady = (): Promise<boolean> => {
  */
 export const isInterstitialAdReady = () => isInterstitialAdLoaded;
 
+export const setAdsActiveInTest = (active: boolean) => {
+  adsAreActiveInTest = active;
+  console.log(`[AdManager] DEV ads active: ${active}`);
+};
+
+export const getAdsActiveInTest = () => adsAreActiveInTest;
+
 export default {
   initAds,
   loadRewardedAd,
@@ -214,4 +234,6 @@ export default {
   loadInterstitialAd,
   showInterstitialIfReady,
   isInterstitialAdReady,
+  setAdsActiveInTest,
+  getAdsActiveInTest,
 };
