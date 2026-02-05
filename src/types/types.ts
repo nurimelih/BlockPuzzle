@@ -10,10 +10,11 @@ export enum Cell {
 }
 
 export type AppSettings = {
-  rewardedAdsActive?: boolean,
-  interstitialAdsActive?: boolean,
-  musicActive?: boolean,
-  musicVolume?: number,
+  rewardedAdsActive?: boolean;
+  interstitialAdsActive?: boolean;
+  musicActive?: boolean;
+  musicVolume?: number;
+  forceToShowHints?: boolean;
 };
 
 

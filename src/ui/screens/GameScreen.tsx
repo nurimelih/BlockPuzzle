@@ -25,6 +25,7 @@ import {
   showInterstitialIfReady,
   isRewardedAdReady,
 } from '../../services/AdManager.ts';
+import { solvePartial } from '../../core/solver.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -54,7 +55,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
   const levels = useAppStore(state => state.levels);
-  const isRewardedAdsActive = useAppStore(state => state.appSettings).rewardedAdsActive
+  const isRewardedAdsActive = useAppStore(
+    state => state.appSettings,
+  ).rewardedAdsActive;
+
+  const forceToShowHints = useAppStore(
+    state => state.appSettings,
+  ).forceToShowHints;
 
   useEffect(() => {
     setCurrentScreen('game');
@@ -102,11 +109,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   // local states
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
-  const [isMusicMuted, setIsMusicMuted] = useState(SoundManager.isMusicMutedState());
+  const [isMusicMuted, setIsMusicMuted] = useState(
+    SoundManager.isMusicMutedState(),
+  );
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => generateScatteredPositions(currentLevel.pieces.length));
-  const [showingHint, setShowingHint] = useState(false);
+  const [hintCells, setHintCells] = useState<{ x: number; y: number }[]>([]);
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
@@ -245,6 +254,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
+    setHintCells([]);
   }, [currentLevel, generateScatteredPositions]);
 
   // functions
@@ -271,22 +281,36 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     SoundManager.setMusicMuted(newMuted);
   };
 
-  const handleHint = async () => {
-    // Find an unplaced piece
-    const unplacedPiece = pieces.find(p => !p.placed);
-    if (!unplacedPiece) return;
+  const handleHintWithAd = async () => {
+    // Solve from current state - respects already placed pieces
+    const solution = solvePartial(currentLevel, pieces);
+    if (!solution || solution.length === 0) return;
 
     const rewarded = await showRewardedAd();
     if (rewarded) {
-      // Show hint: flash the piece's correct position
-      // For now, we'll just highlight the piece
-      setShowingHint(true);
-      setActivePieceId(unplacedPiece.id);
-      setTimeout(() => {
-        setShowingHint(false);
-        setActivePieceId(undefined);
-      }, 2000);
+      handleHint();
     }
+  };
+
+  const handleHint = async () => {
+    const solution = solvePartial(currentLevel, pieces);
+    if (!solution || solution.length === 0) return;
+    const hint = solution[0];
+
+    const cells: { x: number; y: number }[] = [];
+    for (let i = 0; i < hint.matrix.length; i++) {
+      for (let j = 0; j < hint.matrix[i].length; j++) {
+        if (hint.matrix[i][j] === 1) {
+          cells.push({ x: hint.x + j, y: hint.y + i });
+        }
+      }
+    }
+
+    setHintCells(cells);
+
+    setTimeout(() => {
+      setHintCells([]);
+    }, 3000);
   };
 
   const generateCellStyle = useCallback((cell: Cell) => {
@@ -301,6 +325,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, []);
 
   const renderBoard = useCallback(() => {
+    const isHintCell = (row: number, col: number) =>
+      hintCells.some(c => c.x === col && c.y === row);
+
     return (
       <View
         style={[styles.level, { top: BOARD_TOP_POS, left: BOARD_LEFT_POS }]}
@@ -315,7 +342,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
                 return (
                   <View
                     key={`cell-${rowIndex}-${colIndex}`}
-                    style={[styles.cell, generateCellStyle(cell)]}
+                    style={[
+                      styles.cell,
+                      generateCellStyle(cell),
+                      isHintCell(rowIndex, colIndex) && styles.hintCell,
+                    ]}
                   />
                 );
               })}
@@ -324,7 +355,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         })}
       </View>
     );
-  }, [board, generateCellStyle, BOARD_TOP_POS, BOARD_LEFT_POS]);
+  }, [board, generateCellStyle, BOARD_TOP_POS, BOARD_LEFT_POS, hintCells]);
 
   const renderPieces = () => {
     return (
@@ -398,13 +429,19 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
             <Icon name="settings-outline" size={22} color={colors.white} />
           </View>
         </Pressable>
-        {!isOver && isRewardedAdReady() && isRewardedAdsActive && (
-          <Pressable onPress={handleHint} style={styles.footerIcon}>
-            <View style={styles.iconShadow}>
-              <Icon name="bulb-outline" size={22} color={colors.white} />
-            </View>
-          </Pressable>
-        )}
+        {!isOver &&
+          ((isRewardedAdReady() && isRewardedAdsActive) ||
+            forceToShowHints) && (
+            <Pressable
+              onPress={forceToShowHints ? handleHint : handleHintWithAd}
+              style={styles.footerIcon}
+            >
+              <View style={styles.iconShadow}>
+                <Icon name="bulb-outline" size={22} color={colors.white} />
+              </View>
+            </Pressable>
+          )}
+
         <Pressable onPress={toggleMusic} style={styles.footerIcon}>
           <View style={styles.iconShadow}>
             <Icon
@@ -478,6 +515,11 @@ const styles = StyleSheet.create({
   void: {
     backgroundColor: colors.background.transparent,
     opacity: 0,
+  },
+  hintCell: {
+    backgroundColor: 'rgba(255, 235, 59, 0.6)',
+    borderColor: 'rgba(255, 193, 7, 0.9)',
+    borderWidth: 1.5,
   },
   piecesContainer: {
     position: 'absolute',
