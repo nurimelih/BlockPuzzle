@@ -145,6 +145,8 @@ export const SoundManager = {
       }
     } else if (currentTrack) {
       await playTrack(currentTrack, true);
+    } else {
+      await SoundManager.playGameMusic();
     }
   },
 
