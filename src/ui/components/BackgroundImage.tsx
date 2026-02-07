@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import FastImage, {Source} from 'react-native-fast-image';
+import {Image, ImageSource} from 'expo-image';
 import {Bird} from './Bird';
 import {useAppStore} from '../../state/useAppStore';
 import {fetchBackgroundUrls} from '../../services/supabase';
@@ -18,7 +18,7 @@ const BIRDS = [
   {id: 4, startY: 140, size: 7, duration: 22000, delay: 12000, flapSpeed: 280},
 ];
 
-const FALLBACK_BACKGROUNDS: Source[] = [
+const FALLBACK_BACKGROUNDS: ImageSource[] = [
   require('../../../assets/background.jpg'),
   require('../../../assets/background2.jpg'),
 ];
@@ -44,20 +44,16 @@ export default function BackgroundImage() {
   const imageWidth = useSharedValue(SCREEN_WIDTH * 2);
   const imageHeight = useSharedValue(SCREEN_HEIGHT * 2);
 
-  const [backgrounds, setBackgrounds] = useState<Source[]>(FALLBACK_BACKGROUNDS);
+  const [backgrounds, setBackgrounds] = useState<ImageSource[]>(FALLBACK_BACKGROUNDS);
 
-  // App başlangıcında remote URL'leri fetch et ve preload yap
+  // App başlangıcında remote URL'leri fetch et ve prefetch yap
   useEffect(() => {
     fetchBackgroundUrls().then(urls => {
       if (urls.length > 0) {
-        const remoteSources: Source[] = urls.map(url => ({
-          uri: url,
-          priority: FastImage.priority.high,
-        }));
+        // Tüm remote image'ları prefetch et
+        Image.prefetch(urls);
 
-        // Tüm remote image'ları preload et
-        FastImage.preload(remoteSources);
-
+        const remoteSources: ImageSource[] = urls.map(url => ({uri: url}));
         setBackgrounds([...FALLBACK_BACKGROUNDS, ...remoteSources]);
       }
     });
@@ -110,10 +106,10 @@ export default function BackgroundImage() {
   return (
     <View style={styles.container} pointerEvents="none">
       <Animated.View style={[styles.imageWrapper, animatedStyle]}>
-        <FastImage
+        <Image
           style={styles.image}
           source={backgrounds[imageIndex]}
-          resizeMode={FastImage.resizeMode.cover}
+          contentFit={"cover"}
         />
       </Animated.View>
       {BIRDS.map(bird => (
