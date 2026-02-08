@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { PostHogProvider } from 'posthog-react-native';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
@@ -85,18 +86,30 @@ function App() {
   }, [setRemoteLevels]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <SafeAreaProvider>
-        <View style={styles.container}>
-          <BackgroundImage />
-          <SafeAreaView style={styles.safeArea}>
-            <NavigationContainer>
-              <RootStack />
-            </NavigationContainer>
-          </SafeAreaView>
-        </View>
-      </SafeAreaProvider>
-    </ThemeProvider>
+    <PostHogProvider
+      apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
+      options={{
+        host: 'https://eu.i.posthog.com',
+        enableSessionReplay: true,
+      }}
+      autocapture={{
+        captureScreens: false,
+        captureTouches: true,
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        <SafeAreaProvider>
+          <View style={styles.container}>
+            <BackgroundImage />
+            <SafeAreaView style={styles.safeArea}>
+              <NavigationContainer>
+                <RootStack />
+              </NavigationContainer>
+            </SafeAreaView>
+          </View>
+        </SafeAreaProvider>
+      </ThemeProvider>
+    </PostHogProvider>
   );
 }
 
