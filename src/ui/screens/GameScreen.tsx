@@ -37,7 +37,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     board,
     pieces,
     rotatePiece,
-    getPieceMatrix,
     releaseAndTryLockPiece,
     tryPlacePiece,
     isOver,
@@ -121,7 +120,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const activePieceIdRef = useRef(activePieceId);
   const piecesRef = useRef(pieces);
   const boardStateRef = useRef(board);
-  const getPieceMatrixRef = useRef(getPieceMatrix);
   const isRotatingRef = useRef(false);
   const rotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -139,19 +137,40 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     const pos = uiPositionsRef.current[pieceId];
     if (!pos) return;
 
-    const gridX = Math.round(pos.left / CELL_WIDTH);
-    const gridY = Math.round(pos.top / CELL_HEIGHT);
+    const piece = piecesRef.current.find(p => p.id === pieceId);
+    if (!piece) return;
+
+    // see if it is rotated and take new height/width values
+    // height and width are necessary to tryPlacePiece
+    const baseCols = piece.baseMatrix[0].length;
+    const baseRows = piece.baseMatrix.length;
+    const isSwapped = piece.rotation % 180 !== 0;
+    const rotatedW = (isSwapped ? baseRows : baseCols) * CELL_WIDTH;
+    const rotatedH = (isSwapped ? baseCols : baseRows) * CELL_HEIGHT;
+    const baseW = baseCols * CELL_WIDTH;
+    const baseH = baseRows * CELL_HEIGHT;
+
+    // animasyonla merkez etrafında döndürüyoruz ama ama board'da göre snapping kayıyor
+    // bunu düzeltmek için ekledik
+    const adjustedLeft = pos.left + (baseW - rotatedW) / 2;
+    const adjustedTop = pos.top + (baseH - rotatedH) / 2;
+
+    const gridX = Math.round(adjustedLeft  / CELL_WIDTH);
+    const gridY = Math.round(adjustedTop / CELL_HEIGHT);
 
     const canPlace = tryPlacePiece(pieceId, gridX, gridY);
 
     if (canPlace) {
       SoundManager.playPlaceEffect();
+      // Yerleştirildikten sonra uiPos'u da rotated matrix'e göre ayarla
+      const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
+      const placedTop =
+        gridY * CELL_HEIGHT -
+        (baseH - rotatedH) / 2 -
+        PIECE_CONTAINER_TOP_PADDING;
       setUiPositions(prev => ({
         ...prev,
-        [pieceId]: {
-          left: gridX * CELL_WIDTH,
-          top: gridY * CELL_HEIGHT - PIECE_CONTAINER_TOP_PADDING,
-        },
+        [pieceId]: { left: placedLeft, top: placedTop },
       }));
     }
 
@@ -248,9 +267,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     boardStateRef.current = board;
   }, [board]);
 
-  useEffect(() => {
-    getPieceMatrixRef.current = getPieceMatrix;
-  }, [getPieceMatrix]);
+
 
   useEffect(() => {
     setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
@@ -366,16 +383,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         ]}
       >
         {pieces.map(gamePiece => {
-          const matrix = getPieceMatrix(gamePiece.id);
           const uiPos = uiPositions[gamePiece.id];
-
-          if (!matrix) return;
 
           return (
             <AnimatedPiece
               key={gamePiece.id}
               gamePiece={gamePiece}
-              matrix={matrix}
+              matrix={gamePiece.baseMatrix}
+              rotation={gamePiece.rotation}
               uiPos={uiPos}
               panHandlers={panResponder.panHandlers}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
