@@ -1,4 +1,5 @@
-import {Audio, AVPlaybackStatus} from 'expo-av';
+import { createAudioPlayer, setAudioModeAsync, AudioPlayer } from 'expo-audio';
+import type { EventSubscription } from 'expo-modules-core';
 
 const HOMESCREEN_TRACK = require('../../assets/sounds/homescreen.mp3');
 const GAME_TRACKS = [
@@ -7,27 +8,28 @@ const GAME_TRACKS = [
   require('../../assets/sounds/game3.mp3'),
 ];
 
-let backgroundSound: Audio.Sound | null = null;
+let backgroundPlayer: AudioPlayer | null = null;
+let listenerSubscription: EventSubscription | null = null;
 let isBackgroundPlaying = false;
-let backgroundVolume = 0.5;
-let effectsVolume = 0.5;
+let backgroundVolume = 0.05;
+let effectsVolume = 0.1;
 let isMusicMuted = false;
 let isEffectsMuted = false;
 let currentTrack: number | null = null;
 let currentPlaylist: number[] | null = null;
 let currentPlaylistIndex = 0;
 
-const effectSounds = new Map<number, Audio.Sound>();
+const effectPlayers = new Map<number, AudioPlayer>();
 
-const loadEffect = async (assetModule: number): Promise<Audio.Sound | null> => {
-  if (effectSounds.has(assetModule)) {
-    return effectSounds.get(assetModule) || null;
+const loadEffect = (assetModule: number): AudioPlayer | null => {
+  if (effectPlayers.has(assetModule)) {
+    return effectPlayers.get(assetModule) || null;
   }
 
   try {
-    const {sound} = await Audio.Sound.createAsync(assetModule);
-    effectSounds.set(assetModule, sound);
-    return sound;
+    const player = createAudioPlayer(assetModule);
+    effectPlayers.set(assetModule, player);
+    return player;
   } catch (error) {
     console.log('Failed to load effect:', assetModule, error);
     return null;
@@ -41,41 +43,54 @@ const playNextInPlaylist = async (): Promise<void> => {
   await playTrack(currentPlaylist[currentPlaylistIndex], false);
 };
 
-const playTrack = async (track: number, loop: boolean = true): Promise<void> => {
+const cleanupBackgroundPlayer = () => {
+  if (listenerSubscription) {
+    listenerSubscription.remove();
+    listenerSubscription = null;
+  }
+  if (backgroundPlayer) {
+    try {
+      backgroundPlayer.pause();
+      backgroundPlayer.remove();
+    } catch {
+      // Ignore
+    }
+    backgroundPlayer = null;
+  }
+};
+
+const playTrack = async (
+  track: number,
+  loop: boolean = true,
+): Promise<void> => {
   if (isMusicMuted) return;
 
   if (currentTrack === track && isBackgroundPlaying) return;
 
-  if (backgroundSound) {
-    try {
-      await backgroundSound.stopAsync();
-      await backgroundSound.unloadAsync();
-    } catch {
-      // Ignore
-    }
-    backgroundSound = null;
-  }
+  cleanupBackgroundPlayer();
 
   try {
-    const {sound} = await Audio.Sound.createAsync(track, {
-      isLooping: loop,
-      volume: backgroundVolume,
-    });
+    const player = createAudioPlayer(track);
+    player.loop = loop;
+    player.volume = 0.05;
 
-    backgroundSound = sound;
+    backgroundPlayer = player;
     currentTrack = track;
     isBackgroundPlaying = true;
 
-    sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-      if (status.isLoaded && status.didJustFinish) {
-        isBackgroundPlaying = false;
-        if (!loop && currentPlaylist) {
-          playNextInPlaylist();
+    listenerSubscription = player.addListener(
+      'playbackStatusUpdate',
+      status => {
+        if (status.didJustFinish) {
+          isBackgroundPlaying = false;
+          if (!loop && currentPlaylist) {
+            playNextInPlaylist();
+          }
         }
-      }
-    });
+      },
+    );
 
-    await sound.playAsync();
+    player.play();
   } catch (error) {
     console.log('Failed to play track:', track, error);
   }
@@ -84,9 +99,9 @@ const playTrack = async (track: number, loop: boolean = true): Promise<void> => 
 export const SoundManager = {
   init: async (): Promise<void> => {
     try {
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
+      await setAudioModeAsync({
+        playsInSilentMode: false,
+        shouldPlayInBackground: false,
       });
     } catch (error) {
       console.error('SoundManager init failed:', error);
@@ -109,22 +124,14 @@ export const SoundManager = {
     currentTrack = null;
     currentPlaylist = null;
     currentPlaylistIndex = 0;
-    if (backgroundSound) {
-      try {
-        await backgroundSound.stopAsync();
-        await backgroundSound.unloadAsync();
-      } catch {
-        // Ignore
-      }
-      backgroundSound = null;
-    }
+    cleanupBackgroundPlayer();
   },
 
   pauseBackgroundMusic: async (): Promise<void> => {
     isBackgroundPlaying = false;
-    if (backgroundSound) {
+    if (backgroundPlayer) {
       try {
-        await backgroundSound.pauseAsync();
+        backgroundPlayer.pause();
       } catch {
         // Ignore
       }
@@ -134,9 +141,9 @@ export const SoundManager = {
   resumeBackgroundMusic: async (): Promise<void> => {
     if (isMusicMuted) return;
 
-    if (backgroundSound) {
+    if (backgroundPlayer) {
       try {
-        await backgroundSound.playAsync();
+        backgroundPlayer.play();
         isBackgroundPlaying = true;
       } catch {
         if (currentTrack) {
@@ -154,12 +161,12 @@ export const SoundManager = {
     if (isEffectsMuted) return;
 
     try {
-      const sound = await loadEffect(assetModule);
-      if (!sound) return;
+      const player = loadEffect(assetModule);
+      if (!player) return;
 
-      await sound.setVolumeAsync(effectsVolume);
-      await sound.setPositionAsync(0);
-      await sound.playAsync();
+      player.volume = 0.1;
+      await player.seekTo(0);
+      player.play();
     } catch (error) {
       console.log('Failed to play effect:', error);
     }
@@ -177,11 +184,11 @@ export const SoundManager = {
     SoundManager.playEffect(require('../../assets/sounds/win.mp3'));
   },
 
-  setBackgroundVolume: async (volume: number): Promise<void> => {
-    backgroundVolume = Math.max(0, Math.min(1, volume));
-    if (backgroundSound) {
+  setBackgroundVolume: (volume: number): void => {
+    backgroundVolume = volume;
+    if (backgroundPlayer) {
       try {
-        await backgroundSound.setVolumeAsync(backgroundVolume);
+        backgroundPlayer.volume = backgroundVolume;
       } catch {
         // Ignore
       }
@@ -189,7 +196,7 @@ export const SoundManager = {
   },
 
   setEffectsVolume: (volume: number): void => {
-    effectsVolume = Math.max(0, Math.min(1, volume));
+    effectsVolume = volume;
   },
 
   setMusicMuted: (muted: boolean): void => {
@@ -224,13 +231,13 @@ export const SoundManager = {
   release: async (): Promise<void> => {
     await SoundManager.stopBackgroundMusic();
 
-    for (const sound of effectSounds.values()) {
+    for (const player of effectPlayers.values()) {
       try {
-        await sound.unloadAsync();
+        player.remove();
       } catch {
         // Ignore
       }
     }
-    effectSounds.clear();
+    effectPlayers.clear();
   },
 };

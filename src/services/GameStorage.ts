@@ -10,8 +10,8 @@ export type SoundSettings = {
 const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   musicEnabled: true,
   effectsEnabled: true,
-  musicVolume: 0.5,
-  effectsVolume: 0.5,
+  musicVolume: 0.05,
+  effectsVolume: 0.1,
 };
 
 const STORAGE_KEYS = {

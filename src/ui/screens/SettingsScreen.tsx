@@ -7,13 +7,14 @@ import { SoundManager } from '../../services/SoundManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { LabelButton } from '../components/base/LabelButton.tsx';
+import { useMusicMuted } from '../../state/useMusicMuted.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
-  const [musicEnabled, setMusicEnabled] = useState(
-    !SoundManager.isMusicMutedState(),
-  );
+  const { isMusicMuted, setMusicMuted } = useMusicMuted();
+  const musicEnabled = !isMusicMuted;
+
   const [effectsEnabled, setEffectsEnabled] = useState(
     !SoundManager.isEffectsMutedState(),
   );
@@ -22,12 +23,11 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const saveSettings = (overrides: Partial<{
-    music: boolean;
     effects: boolean;
     volume: number;
   }>) => {
     GameStorage.saveSoundSettings({
-      musicEnabled: overrides.music ?? musicEnabled,
+      musicEnabled,
       effectsEnabled: overrides.effects ?? effectsEnabled,
       musicVolume: overrides.volume ?? musicVolume,
       effectsVolume: SoundManager.getEffectsVolume(),
@@ -35,9 +35,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleMusicToggle = (value: boolean) => {
-    setMusicEnabled(value);
-    SoundManager.setMusicMuted(!value);
-    saveSettings({ music: value });
+    setMusicMuted(!value);
   };
 
   const handleEffectsToggle = (value: boolean) => {
@@ -85,14 +83,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <Pressable
               style={[
                 styles.volumeButton,
-                musicVolume === 0.25 && styles.volumeButtonActive,
+                musicVolume === 0.05 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(0.25)}
+              onPress={() => handleVolumeChange(0.05)}
             >
               <LabelButton
                 style={[
                   styles.volumeButtonText,
-                  musicVolume === 0.25 && styles.volumeButtonTextActive,
+                  musicVolume === 0.05 && styles.volumeButtonTextActive,
                 ]}
               >
                 Low
@@ -101,14 +99,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <Pressable
               style={[
                 styles.volumeButton,
-                musicVolume === 0.5 && styles.volumeButtonActive,
+                musicVolume === 0.15 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(0.5)}
+              onPress={() => handleVolumeChange(0.15)}
             >
               <LabelButton
                 style={[
                   styles.volumeButtonText,
-                  musicVolume === 0.5 && styles.volumeButtonTextActive,
+                  musicVolume === 0.15 && styles.volumeButtonTextActive,
                 ]}
               >
                 Mid
@@ -117,14 +115,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <Pressable
               style={[
                 styles.volumeButton,
-                musicVolume === 1.0 && styles.volumeButtonActive,
+                musicVolume === 0.35 && styles.volumeButtonActive,
               ]}
-              onPress={() => handleVolumeChange(1.0)}
+              onPress={() => handleVolumeChange(0.35)}
             >
               <LabelButton
                 style={[
                   styles.volumeButtonText,
-                  musicVolume === 1.0 && styles.volumeButtonTextActive,
+                  musicVolume === 0.35 && styles.volumeButtonTextActive,
                 ]}
               >
                 High

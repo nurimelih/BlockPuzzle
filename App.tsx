@@ -62,14 +62,15 @@ function App() {
       await SoundManager.init();
       const settings = await GameStorage.getSoundSettings();
 
-      SoundManager.setMusicMuted(!settings.musicEnabled);
       SoundManager.setEffectsMuted(!settings.effectsEnabled);
-      await SoundManager.setBackgroundVolume(settings.musicVolume);
+      SoundManager.setBackgroundVolume(settings.musicVolume);
       SoundManager.setEffectsVolume(settings.effectsVolume);
 
-      if (settings.musicEnabled) {
-        SoundManager.playGameMusic();
-      }
+      // Sync store with persisted setting
+      useAppStore.setState({isMusicMuted: !settings.musicEnabled});
+
+      // setMusicMuted handles resume → playGameMusic internally when unmuted
+      SoundManager.setMusicMuted(!settings.musicEnabled);
       initAds();
 
       const levels = await fetchAllLevels();

@@ -17,6 +17,7 @@ import { colors, spacing, typography } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
 import { SoundManager } from '../../services/SoundManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
+import { useMusicMuted } from '../../state/useMusicMuted.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { Analytics } from '../../services/Analytics.ts';
 import { useAppStore } from '../../state/useAppStore.ts';
@@ -105,12 +106,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const startPos = useRef({ left: 0, top: 0 });
 
+  const { isMusicMuted, setMusicMuted } = useMusicMuted();
+
   // local states
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
-  const [isMusicMuted, setIsMusicMuted] = useState(
-    SoundManager.isMusicMutedState(),
-  );
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => generateScatteredPositions(currentLevel.pieces.length));
@@ -293,9 +293,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const toggleMusic = () => {
-    const newMuted = !isMusicMuted;
-    setIsMusicMuted(newMuted);
-    SoundManager.setMusicMuted(newMuted);
+    setMusicMuted(!isMusicMuted);
   };
 
   const handleHintWithAd = async () => {
