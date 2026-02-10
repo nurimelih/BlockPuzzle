@@ -91,7 +91,7 @@ function App() {
       apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
       options={{
         host: 'https://eu.i.posthog.com',
-        enableSessionReplay: true,
+        enableSessionReplay: false,
       }}
       autocapture={{
         captureScreens: false,
