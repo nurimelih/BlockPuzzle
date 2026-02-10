@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { GamePiece, PieceMatrix } from '../../types/types.ts';
 import Animated, {
   useAnimatedStyle,
@@ -135,11 +135,17 @@ export const AnimatedPiece: React.FC<Props> = ({
                         borderLeftColor: pieceColors.highlight,
                         borderRightWidth: hasRight ? 0 : 2,
                         borderRightColor: pieceColors.shadow,
-                        shadowColor: colors.black,
-                        shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: gamePiece.placed ? .5 : 0.3,
-                        shadowRadius: gamePiece.placed ? 2 : 4,
-                        elevation: gamePiece.placed ? 2 : 5,
+                        ...Platform.select({
+                          ios: {
+                            shadowColor: colors.black,
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: gamePiece.placed ? 0.5 : 0.3,
+                            shadowRadius: gamePiece.placed ? 2 : 4,
+                          },
+                          android: {
+                            elevation: gamePiece.placed ? 1 : 2,
+                          },
+                        }),
                       },
                     ]}
                   />

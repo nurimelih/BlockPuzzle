@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   PanResponder,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -120,7 +121,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const activePieceIdRef = useRef(activePieceId);
   const piecesRef = useRef(pieces);
   const boardStateRef = useRef(board);
-  const isRotatingRef = useRef(false);
   const rotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -179,7 +179,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: () => !isRotatingRef.current,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, { dx, dy }) => {
+        return Math.abs(dx) > 5 || Math.abs(dy) > 5;
+      },
       onPanResponderGrant: () => {
         if (!activePieceIdRef.current) return;
         const pos = uiPositionsRef.current[activePieceIdRef.current];
@@ -495,11 +498,17 @@ const styles = StyleSheet.create({
   },
   level: {
     position: 'absolute',
-    shadowColor: 'black',
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'black',
+        shadowOffset: { width: 1, height: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
     zIndex: 1,
   },
   row: {
