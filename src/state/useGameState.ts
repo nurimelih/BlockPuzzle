@@ -47,7 +47,6 @@ export const useGameState = (initialLevel: number) => {
   };
 
   const rotatePiece = useCallback((id: string) => {
-    setMoveCount((prev: number) => prev + 1);
     setPieces(prev =>
       prev.map(piece => {
         if (piece.id !== id) return piece;
