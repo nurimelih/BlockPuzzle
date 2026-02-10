@@ -1,15 +1,26 @@
 // 0: invalid (engel / dış)
 // 1: empty (yerleşebilir)
 // 2: occupied (parça konmuş)
+import { boolean } from 'superstruct';
+
 export enum Cell {
   'INVALID' = 0,
   'AVAILABLE' = 1,
   'VOID' = 2,
 }
 
+export type AppSettings = {
+  rewardedAdsActive?: boolean;
+  interstitialAdsActive?: boolean;
+  musicActive?: boolean;
+  musicVolume?: number;
+  forceToShowHints?: boolean;
+};
+
+
 export type Board = Cell[][];
 
-export type OccupiedCell = {x: number, y: number};
+export type OccupiedCell = { x: number; y: number };
 
 export type PieceMatrix = number[][]; // 0 / 1
 
@@ -37,7 +48,6 @@ export type GamePiece = {
   boardX?: number;
   boardY?: number;
 };
-
 
 export const SHORT_I_PIECE: PieceMatrix = [[1, 1]];
 
@@ -74,3 +84,4 @@ export const Z_PIECE: PieceMatrix = [
   [1, 1, 0],
   [0, 1, 1],
 ];
+

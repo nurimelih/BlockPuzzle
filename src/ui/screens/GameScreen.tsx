@@ -10,7 +10,6 @@ import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
 import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
-import { LEVELS } from '../../core/levels.ts';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,8 +17,16 @@ import { colors, spacing, typography } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
 import { SoundManager } from '../../services/SoundManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
+import { useMusicMuted } from '../../state/useMusicMuted.ts';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { Analytics } from '../../services/Analytics.ts';
+import { useAppStore } from '../../state/useAppStore.ts';
+import {
+  showRewardedAd,
+  showInterstitialIfReady,
+  isRewardedAdReady,
+} from '../../services/AdManager.ts';
+import { solvePartial } from '../../core/solver.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -31,7 +38,6 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     board,
     pieces,
     rotatePiece,
-    getPieceMatrix,
     releaseAndTryLockPiece,
     tryPlacePiece,
     isOver,
@@ -46,11 +52,25 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   } = useGameState(levelNumber);
 
   const [gameTime, setGameTime] = useState('00:00');
+  const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
+  const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
+  const levels = useAppStore(state => state.levels);
+  const isRewardedAdsActive = useAppStore(
+    state => state.appSettings,
+  ).rewardedAdsActive;
+
+  const forceToShowHints = useAppStore(
+    state => state.appSettings,
+  ).forceToShowHints;
 
   useEffect(() => {
-    // SoundManager.playGameMusic();
+    setCurrentScreen('game');
+  }, [setCurrentScreen]);
+
+  useEffect(() => {
+    setCurrentLevel(currentLevelNumber);
     Analytics.logLevelStart(currentLevelNumber);
-  }, [currentLevelNumber]);
+  }, [currentLevelNumber, setCurrentLevel]);
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -86,19 +106,76 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const startPos = useRef({ left: 0, top: 0 });
 
+  const { isMusicMuted, setMusicMuted } = useMusicMuted();
+
   // local states
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
   const [uiPositions, setUiPositions] = useState<
     Record<string, { top: number; left: number }>
   >(() => generateScatteredPositions(currentLevel.pieces.length));
+  const [hintCells, setHintCells] = useState<{ x: number; y: number }[]>([]);
 
   const uiPositionsRef = useRef(uiPositions);
   const activePieceIdRef = useRef(activePieceId);
   const piecesRef = useRef(pieces);
   const boardStateRef = useRef(board);
-  const getPieceMatrixRef = useRef(getPieceMatrix);
   const isRotatingRef = useRef(false);
+  const rotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rotateTimeoutRef.current) {
+        clearTimeout(rotateTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const attemptPlacementRef = useRef<(pieceId: string) => void>(() => {});
+
+  attemptPlacementRef.current = (pieceId: string) => {
+    const pos = uiPositionsRef.current[pieceId];
+    if (!pos) return;
+
+    const piece = piecesRef.current.find(p => p.id === pieceId);
+    if (!piece) return;
+
+    // see if it is rotated and take new height/width values
+    // height and width are necessary to tryPlacePiece
+    const baseCols = piece.baseMatrix[0].length;
+    const baseRows = piece.baseMatrix.length;
+    const isSwapped = piece.rotation % 180 !== 0;
+    const rotatedW = (isSwapped ? baseRows : baseCols) * CELL_WIDTH;
+    const rotatedH = (isSwapped ? baseCols : baseRows) * CELL_HEIGHT;
+    const baseW = baseCols * CELL_WIDTH;
+    const baseH = baseRows * CELL_HEIGHT;
+
+    // animasyonla merkez etrafında döndürüyoruz ama ama board'da göre snapping kayıyor
+    // bunu düzeltmek için ekledik
+    const adjustedLeft = pos.left + (baseW - rotatedW) / 2;
+    const adjustedTop = pos.top + (baseH - rotatedH) / 2;
+
+    const gridX = Math.round(adjustedLeft  / CELL_WIDTH);
+    const gridY = Math.round(adjustedTop / CELL_HEIGHT);
+
+    const canPlace = tryPlacePiece(pieceId, gridX, gridY);
+
+    if (canPlace) {
+      SoundManager.playPlaceEffect();
+      // Yerleştirildikten sonra uiPos'u da rotated matrix'e göre ayarla
+      const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
+      const placedTop =
+        gridY * CELL_HEIGHT -
+        (baseH - rotatedH) / 2 -
+        PIECE_CONTAINER_TOP_PADDING;
+      setUiPositions(prev => ({
+        ...prev,
+        [pieceId]: { left: placedLeft, top: placedTop },
+      }));
+    }
+
+    releaseAndTryLockPiece(pieceId, gridX, gridY, canPlace);
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -124,39 +201,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         }));
       },
       onPanResponderRelease: () => {
-        const id = activePieceIdRef.current as string;
-        const { left, top } = uiPositionsRef.current[id];
-        const gridX = Math.round(left / CELL_WIDTH);
-        const gridY = Math.round(top / CELL_HEIGHT);
+        const id = activePieceIdRef.current;
+        if (!id) return;
 
-        const gamePiece = piecesRef.current.find(
-          piece => piece.id === (activePieceIdRef.current as string),
-        );
-
-        if (!gamePiece) return;
-        const matrix = getPieceMatrixRef.current(gamePiece.id);
-
-        if (!matrix) return;
-
-        const canPlaceResult = tryPlacePiece(gamePiece.id!, gridX, gridY);
-
-        const snapLeft = gridX * CELL_WIDTH;
-        const snapTop = gridY * CELL_HEIGHT - PIECE_CONTAINER_TOP_PADDING;
-
-        if (canPlaceResult) {
-          SoundManager.playPlaceEffect();
-          setUiPositions(prev => ({
-            ...prev,
-            [id]: {
-              left: snapLeft,
-              top: snapTop,
-            },
-          }));
-        }
-        releaseAndTryLockPiece(id, gridX, gridY, canPlaceResult);
+        attemptPlacementRef.current(id);
         setActivePieceId(undefined);
-
-        if (!canPlaceResult) console.log('Not snapping', gridX, gridY);
       },
     }),
   ).current;
@@ -186,13 +235,19 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     if (isOver) {
-      Analytics.logLevelComplete(currentLevelNumber, moveCount, getElapsedTime());
+      Analytics.logLevelComplete(
+        currentLevelNumber,
+        moveCount,
+        getElapsedTime(),
+      );
       SoundManager.playWinEffect();
       GameStorage.saveCompletedLevel(
         currentLevelNumber,
         moveCount,
         getElapsedTime(),
       );
+      // Show interstitial ad after level completion
+      showInterstitialIfReady();
     }
   }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
 
@@ -212,12 +267,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     boardStateRef.current = board;
   }, [board]);
 
-  useEffect(() => {
-    getPieceMatrixRef.current = getPieceMatrix;
-  }, [getPieceMatrix]);
+
 
   useEffect(() => {
     setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
+    setHintCells([]);
   }, [currentLevel, generateScatteredPositions]);
 
   // functions
@@ -234,6 +288,45 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleHome = () => {
     navigation.navigate('HomeScreen');
   };
+  const handleSettings = () => {
+    navigation.navigate('Settings');
+  };
+
+  const toggleMusic = () => {
+    setMusicMuted(!isMusicMuted);
+  };
+
+  const handleHintWithAd = async () => {
+    // Solve from current state - respects already placed pieces
+    const solution = solvePartial(currentLevel, pieces);
+    if (!solution || solution.length === 0) return;
+
+    const rewarded = await showRewardedAd();
+    if (rewarded) {
+      handleHint();
+    }
+  };
+
+  const handleHint = async () => {
+    const solution = solvePartial(currentLevel, pieces);
+    if (!solution || solution.length === 0) return;
+    const hint = solution[0];
+
+    const cells: { x: number; y: number }[] = [];
+    for (let i = 0; i < hint.matrix.length; i++) {
+      for (let j = 0; j < hint.matrix[i].length; j++) {
+        if (hint.matrix[i][j] === 1) {
+          cells.push({ x: hint.x + j, y: hint.y + i });
+        }
+      }
+    }
+
+    setHintCells(cells);
+
+    setTimeout(() => {
+      setHintCells([]);
+    }, 3000);
+  };
 
   const generateCellStyle = useCallback((cell: Cell) => {
     switch (cell) {
@@ -247,6 +340,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, []);
 
   const renderBoard = useCallback(() => {
+    const isHintCell = (row: number, col: number) =>
+      hintCells.some(c => c.x === col && c.y === row);
+
     return (
       <View
         style={[styles.level, { top: BOARD_TOP_POS, left: BOARD_LEFT_POS }]}
@@ -261,7 +357,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
                 return (
                   <View
                     key={`cell-${rowIndex}-${colIndex}`}
-                    style={[styles.cell, generateCellStyle(cell)]}
+                    style={[
+                      styles.cell,
+                      generateCellStyle(cell),
+                      isHintCell(rowIndex, colIndex) && styles.hintCell,
+                    ]}
                   />
                 );
               })}
@@ -270,7 +370,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         })}
       </View>
     );
-  }, [board, generateCellStyle, BOARD_TOP_POS, BOARD_LEFT_POS]);
+  }, [board, generateCellStyle, BOARD_TOP_POS, BOARD_LEFT_POS, hintCells]);
 
   const renderPieces = () => {
     return (
@@ -281,22 +381,24 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         ]}
       >
         {pieces.map(gamePiece => {
-          const matrix = getPieceMatrix(gamePiece.id);
           const uiPos = uiPositions[gamePiece.id];
-
-          if (!matrix) return;
 
           return (
             <AnimatedPiece
               key={gamePiece.id}
               gamePiece={gamePiece}
-              matrix={matrix}
+              matrix={gamePiece.baseMatrix}
+              rotation={gamePiece.rotation}
               uiPos={uiPos}
               panHandlers={panResponder.panHandlers}
               onTouchStart={() => setActivePieceId(gamePiece.id)}
               onPressRotate={() => {
                 SoundManager.playRotateEffect();
                 rotatePiece(gamePiece.id);
+                rotateTimeoutRef.current = setTimeout(() => {
+                  attemptPlacementRef.current(gamePiece.id);
+                  setActivePieceId(undefined);
+                }, 0);
               }}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
@@ -312,7 +414,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <View>
         <View style={styles.headerRow}>
-          <LabelButton style={styles.levelText}>
+          <LabelButton style={styles.levelText} onPress={handleNextLevel}>
             Level {currentLevelNumber + 1}
           </LabelButton>
           <LabelButton style={styles.movesText}>Moves {moveCount}</LabelButton>
@@ -334,19 +436,52 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {renderPieces()}
 
-      <Pressable onPress={toggleMenu} style={styles.settingsIcon}>
-        <Icon name="settings-outline" size={24} color={colors.piece.base} />
-      </Pressable>
+      <View style={styles.footerIcons}>
+        <Pressable onPress={toggleMenu} style={styles.footerIcon}>
+          <View style={styles.iconShadow}>
+            <Icon name="settings-outline" size={22} color={colors.white} />
+          </View>
+        </Pressable>
+        {!isOver &&
+          ((isRewardedAdReady() && isRewardedAdsActive) ||
+            forceToShowHints) && (
+            <Pressable
+              onPress={forceToShowHints ? handleHint : handleHintWithAd}
+              style={styles.footerIcon}
+            >
+              <View style={styles.iconShadow}>
+                <Icon name="bulb-outline" size={22} color={colors.white} />
+              </View>
+            </Pressable>
+          )}
+
+        <Pressable onPress={toggleMusic} style={styles.footerIcon}>
+          <View style={styles.iconShadow}>
+            <Icon
+              name={isMusicMuted ? 'volume-mute' : 'musical-notes'}
+              size={22}
+              color={colors.white}
+            />
+          </View>
+        </Pressable>
+      </View>
       <MenuOverlay
         onDismiss={toggleMenu}
         visible={isOver || menuVisible}
         isWin={isOver}
-        onNextLevel={handleNextLevel}
-        onPreviousLevel={handlePrevLevel}
+        onNextLevel={() => {
+          setMenuVisible(false);
+          handleNextLevel();
+        }}
+        onPreviousLevel={() => {
+          setMenuVisible(false);
+          handlePrevLevel();
+        }}
         onRestart={handleRestart}
         onHome={handleHome}
+        onSettings={handleSettings}
         currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === LEVELS.length}
+        isLastLevel={currentLevelNumber === levels.length - 1}
       />
     </View>
   );
@@ -362,7 +497,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     shadowColor: 'black',
     shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 1,
     shadowRadius: 4,
     elevation: 5,
     zIndex: 1,
@@ -394,6 +529,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.transparent,
     opacity: 0,
   },
+  hintCell: {
+    backgroundColor: 'rgba(255, 235, 59, 0.6)',
+    borderColor: 'rgba(255, 193, 7, 0.9)',
+    borderWidth: 1.5,
+  },
   piecesContainer: {
     position: 'absolute',
     zIndex: 1,
@@ -411,11 +551,17 @@ const styles = StyleSheet.create({
 
   levelText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   movesText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   timerRow: {
     flex: 1,
@@ -425,9 +571,24 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: typography.fontSize.xl,
-    color: colors.piece.base,
+    color: colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
-  settingsIcon: {
+  footerIcons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.lg,
     paddingBottom: spacing.xl,
+  },
+  footerIcon: {
+    padding: spacing.sm,
+  },
+  iconShadow: {
+    shadowColor: 'rgba(0, 0, 0, 0.75)',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
   },
 });

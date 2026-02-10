@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,6 +16,7 @@ type Props = {
   onPreviousLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
+  onSettings: () => void;
   currentLevelNumber: number;
   isLastLevel: boolean;
   onDismiss: () => void;
@@ -28,6 +29,7 @@ export const MenuOverlay: React.FC<Props> = ({
   onPreviousLevel,
   onRestart,
   onHome,
+  onSettings,
   currentLevelNumber,
   isLastLevel,
   onDismiss,
@@ -57,9 +59,9 @@ export const MenuOverlay: React.FC<Props> = ({
   if (!visible) return null;
 
   return (
-    <Pressable style={styles.container} onPress={onDismiss}>
-      <View style={styles.container}>
-        <Animated.View style={[styles.overlay, animatedStyle]}>
+    <View style={styles.container}>
+      <Pressable style={styles.backdrop} onPress={onDismiss} />
+      <Animated.View style={[styles.overlay, animatedStyle]}>
           {isWin ? (
             <LabelButton style={styles.title}>
               Level {currentLevelNumber + 1} Complete!
@@ -70,14 +72,15 @@ export const MenuOverlay: React.FC<Props> = ({
 
           <View style={styles.buttonContainer}>
             {isWin && !isLastLevel && (
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={onNextLevel}
+              <LabelButton
+                pressableProps={{
+                  onPress: onNextLevel,
+                  style: [styles.primaryButton],
+                }}
+                style={styles.primaryButtonText}
               >
-                <LabelButton style={styles.primaryButtonText}>
-                  Next Level
-                </LabelButton>
-              </TouchableOpacity>
+                Next Level
+              </LabelButton>
             )}
 
             {isWin && isLastLevel && (
@@ -108,17 +111,6 @@ export const MenuOverlay: React.FC<Props> = ({
               Restart Level
             </LabelButton>
 
-            {/*Debug*/}
-            <LabelButton
-              pressableProps={{
-                onPress: onNextLevel,
-                style: [styles.secondaryButton],
-              }}
-              style={styles.secondaryButtonText}
-            >
-              Next Level
-            </LabelButton>
-
             <LabelButton
               pressableProps={{
                 onPress: onPreviousLevel,
@@ -131,6 +123,16 @@ export const MenuOverlay: React.FC<Props> = ({
 
             <LabelButton
               pressableProps={{
+                onPress: onSettings,
+                style: [styles.secondaryButton],
+              }}
+              style={styles.secondaryButtonText}
+            >
+              Settings
+            </LabelButton>
+
+            <LabelButton
+              pressableProps={{
                 onPress: onHome,
                 style: [styles.secondaryButton],
               }}
@@ -139,9 +141,8 @@ export const MenuOverlay: React.FC<Props> = ({
               Home
             </LabelButton>
           </View>
-        </Animated.View>
-      </View>
-    </Pressable>
+      </Animated.View>
+    </View>
   );
 };
 
@@ -149,8 +150,11 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    backgroundColor: colors.background.overlay,
     zIndex: 9,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.background.overlay,
   },
   overlay: {
     backgroundColor: colors.background.cream,

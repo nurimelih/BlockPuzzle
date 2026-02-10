@@ -5,6 +5,11 @@ Bu proje bir oyun demosu değil, engine + mimari showcase'i.
 - Oyun kuralları, state ve render katmanlarını kesin sınırlarla ayırmak
 - Basit bir oyundan ziyade, her katmanın kendi işini yaptığı bir tasarım oluşturmak ve gerekliliğine cevap verebilmek.
 ---
+
+
+<img width="282" height="633" alt="IMG_0935" src="https://github.com/user-attachments/assets/04c52fc5-b4ff-4e2c-9f0b-4fb9f6c4e81d" />
+<img width="282" height="633" alt="IMG_0938" src="https://github.com/user-attachments/assets/6fa16866-c9e4-43e0-904c-b2c45ee158fc" />
+
 # Mimari Yapı
 ## 1. Core (Engine / Domain Logic)
 - React / React Native bilmez

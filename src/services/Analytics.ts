@@ -1,3 +1,5 @@
+import { posthog } from 'posthog-react-native';
+
 const FIREBASE_ENABLED = process.env.FIREBASE_ENABLED !== 'false';
 
 let analytics: any = null;
@@ -15,6 +17,7 @@ export const Analytics = {
     if (analytics) {
       await analytics().logEvent('level_start', { level: levelNumber });
     }
+    posthog.capture('level_start', { level: levelNumber });
   },
 
   logLevelComplete: async (
@@ -29,11 +32,17 @@ export const Analytics = {
         time,
       });
     }
+    posthog.capture('level_complete', {
+      level: levelNumber,
+      moves,
+      time,
+    });
   },
 
   logScreenView: async (screenName: string) => {
     if (analytics) {
       await analytics().logScreenView({ screen_name: screenName });
     }
+    posthog.screen(screenName);
   },
 };
