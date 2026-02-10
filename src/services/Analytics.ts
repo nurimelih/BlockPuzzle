@@ -1,6 +1,6 @@
 import { posthog } from 'posthog-react-native';
 
-const FIREBASE_ENABLED = process.env.FIREBASE_ENABLED !== 'false';
+const FIREBASE_ENABLED = process.env.FIREBASE_ENABLED === 'true';
 
 let analytics: any = null;
 

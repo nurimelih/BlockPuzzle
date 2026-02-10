@@ -3,7 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 // Firebase: only apply google-services plugin when FIREBASE_ENABLED is not 'false'
-if (System.getenv("FIREBASE_ENABLED") != "false") {
+if (System.getenv("FIREBASE_ENABLED") == "true") {
     apply plugin: "com.google.gms.google-services"
 }
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

@@ -1,4 +1,4 @@
-const firebaseEnabled = process.env.FIREBASE_ENABLED !== 'false';
+const firebaseEnabled = process.env.FIREBASE_ENABLED === 'true';
 
 module.exports = {
   project: {
