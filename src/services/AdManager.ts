@@ -34,7 +34,7 @@ const getAdUnitId = (type: 'rewarded' | 'interstitial') => {
 };
 
 // When true in DEV mode, ads behave as if ready (skip actual ad, grant reward)
-let adsAreActiveInTest = true;
+let adsAreActiveInTest = false;
 
 // Rewarded Ad instance
 let rewardedAd: RewardedAd | null = null;
@@ -46,7 +46,7 @@ let isInterstitialAdLoaded = false;
 
 // Track levels for interstitial frequency
 let levelsSinceLastAd = 0;
-const LEVELS_BETWEEN_ADS = 3; // Show interstitial every 3 levels
+const LEVELS_BETWEEN_ADS = 5; // Show interstitial every 3 levels
 
 /**
  * Initialize and preload ads

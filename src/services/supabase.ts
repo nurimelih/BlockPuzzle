@@ -43,13 +43,17 @@ export async function fetchBackgroundUrls(): Promise<string[]> {
 
 export async  function fetchAdSettings(): Promise<AppSettings> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/app_config?key=eq.ad_settings&select=value`,
-      {headers},
+      {headers, signal: controller.signal},
     );
+    clearTimeout(timeout);
 
     if (!response.ok) {
-      console.log('Failed to fetch background URLs:', response.status);
+      console.log('Failed to fetch ad settings:', response.status);
       return {};
     }
 
@@ -59,11 +63,9 @@ export async  function fetchAdSettings(): Promise<AppSettings> {
       return {};
     }
 
-    console.log("result:", JSON.parse(data[0].value))
     return JSON.parse(data[0].value);
-
   } catch (error) {
-    console.log('Failed to fetch background URLs:', error);
+    console.log('Failed to fetch ad settings:', error);
     return {};
   }
 }
