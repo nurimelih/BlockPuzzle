@@ -7,7 +7,6 @@ import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
 import { LevelSelectScreen } from './src/ui/screens/LevelSelectScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
-import Background from './src/ui/components/Background.tsx';
 import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';

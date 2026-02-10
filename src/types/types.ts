@@ -1,8 +1,6 @@
 // 0: invalid (engel / dış)
 // 1: empty (yerleşebilir)
 // 2: occupied (parça konmuş)
-import { boolean } from 'superstruct';
-
 export enum Cell {
   'INVALID' = 0,
   'AVAILABLE' = 1,
