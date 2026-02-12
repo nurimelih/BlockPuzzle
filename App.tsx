@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { PostHogProvider } from 'posthog-react-native';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
@@ -99,14 +100,14 @@ function App() {
     >
       <ThemeProvider theme={theme}>
         <SafeAreaProvider>
-          <View style={styles.container}>
+          <GestureHandlerRootView style={styles.container}>
             <BackgroundImage />
             <SafeAreaView style={styles.safeArea}>
               <NavigationContainer>
                 <RootStack />
               </NavigationContainer>
             </SafeAreaView>
-          </View>
+          </GestureHandlerRootView>
         </SafeAreaProvider>
       </ThemeProvider>
     </PostHogProvider>

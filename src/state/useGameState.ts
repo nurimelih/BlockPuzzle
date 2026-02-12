@@ -32,6 +32,10 @@ export const useGameState = (initialLevel: number) => {
 
   const piecesRef = useRef<GamePiece[]>(pieces);
 
+  const getPieceFresh = useCallback((id: string) => {
+    return piecesRef.current.find(p => p.id === id);
+  }, []);
+
   const releaseAndTryLockPiece = (
     id: string,
     x: number,
@@ -268,5 +272,6 @@ export const useGameState = (initialLevel: number) => {
     pauseTimer,
     resumeTimer,
     getElapsedTime,
+    getPieceFresh,
   };
 };

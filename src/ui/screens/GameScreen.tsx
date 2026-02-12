@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
-  PanResponder,
   Platform,
   Pressable,
   StyleSheet,
@@ -9,7 +8,10 @@ import {
 } from 'react-native';
 import { Cell } from '../../types/types.ts';
 import { useGameState } from '../../state/useGameState.ts';
-import { AnimatedPiece } from '../components/AnimatedPiece.tsx';
+import {
+  AnimatedPiece,
+  AnimatedPieceHandle,
+} from '../components/AnimatedPiece.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
@@ -50,6 +52,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     pauseTimer,
     resumeTimer,
     getElapsedTime,
+    getPieceFresh,
   } = useGameState(levelNumber);
 
   const [gameTime, setGameTime] = useState('00:00');
@@ -105,113 +108,76 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     [screenWidth, CELL_WIDTH],
   );
 
-  const startPos = useRef({ left: 0, top: 0 });
-
   const { isMusicMuted, setMusicMuted } = useMusicMuted();
 
   // local states
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
-  const [uiPositions, setUiPositions] = useState<
-    Record<string, { top: number; left: number }>
-  >(() => generateScatteredPositions(currentLevel.pieces.length));
   const [hintCells, setHintCells] = useState<{ x: number; y: number }[]>([]);
+  const [resetKey, setResetKey] = useState(0);
 
-  const uiPositionsRef = useRef(uiPositions);
-  const activePieceIdRef = useRef(activePieceId);
-  const piecesRef = useRef(pieces);
-  const boardStateRef = useRef(board);
-  const rotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Refs for gesture handler pattern
+  const pieceRefs = useRef<Record<string, AnimatedPieceHandle>>({});
+  const scatteredPositions = useRef(
+    generateScatteredPositions(currentLevel.pieces.length),
+  );
 
-  useEffect(() => {
-    return () => {
-      if (rotateTimeoutRef.current) {
-        clearTimeout(rotateTimeoutRef.current);
-      }
-    };
+  // Callbacks for AnimatedPiece gesture events
+  const handleDragStart = useCallback((id: string) => {
+    setActivePieceId(id);
   }, []);
 
-  const attemptPlacementRef = useRef<(pieceId: string) => void>(() => {});
+  const handleDragEnd = useCallback(
+    (id: string, finalLeft: number, finalTop: number) => {
+      const piece = getPieceFresh(id);
+      if (!piece) return;
 
-  attemptPlacementRef.current = (pieceId: string) => {
-    const pos = uiPositionsRef.current[pieceId];
-    if (!pos) return;
+      const baseCols = piece.baseMatrix[0].length;
+      const baseRows = piece.baseMatrix.length;
+      const isSwapped = piece.rotation % 180 !== 0;
+      const rotatedW = (isSwapped ? baseRows : baseCols) * CELL_WIDTH;
+      const rotatedH = (isSwapped ? baseCols : baseRows) * CELL_HEIGHT;
+      const baseW = baseCols * CELL_WIDTH;
+      const baseH = baseRows * CELL_HEIGHT;
 
-    const piece = piecesRef.current.find(p => p.id === pieceId);
-    if (!piece) return;
+      const adjustedLeft = finalLeft + (baseW - rotatedW) / 2;
+      const adjustedTop = finalTop + (baseH - rotatedH) / 2;
 
-    // see if it is rotated and take new height/width values
-    // height and width are necessary to tryPlacePiece
-    const baseCols = piece.baseMatrix[0].length;
-    const baseRows = piece.baseMatrix.length;
-    const isSwapped = piece.rotation % 180 !== 0;
-    const rotatedW = (isSwapped ? baseRows : baseCols) * CELL_WIDTH;
-    const rotatedH = (isSwapped ? baseCols : baseRows) * CELL_HEIGHT;
-    const baseW = baseCols * CELL_WIDTH;
-    const baseH = baseRows * CELL_HEIGHT;
+      const gridX = Math.round(adjustedLeft / CELL_WIDTH);
+      const gridY = Math.round(adjustedTop / CELL_HEIGHT);
 
-    // animasyonla merkez etrafında döndürüyoruz ama ama board'da göre snapping kayıyor
-    // bunu düzeltmek için ekledik
-    const adjustedLeft = pos.left + (baseW - rotatedW) / 2;
-    const adjustedTop = pos.top + (baseH - rotatedH) / 2;
+      const canPlace = tryPlacePiece(id, gridX, gridY);
 
-    const gridX = Math.round(adjustedLeft  / CELL_WIDTH);
-    const gridY = Math.round(adjustedTop / CELL_HEIGHT);
+      if (canPlace) {
+        SoundManager.playPlaceEffect();
+        const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
+        const placedTop =
+          gridY * CELL_HEIGHT -
+          (baseH - rotatedH) / 2 -
+          PIECE_CONTAINER_TOP_PADDING;
+        pieceRefs.current[id]?.setPosition(placedLeft, placedTop);
+      }
 
-    const canPlace = tryPlacePiece(pieceId, gridX, gridY);
+      releaseAndTryLockPiece(id, gridX, gridY, canPlace);
+      setActivePieceId(undefined);
+    },
+    [
+      getPieceFresh,
+      tryPlacePiece,
+      releaseAndTryLockPiece,
+      CELL_WIDTH,
+      CELL_HEIGHT,
+      PIECE_CONTAINER_TOP_PADDING,
+    ],
+  );
 
-    if (canPlace) {
-      SoundManager.playPlaceEffect();
-      // Yerleştirildikten sonra uiPos'u da rotated matrix'e göre ayarla
-      const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
-      const placedTop =
-        gridY * CELL_HEIGHT -
-        (baseH - rotatedH) / 2 -
-        PIECE_CONTAINER_TOP_PADDING;
-      setUiPositions(prev => ({
-        ...prev,
-        [pieceId]: { left: placedLeft, top: placedTop },
-      }));
-    }
-
-    releaseAndTryLockPiece(pieceId, gridX, gridY, canPlace);
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, { dx, dy }) => {
-        return Math.abs(dx) > 5 || Math.abs(dy) > 5;
-      },
-      onPanResponderGrant: () => {
-        if (!activePieceIdRef.current) return;
-        const pos = uiPositionsRef.current[activePieceIdRef.current];
-        if (!pos) return;
-
-        startPos.current = uiPositionsRef.current[activePieceIdRef.current];
-      },
-
-      onPanResponderMove: (_, gestureState) => {
-        const { dx, dy } = gestureState;
-        if (!activePieceIdRef.current) return;
-
-        setUiPositions(prev => ({
-          ...prev,
-          [activePieceIdRef.current as string]: {
-            left: startPos.current.left + dx,
-            top: startPos.current.top + dy,
-          },
-        }));
-      },
-      onPanResponderRelease: () => {
-        const id = activePieceIdRef.current;
-        if (!id) return;
-
-        attemptPlacementRef.current(id);
-        setActivePieceId(undefined);
-      },
-    }),
-  ).current;
+  const handleTapRotate = useCallback(
+    (id: string) => {
+      SoundManager.playRotateEffect();
+      rotatePiece(id);
+    },
+    [rotatePiece],
+  );
 
   const toggleMenu = () => {
     setMenuVisible(prev => {
@@ -255,36 +221,18 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
 
   useEffect(() => {
-    uiPositionsRef.current = uiPositions;
-  }, [uiPositions]);
-
-  useEffect(() => {
-    activePieceIdRef.current = activePieceId;
-  }, [activePieceId]);
-
-  useEffect(() => {
-    piecesRef.current = pieces;
-  }, [pieces, isOver]);
-
-  useEffect(() => {
-    boardStateRef.current = board;
-  }, [board]);
-
-
-
-  useEffect(() => {
-    setUiPositions(generateScatteredPositions(currentLevel.pieces.length));
+    scatteredPositions.current = generateScatteredPositions(
+      currentLevel.pieces.length,
+    );
+    setResetKey(k => k + 1);
     setHintCells([]);
   }, [currentLevel, generateScatteredPositions]);
 
   // functions
-  const resetUiPositions = () => {
-    setUiPositions(generateScatteredPositions(pieces.length));
-  };
-
   const handleRestart = () => {
     restart();
-    resetUiPositions();
+    scatteredPositions.current = generateScatteredPositions(pieces.length);
+    setResetKey(k => k + 1);
     setMenuVisible(false);
   };
 
@@ -384,28 +332,28 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         ]}
       >
         {pieces.map(gamePiece => {
-          const uiPos = uiPositions[gamePiece.id];
+          const scattered = scatteredPositions.current[gamePiece.id];
 
           return (
             <AnimatedPiece
+              ref={handle => {
+                if (handle) {
+                  pieceRefs.current[gamePiece.id] = handle;
+                }
+              }}
               key={gamePiece.id}
               gamePiece={gamePiece}
               matrix={gamePiece.baseMatrix}
               rotation={gamePiece.rotation}
-              uiPos={uiPos}
-              panHandlers={panResponder.panHandlers}
-              onTouchStart={() => setActivePieceId(gamePiece.id)}
-              onPressRotate={() => {
-                SoundManager.playRotateEffect();
-                rotatePiece(gamePiece.id);
-                rotateTimeoutRef.current = setTimeout(() => {
-                  attemptPlacementRef.current(gamePiece.id);
-                  setActivePieceId(undefined);
-                }, 0);
-              }}
+              initialLeft={scattered?.left ?? 0}
+              initialTop={scattered?.top ?? 0}
+              resetKey={resetKey}
               cellWidth={CELL_WIDTH}
               cellHeight={CELL_HEIGHT}
               isActive={activePieceId === gamePiece.id}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onTapRotate={handleTapRotate}
             />
           );
         })}
