@@ -94,7 +94,7 @@ function App() {
         enableSessionReplay: false,
       }}
       autocapture={{
-        captureScreens: false,
+        captureScreens: true,
         captureTouches: true,
       }}
     >
