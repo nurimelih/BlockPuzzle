@@ -55,13 +55,18 @@ function RootStack() {
   );
 }
 
-function AppContent() {
-  const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
+function PostHogInit() {
   const posthog = usePostHog();
 
   useEffect(() => {
     Analytics.init(posthog);
   }, [posthog]);
+
+  return null;
+}
+
+function App() {
+  const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
 
   useEffect(() => {
     const init = async () => {
@@ -99,30 +104,25 @@ function AppContent() {
           <BackgroundImage />
           <SafeAreaView style={styles.safeArea}>
             <NavigationContainer>
-              <RootStack />
+              <PostHogProvider
+                apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
+                options={{
+                  host: 'https://eu.i.posthog.com',
+                  enableSessionReplay: false,
+                }}
+                autocapture={{
+                  captureScreens: true,
+                  captureTouches: true,
+                }}
+              >
+                <PostHogInit />
+                <RootStack />
+              </PostHogProvider>
             </NavigationContainer>
           </SafeAreaView>
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </ThemeProvider>
-  );
-}
-
-function App() {
-  return (
-    <PostHogProvider
-      apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
-      options={{
-        host: 'https://eu.i.posthog.com',
-        enableSessionReplay: false,
-      }}
-      autocapture={{
-        captureScreens: true,
-        captureTouches: true,
-      }}
-    >
-      <AppContent />
-    </PostHogProvider>
   );
 }
 
