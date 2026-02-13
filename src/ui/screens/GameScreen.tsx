@@ -230,6 +230,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   // functions
   const handleRestart = () => {
+    Analytics.logLevelRestart(currentLevelNumber, moveCount, getElapsedTime());
     restart();
     scatteredPositions.current = generateScatteredPositions(pieces.length);
     setResetKey(k => k + 1);
@@ -237,6 +238,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   };
 
   const handleHome = () => {
+    if (!isOver) {
+      Analytics.logLevelAbandon(currentLevelNumber, moveCount, getElapsedTime());
+    }
     navigation.navigate('HomeScreen');
   };
   const handleSettings = () => {
@@ -254,6 +258,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
     const rewarded = await showRewardedAd();
     if (rewarded) {
+      Analytics.logHintUsed(currentLevelNumber, true);
       handleHint();
     }
   };
@@ -261,6 +266,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleHint = async () => {
     const solution = solvePartial(currentLevel, pieces);
     if (!solution || solution.length === 0) return;
+
+    if (forceToShowHints) {
+      Analytics.logHintUsed(currentLevelNumber, false);
+    }
     const hint = solution[0];
 
     const cells: { x: number; y: number }[] = [];

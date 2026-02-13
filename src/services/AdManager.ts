@@ -27,6 +27,8 @@ const AD_UNIT_IDS = {
 };
 
 import {Platform} from 'react-native';
+import {Analytics} from './Analytics.ts';
+import {useAppStore} from '../state/useAppStore.ts';
 
 const getAdUnitId = (type: 'rewarded' | 'interstitial') => {
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
@@ -125,6 +127,9 @@ export const showRewardedAd = (): Promise<boolean> => {
       () => {
         rewardListener();
         closeListener();
+        if (rewarded) {
+          Analytics.logAdRewarded(useAppStore.getState().currentLevel);
+        }
         resolve(rewarded);
       },
     );
@@ -201,6 +206,8 @@ export const showInterstitialIfReady = (): Promise<boolean> => {
     }
 
     levelsSinceLastAd = 0;
+
+    Analytics.logAdInterstitial(useAppStore.getState().currentLevel);
 
     const closeListener = interstitialAd.addAdEventListener(
       AdEventType.CLOSED,

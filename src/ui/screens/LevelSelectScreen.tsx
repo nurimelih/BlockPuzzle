@@ -8,6 +8,7 @@ import { GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../../state/useAppStore.ts';
+import { Analytics } from '../../services/Analytics.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LevelSelect'>;
 
@@ -26,6 +27,7 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const handleLevelSelect = (levelIndex: number) => {
+    Analytics.logLevelSelected(levelIndex, isCompleted(levelIndex));
     navigation.navigate('GameScreen', { levelNumber: levelIndex });
   };
 
