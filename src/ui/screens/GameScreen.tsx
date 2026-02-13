@@ -13,6 +13,7 @@ import {
   AnimatedPieceHandle,
 } from '../components/AnimatedPiece.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
+import { WinScreen } from './WinScreen.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -425,10 +426,21 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         </Pressable>
       </View>
+      <WinScreen
+        visible={isOver}
+        levelNumber={currentLevelNumber}
+        moves={moveCount}
+        time={getElapsedTime()}
+        pieceCount={currentLevel.pieces.length}
+        isLastLevel={currentLevelNumber === levels.length - 1}
+        onNextLevel={handleNextLevel}
+        onRestart={handleRestart}
+        onHome={handleHome}
+      />
       <MenuOverlay
         onDismiss={toggleMenu}
-        visible={isOver || menuVisible}
-        isWin={isOver}
+        visible={!isOver && menuVisible}
+        isWin={false}
         onNextLevel={() => {
           setMenuVisible(false);
           handleNextLevel();
