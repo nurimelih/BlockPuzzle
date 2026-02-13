@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider, usePostHog } from 'posthog-react-native';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
@@ -17,6 +17,7 @@ import { fetchAllLevels } from './src/services/supabase.ts';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
 import { GameStorage } from './src/services/GameStorage.ts';
+import { Analytics } from './src/services/Analytics.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -54,8 +55,13 @@ function RootStack() {
   );
 }
 
-function App() {
+function AppContent() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    Analytics.init(posthog);
+  }, [posthog]);
 
   useEffect(() => {
     const init = async () => {
@@ -87,6 +93,23 @@ function App() {
   }, [setRemoteLevels]);
 
   return (
+    <ThemeProvider theme={theme}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={styles.container}>
+          <BackgroundImage />
+          <SafeAreaView style={styles.safeArea}>
+            <NavigationContainer>
+              <RootStack />
+            </NavigationContainer>
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
     <PostHogProvider
       apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
       options={{
@@ -98,18 +121,7 @@ function App() {
         captureTouches: true,
       }}
     >
-      <ThemeProvider theme={theme}>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={styles.container}>
-            <BackgroundImage />
-            <SafeAreaView style={styles.safeArea}>
-              <NavigationContainer>
-                <RootStack />
-              </NavigationContainer>
-            </SafeAreaView>
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
-      </ThemeProvider>
+      <AppContent />
     </PostHogProvider>
   );
 }
