@@ -14,11 +14,13 @@ interface AppState {
   levels: LevelDefinition[];
   appSettings: AppSettings;
   isMusicMuted: boolean;
+  isBackgroundRevealing: boolean;
   setCurrentScreen: (screen: ScreenName) => void;
   setCurrentLevel: (level: number) => void;
   setRemoteLevels: (levels: LevelDefinition[]) => void;
   setAppSettings: (settings: AppSettings) => void;
   setMusicMuted: (muted: boolean) => void;
+  setBackgroundRevealing: (revealing: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -32,6 +34,7 @@ export const useAppStore = create<AppState>((set) => ({
     forceToShowHints: false,
   },
   isMusicMuted: true,
+  isBackgroundRevealing: false,
   setCurrentScreen: (screen: ScreenName) => set({currentScreen: screen}),
   setCurrentLevel: (level: number) => set({currentLevel: level}),
   setRemoteLevels: (remoteLevels: LevelDefinition[]) =>
@@ -43,5 +46,6 @@ export const useAppStore = create<AppState>((set) => ({
     set({appSettings: settings})
   },
   setMusicMuted: (muted: boolean) => set({isMusicMuted: muted}),
+  setBackgroundRevealing: (revealing: boolean) => set({isBackgroundRevealing: revealing}),
 
 }));

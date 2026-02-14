@@ -57,8 +57,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   } = useGameState(levelNumber);
 
   const [gameTime, setGameTime] = useState('00:00');
+  const [showWin, setShowWin] = useState(false);
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setCurrentLevel = useAppStore(state => state.setCurrentLevel);
+  const setBackgroundRevealing = useAppStore(state => state.setBackgroundRevealing);
+  const isRevealing = useAppStore(state => state.isBackgroundRevealing);
   const levels = useAppStore(state => state.levels);
   const isRewardedAdsActive = useAppStore(
     state => state.appSettings,
@@ -67,6 +70,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const forceToShowHints = useAppStore(
     state => state.appSettings,
   ).forceToShowHints;
+
+  const LEVELS_PER_IMAGE = 4;
+  const isRevealLevel = currentLevelNumber % LEVELS_PER_IMAGE === LEVELS_PER_IMAGE - 1;
 
   useEffect(() => {
     setCurrentScreen('game');
@@ -216,10 +222,23 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         moveCount,
         getElapsedTime(),
       );
-      // Show interstitial ad after level completion
       showInterstitialIfReady();
+
+      if (isRevealLevel) {
+        // Reveal level: arkaplan reveal animasyonu göster, sonra WinScreen
+        setBackgroundRevealing(true);
+        const timer = setTimeout(() => {
+          setBackgroundRevealing(false);
+          setShowWin(true);
+        }, 3500);
+        return () => clearTimeout(timer);
+      } else {
+        setShowWin(true);
+      }
+    } else {
+      setShowWin(false);
     }
-  }, [isOver, currentLevelNumber, moveCount, getElapsedTime]);
+  }, [isOver, currentLevelNumber, moveCount, getElapsedTime, isRevealLevel, setBackgroundRevealing]);
 
   useEffect(() => {
     scatteredPositions.current = generateScatteredPositions(
@@ -227,7 +246,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     );
     setResetKey(k => k + 1);
     setHintCells([]);
-  }, [currentLevel, generateScatteredPositions]);
+    setShowWin(false);
+    setBackgroundRevealing(false);
+  }, [currentLevel, generateScatteredPositions, setBackgroundRevealing]);
 
   // functions
   const handleRestart = () => {
@@ -236,6 +257,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     scatteredPositions.current = generateScatteredPositions(pieces.length);
     setResetKey(k => k + 1);
     setMenuVisible(false);
+    setShowWin(false);
+    setBackgroundRevealing(false);
   };
 
   const handleHome = () => {
@@ -392,69 +415,71 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {renderBoard()}
-      {renderHeader()}
+        {!isRevealing && renderBoard()}
+        {!isRevealing && renderHeader()}
 
-      {renderPieces()}
+        {!isRevealing && renderPieces()}
 
-      <View style={styles.footerIcons}>
-        <Pressable onPress={toggleMenu} style={styles.footerIcon}>
-          <View style={styles.iconShadow}>
-            <Icon name="settings-outline" size={22} color={colors.white} />
-          </View>
-        </Pressable>
-        {!isOver &&
-          ((isRewardedAdReady() && isRewardedAdsActive) ||
-            forceToShowHints) && (
-            <Pressable
-              onPress={forceToShowHints ? handleHint : handleHintWithAd}
-              style={styles.footerIcon}
-            >
+        {!isRevealing && (
+          <View style={styles.footerIcons}>
+            <Pressable onPress={toggleMenu} style={styles.footerIcon}>
               <View style={styles.iconShadow}>
-                <Icon name="bulb-outline" size={22} color={colors.white} />
+                <Icon name="settings-outline" size={22} color={colors.white} />
               </View>
             </Pressable>
-          )}
+            {!isOver &&
+              ((isRewardedAdReady() && isRewardedAdsActive) ||
+                forceToShowHints) && (
+                <Pressable
+                  onPress={forceToShowHints ? handleHint : handleHintWithAd}
+                  style={styles.footerIcon}
+                >
+                  <View style={styles.iconShadow}>
+                    <Icon name="bulb-outline" size={22} color={colors.white} />
+                  </View>
+                </Pressable>
+              )}
 
-        <Pressable onPress={toggleMusic} style={styles.footerIcon}>
-          <View style={styles.iconShadow}>
-            <Icon
-              name={isMusicMuted ? 'volume-mute' : 'musical-notes'}
-              size={22}
-              color={colors.white}
-            />
+            <Pressable onPress={toggleMusic} style={styles.footerIcon}>
+              <View style={styles.iconShadow}>
+                <Icon
+                  name={isMusicMuted ? 'volume-mute' : 'musical-notes'}
+                  size={22}
+                  color={colors.white}
+                />
+              </View>
+            </Pressable>
           </View>
-        </Pressable>
-      </View>
-      <WinScreen
-        visible={isOver}
-        levelNumber={currentLevelNumber}
-        moves={moveCount}
-        time={getElapsedTime()}
-        pieceCount={currentLevel.pieces.length}
-        isLastLevel={currentLevelNumber === levels.length - 1}
-        onNextLevel={handleNextLevel}
-        onRestart={handleRestart}
-        onHome={handleHome}
-      />
-      <MenuOverlay
-        onDismiss={toggleMenu}
-        visible={!isOver && menuVisible}
-        isWin={false}
-        onNextLevel={() => {
-          setMenuVisible(false);
-          handleNextLevel();
-        }}
-        onPreviousLevel={() => {
-          setMenuVisible(false);
-          handlePrevLevel();
-        }}
-        onRestart={handleRestart}
-        onHome={handleHome}
-        onSettings={handleSettings}
-        currentLevelNumber={currentLevelNumber}
-        isLastLevel={currentLevelNumber === levels.length - 1}
-      />
+        )}
+        <WinScreen
+          visible={showWin}
+          levelNumber={currentLevelNumber}
+          moves={moveCount}
+          time={getElapsedTime()}
+          pieceCount={currentLevel.pieces.length}
+          isLastLevel={currentLevelNumber === levels.length - 1}
+          onNextLevel={handleNextLevel}
+          onRestart={handleRestart}
+          onHome={handleHome}
+        />
+        <MenuOverlay
+          onDismiss={toggleMenu}
+          visible={!isOver && menuVisible}
+          isWin={false}
+          onNextLevel={() => {
+            setMenuVisible(false);
+            handleNextLevel();
+          }}
+          onPreviousLevel={() => {
+            setMenuVisible(false);
+            handlePrevLevel();
+          }}
+          onRestart={handleRestart}
+          onHome={handleHome}
+          onSettings={handleSettings}
+          currentLevelNumber={currentLevelNumber}
+          isLastLevel={currentLevelNumber === levels.length - 1}
+        />
     </View>
   );
 };
