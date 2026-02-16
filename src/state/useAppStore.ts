@@ -43,7 +43,7 @@ export const useAppStore = create<AppState>((set) => ({
       levels: [...LOCAL_LEVELS, ...remoteLevels],
     }),
   setAppSettings: (settings: AppSettings) => {
-    set({appSettings: settings})
+    set(state => ({appSettings: {...state.appSettings, ...settings}}))
   },
   setMusicMuted: (muted: boolean) => set({isMusicMuted: muted}),
   setBackgroundRevealing: (revealing: boolean) => set({isBackgroundRevealing: revealing}),
