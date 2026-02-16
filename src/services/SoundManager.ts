@@ -72,7 +72,7 @@ const playTrack = async (
   try {
     const player = createAudioPlayer(track);
     player.loop = loop;
-    player.volume = 0.05;
+    player.volume = backgroundVolume;
 
     backgroundPlayer = player;
     currentTrack = track;
@@ -164,7 +164,7 @@ export const SoundManager = {
       const player = loadEffect(assetModule);
       if (!player) return;
 
-      player.volume = 0.1;
+      player.volume = effectsVolume;
       await player.seekTo(0);
       player.play();
     } catch (error) {
