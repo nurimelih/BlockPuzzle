@@ -28,7 +28,8 @@ import { Analytics } from '../../services/Analytics.ts';
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
 export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { levelNumber } = route.params;
+  const { levelNumber, dailyChallenge, mode } = route.params;
+  const isDaily = mode === 'daily';
   const {
     currentLevel,
     currentLevelNumber,
@@ -47,7 +48,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     resumeTimer,
     getElapsedTime,
     getPieceFresh,
-  } = useGameState(levelNumber);
+  } = useGameState(levelNumber, dailyChallenge);
 
   const { hintCells, hintCount, freeHints, resetHints, refreshFreeHints, shouldShowHintButton, onHintPress, hasFreeHints } =
     useHintSystem(currentLevel, pieces, currentLevelNumber);
@@ -244,6 +245,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       );
       SoundManager.playWinEffect();
       HapticsManager.notificationSuccess();
+      if (isDaily) GameStorage.markDailyCompleted();
       GameStorage.saveCompletedLevel(
         currentLevelNumber, moveCount, elapsed,
         scoreResult.stars, scoreResult.score,
@@ -302,7 +304,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           currentLevelNumber={currentLevelNumber}
           moveCount={moveCount}
           gameTime={gameTime}
-          onLevelPress={handleNextLevel}
+          title={isDaily ? new Date().toLocaleDateString() : undefined}
+          onLevelPress={isDaily ? undefined : handleNextLevel}
           onMenuPress={toggleMenu}
           onBackPress={handleHome}
         />
@@ -366,6 +369,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         boardSize={currentLevel.board.length * currentLevel.board[0].length}
         hintCount={hintCount}
         isLastLevel={currentLevelNumber === levels.length - 1}
+        isDaily={isDaily}
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         onHome={handleHome}

@@ -11,6 +11,7 @@ import { CompletedLevel, GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
+import { useDailyChallenge } from '../../state/useDailyChallenge.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
@@ -18,8 +19,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setAppSettings = useAppStore(state => state.setAppSettings);
+  const levels = useAppStore(state => state.levels);
   const [highestLevel, setHighestLevel] = useState(0);
   const [lastLevelStats, setLastLevelStats] = useState<CompletedLevel | null>(null);
+  const { level: dailyLevel, streak, completedToday, reload: reloadDaily } = useDailyChallenge();
 
   useFocusEffect(
     useCallback(() => {
@@ -37,14 +40,17 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         }
       };
       loadProgress();
+      reloadDaily();
 
       if (__DEV__) {
         GameStorage.getAllSettings()
           .then(settings => console.log('All Settings', JSON.stringify(settings, null, 2)))
           .catch(e => console.log('error getting settings', e));
       }
-    }, [setCurrentScreen, setAppSettings]),
+    }, [setCurrentScreen, setAppSettings, reloadDaily]),
   );
+
+  const allLevelsCompleted = highestLevel >= levels.length;
 
   const handleContinue = () => {
     navigation.navigate('GameScreen', { levelNumber: highestLevel });
@@ -62,6 +68,11 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handleDailyChallenge = () => {
+    if (!dailyLevel) return;
+    navigation.navigate('GameScreen', { levelNumber: 0, dailyChallenge: dailyLevel, mode: 'daily' });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
@@ -69,43 +80,64 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.menuContainer}>
+        <LabelButton
+          pressableProps={{ onPress: handleDailyChallenge }}
+          style={[styles.menuItem, styles.dailyButton, completedToday && styles.dailyButtonDone]}
+        >
+          <View style={styles.dailyContent} pointerEvents="none">
+            <LabelButton style={styles.dailyText}>
+              {completedToday ? t('home.dailyDone') : t('home.dailyChallenge')}
+            </LabelButton>
+            {streak > 0 && (
+              <View style={styles.streakRow}>
+                <Icon name="flame" size={14} color="#FF6B35" />
+                <LabelButton style={styles.streakText}>
+                  {t('home.streak', { count: streak })}
+                </LabelButton>
+              </View>
+            )}
+          </View>
+        </LabelButton>
+
         {highestLevel > 0 ? (
           <>
-            <LabelButton
-              pressableProps={{ onPress: handleContinue }}
-              style={styles.menuItem}
-            >
-              <View style={styles.continueContent} pointerEvents="none">
-                <LabelButton style={styles.continueText}>{t('common.continue')}</LabelButton>
-                <View style={styles.continueDetails}>
-                  <LabelButton style={styles.levelLabel}>
-                    {t('home.level', { number: highestLevel + 1 })}
-                  </LabelButton>
-                  {lastLevelStats?.stars !== undefined && (
-                    <View style={styles.starsRow}>
-                      {[1, 2, 3].map(i => (
-                        <Icon
-                          key={i}
-                          name={
-                            lastLevelStats.stars! >= i
-                              ? 'star'
-                              : lastLevelStats.stars! >= i - 0.5
-                                ? 'star-half'
-                                : 'star-outline'
-                          }
-                          size={14}
-                          color={
-                            lastLevelStats.stars! >= i - 0.5
-                              ? '#FFD700'
-                              : colors.brown.light
-                          }
-                        />
-                      ))}
-                    </View>
-                  )}
+            {!allLevelsCompleted && (
+              <LabelButton
+                pressableProps={{ onPress: handleContinue }}
+                style={styles.menuItem}
+              >
+                <View style={styles.continueContent} pointerEvents="none">
+                  <LabelButton style={styles.continueText}>{t('common.continue')}</LabelButton>
+                  <View style={styles.continueDetails}>
+                    <LabelButton style={styles.levelLabel}>
+                      {t('home.level', { number: highestLevel + 1 })}
+                    </LabelButton>
+                    {lastLevelStats?.stars !== undefined && (
+                      <View style={styles.starsRow}>
+                        {[1, 2, 3].map(i => (
+                          <Icon
+                            key={i}
+                            name={
+                              lastLevelStats.stars! >= i
+                                ? 'star'
+                                : lastLevelStats.stars! >= i - 0.5
+                                  ? 'star-half'
+                                  : 'star-outline'
+                            }
+                            size={14}
+                            color={
+                              lastLevelStats.stars! >= i - 0.5
+                                ? '#FFD700'
+                                : colors.brown.light
+                            }
+                          />
+                        ))}
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
-            </LabelButton>
+              </LabelButton>
+            )}
 
             <LabelButton
               pressableProps={{ onPress: handleNewGame }}
@@ -169,6 +201,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.brownWithOpacity,
     borderRadius: spacing.borderRadius.lg,
     paddingHorizontal: spacing.md,
+  },
+  dailyButton: {
+    borderWidth: 2,
+    borderColor: '#FF6B35',
+  },
+  dailyButtonDone: {
+    borderColor: '#4CAF50',
+  },
+  dailyContent: {
+    alignItems: 'center',
+  },
+  dailyText: {
+    fontSize: 36,
+    color: colors.text.light,
+  },
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  streakText: {
+    fontSize: typography.fontSize.md,
+    color: '#FF6B35',
   },
   continueContent: {
     alignItems: 'center',

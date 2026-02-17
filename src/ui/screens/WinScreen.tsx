@@ -22,6 +22,7 @@ type Props = {
   boardSize: number;
   hintCount: number;
   isLastLevel: boolean;
+  isDaily?: boolean;
   onNextLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
@@ -83,6 +84,7 @@ export const WinScreen: React.FC<Props> = ({
   boardSize,
   hintCount,
   isLastLevel,
+  isDaily,
   onNextLevel,
   onRestart,
   onHome,
@@ -116,7 +118,7 @@ export const WinScreen: React.FC<Props> = ({
       <View style={styles.backdrop} />
       <Animated.View style={[styles.card, animatedStyle]}>
         <LabelButton style={styles.title}>
-          {t('win.levelComplete', { number: levelNumber + 1 })}
+          {isDaily ? t('daily.winTitle') : t('win.levelComplete', { number: levelNumber + 1 })}
         </LabelButton>
         <LabelButton style={styles.subtitle}>{t('win.complete')}</LabelButton>
 
@@ -150,7 +152,17 @@ export const WinScreen: React.FC<Props> = ({
 
         {/* Buttons */}
         <View style={styles.buttonContainer}>
-          {!isLastLevel && (
+          {isDaily ? (
+            <LabelButton
+              pressableProps={{
+                onPress: onHome,
+                style: styles.primaryButton,
+              }}
+              style={styles.primaryButtonText}
+            >
+              {t('common.home')}
+            </LabelButton>
+          ) : !isLastLevel ? (
             <LabelButton
               pressableProps={{
                 onPress: onNextLevel,
@@ -160,9 +172,7 @@ export const WinScreen: React.FC<Props> = ({
             >
               {t('common.nextLevel')}
             </LabelButton>
-          )}
-
-          {isLastLevel && (
+          ) : (
             <LabelButton style={styles.completionText}>
               {t('win.allCompleted')}
             </LabelButton>

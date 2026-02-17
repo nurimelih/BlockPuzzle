@@ -13,7 +13,14 @@
   },
   "home": {
     "title": "Block Puzzle",
-    "level": "Bölüm {{number}}"
+    "level": "Bölüm {{number}}",
+    "dailyChallenge": "Günün Bulmacası",
+    "dailyDone": "Bugün Tamamlandı ✓",
+    "streak": "{{count}} Günlük Seri"
+  },
+  "daily": {
+    "title": "Günlük Bulmaca",
+    "winTitle": "Günlük Bulmaca"
   },
   "game": {
     "level": "Bölüm {{number}}",
@@ -31,7 +38,11 @@
     "allCompleted": "Tüm bölümler tamamlandı!"
   },
   "levels": {
-    "title": "Bölümler"
+    "title": "Bölümler",
+    "clearProgress": "İlerlemeyi Sil",
+    "clearProgressConfirm": "Tüm tamamlanan bölümler silinecek. Emin misin?",
+    "clearProgressCancel": "İptal",
+    "clearProgressConfirmButton": "Sil"
   },
   "settings": {
     "music": "Müzik",

@@ -23,6 +23,9 @@ const STORAGE_KEYS = {
   FREE_HINT_COUNT: 'freeHintCount',
   TUTORIAL_SEEN: 'tutorialSeen',
   LANGUAGE: 'language',
+  DAILY_LAST_DATE: 'dailyLastDate',
+  DAILY_STREAK: 'dailyStreak',
+  DAILY_COMPLETED: 'dailyCompleted',
 } as const;
 
 const LEVELS_PER_FREE_HINT = 5;
@@ -233,6 +236,63 @@ export const GameStorage = {
     } catch (error) {
       console.log('Failed to save language:', error);
     }
+  },
+
+  markDailyCompleted: async (): Promise<void> => {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const lastDate = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_LAST_DATE);
+    if (lastDate === dateStr) return; // zaten tamamlandı
+
+    const savedStreak = await GameStorage.getDailyStreak();
+    const newStreak = savedStreak + 1;
+    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_LAST_DATE, dateStr);
+    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_STREAK, newStreak.toString());
+    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_COMPLETED, 'true');
+  },
+
+  getDailyLastDate: async (): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.DAILY_LAST_DATE);
+    } catch {
+      return null;
+    }
+  },
+
+  setDailyLastDate: async (date: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.DAILY_LAST_DATE, date);
+    } catch {}
+  },
+
+  getDailyStreak: async (): Promise<number> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_STREAK);
+      return data ? parseInt(data, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  setDailyStreak: async (count: number): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.DAILY_STREAK, count.toString());
+    } catch {}
+  },
+
+  getDailyCompleted: async (): Promise<boolean> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_COMPLETED);
+      return data === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setDailyCompleted: async (completed: boolean): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.DAILY_COMPLETED, completed ? 'true' : 'false');
+    } catch {}
   },
 
   clearAll: async (): Promise<void> => {

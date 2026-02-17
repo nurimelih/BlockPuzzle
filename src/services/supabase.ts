@@ -71,6 +71,48 @@ export async  function fetchAdSettings(): Promise<AppSettings> {
 }
 
 
+export async function fetchDailyChallenge(date: string): Promise<LevelDefinition | null> {
+  try {
+    const [challengeRes, boardsRes, piecesRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/daily_challenges?date=eq.${date}&select=*`, {headers}),
+      fetch(`${SUPABASE_URL}/rest/v1/boards?select=*`, {headers}),
+      fetch(`${SUPABASE_URL}/rest/v1/pieces?select=*`, {headers}),
+    ]);
+
+    if (!challengeRes.ok || !boardsRes.ok || !piecesRes.ok) {
+      console.log('Failed to fetch daily challenge');
+      return null;
+    }
+
+    const [challenges, boards, pieces] = await Promise.all([
+      challengeRes.json(),
+      boardsRes.json(),
+      piecesRes.json(),
+    ]);
+
+    if (!challenges || challenges.length === 0) return null;
+
+    const challenge = challenges[0];
+    const boardMap = new Map<number, Board>(
+      boards.map((b: {id: number; matrix: Board}) => [b.id, b.matrix]),
+    );
+    const pieceMap = new Map<number, PieceMatrix>(
+      pieces.map((p: {id: number; matrix: PieceMatrix}) => [p.id, p.matrix]),
+    );
+
+    const board = boardMap.get(challenge.board_id);
+    if (!board) return null;
+
+    return {
+      board,
+      pieces: challenge.piece_ids.map((id: number) => pieceMap.get(id)!).filter(Boolean),
+    };
+  } catch (error) {
+    console.log('Failed to fetch daily challenge:', error);
+    return null;
+  }
+}
+
 export async function fetchAllLevels(): Promise<LevelDefinition[]> {
   try {
     // Tüm tabloları paralel çek

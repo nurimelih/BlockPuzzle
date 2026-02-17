@@ -9,7 +9,8 @@ type HeaderProps = {
   currentLevelNumber: number;
   moveCount: number;
   gameTime: string;
-  onLevelPress: () => void;
+  title?: string;
+  onLevelPress?: () => void;
   onMenuPress: () => void;
   onBackPress: () => void;
 };
@@ -18,6 +19,7 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
   currentLevelNumber,
   moveCount,
   gameTime,
+  title,
   onLevelPress,
   onMenuPress,
   onBackPress,
@@ -32,7 +34,7 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
           </View>
         </Pressable>
         <LabelButton style={styles.levelText} onPress={onLevelPress}>
-          {t('game.level', { number: currentLevelNumber + 1 })}
+          {title ?? t('game.level', { number: currentLevelNumber + 1 })}
         </LabelButton>
         <LabelButton style={styles.movesText}>{t('game.moves', { count: moveCount })}</LabelButton>
       </View>

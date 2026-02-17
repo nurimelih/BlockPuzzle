@@ -4,11 +4,11 @@ import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, getAdjustedPlacement } from '../core/gameCore.ts';
 import { useAppStore } from './useAppStore.ts';
 
-export const useGameState = (initialLevel: number) => {
+export const useGameState = (initialLevel: number, overrideLevel?: LevelDefinition) => {
   const levels = useAppStore(state => state.levels);
   const [moveCount, setMoveCount] = useState(0);
   const [currentLevel, setCurrentLevel] = useState<LevelDefinition>(
-    levels[initialLevel],
+    overrideLevel ?? levels[initialLevel] ?? levels[0],
   );
   const [currentLevelNumber, setCurrentLevelNumber] = useState(initialLevel);
   const currentLevelRef = useRef(currentLevel);
@@ -235,6 +235,8 @@ export const useGameState = (initialLevel: number) => {
   }, [currentLevelNumber]);
 
   useEffect(() => {
+    if (overrideLevel) return;
+
     const newLevel = levels[currentLevelNumber];
     setCurrentLevel(newLevel);
     currentLevelRef.current = newLevel;
@@ -250,7 +252,7 @@ export const useGameState = (initialLevel: number) => {
 
     setMoveCount(0);
     setIsOver(false);
-  }, [currentLevelNumber, levels]);
+  }, [currentLevelNumber, levels, overrideLevel]);
 
   return {
     currentLevel,

@@ -13,7 +13,14 @@
   },
   "home": {
     "title": "Block Puzzle",
-    "level": "Level {{number}}"
+    "level": "Level {{number}}",
+    "dailyChallenge": "Daily Challenge",
+    "dailyDone": "Today's Done ✓",
+    "streak": "{{count}} Day Streak"
+  },
+  "daily": {
+    "title": "Daily Puzzle",
+    "winTitle": "Daily Puzzle"
   },
   "game": {
     "level": "Level {{number}}",
@@ -31,7 +38,11 @@
     "allCompleted": "All levels completed!"
   },
   "levels": {
-    "title": "Levels"
+    "title": "Levels",
+    "clearProgress": "Clear Progress",
+    "clearProgressConfirm": "All completed levels will be deleted. Are you sure?",
+    "clearProgressCancel": "Cancel",
+    "clearProgressConfirmButton": "Delete"
   },
   "settings": {
     "music": "Music",
