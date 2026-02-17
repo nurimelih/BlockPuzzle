@@ -1,8 +1,9 @@
+import './src/i18n/i18n';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { PostHogProvider } from 'posthog-react-native';
+import { PostHogProvider, usePostHog } from 'posthog-react-native';
 import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
@@ -17,6 +18,8 @@ import { fetchAllLevels } from './src/services/supabase.ts';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
 import { GameStorage } from './src/services/GameStorage.ts';
+import { HapticsManager } from './src/services/HapticsManager.ts';
+import { Analytics } from './src/services/Analytics.ts';
 
 const theme = createTheme({
   lightColors: {
@@ -54,6 +57,16 @@ function RootStack() {
   );
 }
 
+function PostHogInit() {
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    Analytics.init(posthog);
+  }, [posthog]);
+
+  return null;
+}
+
 function App() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
 
@@ -61,17 +74,21 @@ function App() {
     const init = async () => {
       await SoundManager.init();
       const settings = await GameStorage.getSoundSettings();
+      const { appSettings } = useAppStore.getState();
 
       SoundManager.setEffectsMuted(!settings.effectsEnabled);
       SoundManager.setBackgroundVolume(settings.musicVolume);
       SoundManager.setEffectsVolume(settings.effectsVolume);
+      HapticsManager.setEnabled(settings.hapticsEnabled);
 
       // Sync store with persisted setting
-      useAppStore.setState({isMusicMuted: !settings.musicEnabled});
+      useAppStore.setState({ isMusicMuted: !settings.musicEnabled });
+      const shouldInitAds =
+        appSettings.rewardedAdsActive || appSettings.interstitialAdsActive;
 
       // setMusicMuted handles resume → playGameMusic internally when unmuted
       SoundManager.setMusicMuted(!settings.musicEnabled);
-      initAds();
+      shouldInitAds && initAds();
 
       const levels = await fetchAllLevels();
       if (levels.length > 0) {
@@ -87,30 +104,31 @@ function App() {
   }, [setRemoteLevels]);
 
   return (
-    <PostHogProvider
-      apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
-      options={{
-        host: 'https://eu.i.posthog.com',
-        enableSessionReplay: false,
-      }}
-      autocapture={{
-        captureScreens: false,
-        captureTouches: true,
-      }}
-    >
-      <ThemeProvider theme={theme}>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={styles.container}>
-            <BackgroundImage />
-            <SafeAreaView style={styles.safeArea}>
-              <NavigationContainer>
+    <ThemeProvider theme={theme}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={styles.container}>
+          <BackgroundImage />
+          <SafeAreaView style={styles.safeArea}>
+            <NavigationContainer>
+              <PostHogProvider
+                apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
+                options={{
+                  host: 'https://eu.i.posthog.com',
+                  enableSessionReplay: false,
+                }}
+                autocapture={{
+                  captureScreens: true,
+                  captureTouches: true,
+                }}
+              >
+                <PostHogInit />
                 <RootStack />
-              </NavigationContainer>
-            </SafeAreaView>
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </PostHogProvider>
+              </PostHogProvider>
+            </NavigationContainer>
+          </SafeAreaView>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 }
 

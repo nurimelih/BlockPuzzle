@@ -25,10 +25,12 @@ const FALLBACK_BACKGROUNDS: ImageSource[] = [
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('screen');
 
-// Her 5 level'da bir döngü: 4 pan (köşeler) + 1 zoom out (tam resim)
-const LEVELS_PER_IMAGE = 5;
+// Her 4 level'da bir döngü: 4 köşeye pan, 4. level bitince reveal
+const LEVELS_PER_IMAGE = 4;
 
-// Level pozisyonları (2x2 grid) - ilk 4 level için
+const BLUR_RADIUS = 10;
+
+// Level pozisyonları (2x2 grid)
 const LEVEL_POSITIONS = [
   {x: 0, y: 0},                          // Sol üst
   {x: -SCREEN_WIDTH, y: 0},              // Sağ üst
@@ -39,60 +41,77 @@ const LEVEL_POSITIONS = [
 export default function BackgroundImage() {
   const currentScreen = useAppStore(state => state.currentScreen);
   const currentLevel = useAppStore(state => state.currentLevel);
+  const isRevealing = useAppStore(state => state.isBackgroundRevealing);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const imageWidth = useSharedValue(SCREEN_WIDTH * 2);
   const imageHeight = useSharedValue(SCREEN_HEIGHT * 2);
 
+  const [blurRadius, setBlurRadius] = useState(BLUR_RADIUS);
   const [backgrounds, setBackgrounds] = useState<ImageSource[]>(FALLBACK_BACKGROUNDS);
 
   // App başlangıcında remote URL'leri fetch et ve prefetch yap
+  //
   useEffect(() => {
     fetchBackgroundUrls().then(urls => {
       if (urls.length > 0) {
-        // Tüm remote image'ları prefetch et
         Image.prefetch(urls);
-
         const remoteSources: ImageSource[] = urls.map(url => ({uri: url}));
+        // TODO: açılışta remote gelene kadar fallback görünüyor, sonra remote geliyor.
+        // O yüzden önce fallback'ler sonra remote var. ama bu değişecek.
+        // splash'te remote resimler çekilsin, FOUC olmasın
         setBackgrounds([...FALLBACK_BACKGROUNDS, ...remoteSources]);
       }
     });
   }, []);
 
-  // resimlerin pozisyon ve zoom durumları
   const imageIndex = Math.floor(currentLevel / LEVELS_PER_IMAGE) % backgrounds.length;
   const levelInCycle = currentLevel % LEVELS_PER_IMAGE;
-  const isZoomOut = levelInCycle === 4; // 5. level (index 4) zoom out
 
+  // Reveal animasyonu
   useEffect(() => {
+    if (isRevealing) {
+      const revealTimingConfig = {
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+      };
+
+      // Zoom-out: tam ekran
+      translateX.value = withTiming(0, revealTimingConfig);
+      translateY.value = withTiming(0, revealTimingConfig);
+      imageWidth.value = withTiming(SCREEN_WIDTH, revealTimingConfig);
+      imageHeight.value = withTiming(SCREEN_HEIGHT, revealTimingConfig);
+
+      // Blur kaldır
+      setBlurRadius(0);
+    }
+  }, [isRevealing, translateX, translateY, imageWidth, imageHeight]);
+
+  // Normal level geçişleri (reveal değilken)
+  useEffect(() => {
+    if (isRevealing) return;
+
     const timingConfig = {
       duration: 500,
       easing: Easing.out(Easing.cubic),
     };
 
+    setBlurRadius(BLUR_RADIUS);
+
     if (currentScreen === 'home') {
-      // Home ekranında resmin orta taraflarına zoom yapılmış halde
-      translateX.value = withTiming(-SCREEN_WIDTH / 2, timingConfig);
-      translateY.value = withTiming(-SCREEN_WIDTH / 2, timingConfig);
+      translateX.value = withTiming(0 , timingConfig);
+      translateY.value = withTiming(0 , timingConfig);
+      imageWidth.value = withTiming(SCREEN_WIDTH, timingConfig);
+      imageHeight.value = withTiming(SCREEN_HEIGHT, timingConfig);
+    } else if (currentScreen === 'game') {
+      // Pan - köşelere git, resim 2x boyutunda
+      const pos = LEVEL_POSITIONS[levelInCycle];
+      translateX.value = withTiming(pos.x, timingConfig);
+      translateY.value = withTiming(pos.y, timingConfig);
       imageWidth.value = withTiming(SCREEN_WIDTH * 2, timingConfig);
       imageHeight.value = withTiming(SCREEN_HEIGHT * 2, timingConfig);
-    } else if (currentScreen === 'game') {
-      if (isZoomOut) {
-        // Zoom out - tam resim ekrana sığsın, resmin tümü görünür
-        translateX.value = withTiming(0, timingConfig);
-        translateY.value = withTiming(0, timingConfig);
-        imageWidth.value = withTiming(SCREEN_WIDTH, timingConfig);
-        imageHeight.value = withTiming(SCREEN_HEIGHT, timingConfig);
-      } else {
-        // Pan - köşelere git, resim 2x boyutunda, resmin dörte biri görünür
-        const pos = LEVEL_POSITIONS[levelInCycle];
-        translateX.value = withTiming(pos.x, timingConfig);
-        translateY.value = withTiming(pos.y, timingConfig);
-        imageWidth.value = withTiming(SCREEN_WIDTH * 2, timingConfig);
-        imageHeight.value = withTiming(SCREEN_HEIGHT * 2, timingConfig);
-      }
     }
-  }, [currentScreen, currentLevel, isZoomOut, levelInCycle, translateX, translateY, imageWidth, imageHeight]);
+  }, [currentScreen, currentLevel, isRevealing, levelInCycle, translateX, translateY, imageWidth, imageHeight]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: imageWidth.value,
@@ -109,7 +128,8 @@ export default function BackgroundImage() {
         <Image
           style={styles.image}
           source={backgrounds[imageIndex]}
-          contentFit={"cover"}
+          contentFit={'cover'}
+          blurRadius={blurRadius}
         />
       </Animated.View>
       {BIRDS.map(bird => (

@@ -5,6 +5,7 @@ export type SoundSettings = {
   effectsEnabled: boolean;
   musicVolume: number;
   effectsVolume: number;
+  hapticsEnabled: boolean;
 };
 
 const DEFAULT_SOUND_SETTINGS: SoundSettings = {
@@ -12,18 +13,26 @@ const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   effectsEnabled: true,
   musicVolume: 0.05,
   effectsVolume: 0.1,
+  hapticsEnabled: true,
 };
 
 const STORAGE_KEYS = {
   COMPLETED_LEVELS: 'completedLevels',
   CURRENT_LEVEL: 'currentLevel',
   SOUND_SETTINGS: 'soundSettings',
+  FREE_HINT_COUNT: 'freeHintCount',
+  TUTORIAL_SEEN: 'tutorialSeen',
+  LANGUAGE: 'language',
 } as const;
 
-type CompletedLevel = {
+const LEVELS_PER_FREE_HINT = 5;
+
+export type CompletedLevel = {
   levelIndex: number;
   moves: number;
   time: number;
+  stars?: number;
+  score?: number;
 };
 
 export const GameStorage = {
@@ -40,6 +49,8 @@ export const GameStorage = {
     levelIndex: number,
     moves: number,
     time: number,
+    stars?: number,
+    score?: number,
   ): Promise<void> => {
     try {
       const completed = await GameStorage.getCompletedLevels();
@@ -51,8 +62,15 @@ export const GameStorage = {
           existing.moves = moves;
           existing.time = time;
         }
+        // Always update stars/score if better
+        if (stars !== undefined && (existing.stars === undefined || stars > existing.stars)) {
+          existing.stars = stars;
+        }
+        if (score !== undefined && (existing.score === undefined || score > existing.score)) {
+          existing.score = score;
+        }
       } else {
-        completed.push({ levelIndex, moves, time });
+        completed.push({ levelIndex, moves, time, stars, score });
       }
 
       await AsyncStorage.setItem(
@@ -115,7 +133,9 @@ export const GameStorage = {
   getSoundSettings: async (): Promise<SoundSettings> => {
     try {
       const result = await AsyncStorage.getItem(STORAGE_KEYS.SOUND_SETTINGS);
-      return result ? JSON.parse(result) : DEFAULT_SOUND_SETTINGS;
+      if (!result) return DEFAULT_SOUND_SETTINGS;
+      const parsed = JSON.parse(result);
+      return { ...DEFAULT_SOUND_SETTINGS, ...parsed };
     } catch (e) {
       console.log('Error when getting sound setting', e);
       return DEFAULT_SOUND_SETTINGS;
@@ -131,11 +151,96 @@ export const GameStorage = {
     };
   },
 
+  getFreeHintCount: async (): Promise<number> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.FREE_HINT_COUNT);
+      return data ? parseInt(data, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  saveFreeHintCount: async (count: number): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.FREE_HINT_COUNT, count.toString());
+    } catch (error) {
+      console.log('Failed to save free hint count:', error);
+    }
+  },
+
+  /**
+   * Check if a free hint should be awarded after completing a level.
+   * Awards 1 free hint every LEVELS_PER_FREE_HINT completed levels.
+   * Returns the new free hint count.
+   */
+  checkAndAwardFreeHint: async (): Promise<number> => {
+    const completed = await GameStorage.getCompletedLevels();
+    const totalCompleted = completed.length;
+
+    // Calculate earned hints based on total completions
+    const earnedHints = Math.floor(totalCompleted / LEVELS_PER_FREE_HINT);
+
+    // Get current stored count to figure out used hints
+    const currentCount = await GameStorage.getFreeHintCount();
+
+    // Only award if new milestone reached (earned > what was previously calculated)
+    // We track: stored = earned - used. When new earned > old earned, add difference.
+    const previousEarned = Math.floor((totalCompleted - 1) / LEVELS_PER_FREE_HINT);
+    if (earnedHints > previousEarned) {
+      const newCount = currentCount + 1;
+      await GameStorage.saveFreeHintCount(newCount);
+      return newCount;
+    }
+
+    return currentCount;
+  },
+
+  useFreeHint: async (): Promise<boolean> => {
+    const count = await GameStorage.getFreeHintCount();
+    if (count <= 0) return false;
+    await GameStorage.saveFreeHintCount(count - 1);
+    return true;
+  },
+
+  getTutorialSeen: async (): Promise<boolean> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.TUTORIAL_SEEN);
+      return data === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setTutorialSeen: async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.TUTORIAL_SEEN, 'true');
+    } catch (error) {
+      console.log('Failed to save tutorial seen:', error);
+    }
+  },
+
+  getLanguage: async (): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
+    } catch {
+      return null;
+    }
+  },
+
+  saveLanguage: async (language: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+    } catch (error) {
+      console.log('Failed to save language:', error);
+    }
+  },
+
   clearAll: async (): Promise<void> => {
     try {
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.COMPLETED_LEVELS,
         STORAGE_KEYS.CURRENT_LEVEL,
+        STORAGE_KEYS.FREE_HINT_COUNT,
       ]);
     } catch (error) {
       console.log('Failed to clear storage:', error);
