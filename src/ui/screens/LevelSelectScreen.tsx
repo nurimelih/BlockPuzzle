@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
@@ -37,6 +37,24 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
     navigation.goBack();
   };
 
+  const handleClearProgress = () => {
+    Alert.alert(
+      t('levels.clearProgress'),
+      t('levels.clearProgressConfirm'),
+      [
+        { text: t('levels.clearProgressCancel'), style: 'cancel' },
+        {
+          text: t('levels.clearProgressConfirmButton'),
+          style: 'destructive',
+          onPress: async () => {
+            await GameStorage.clearAll();
+            setCompletedLevels([]);
+          },
+        },
+      ],
+    );
+  };
+
   const isCompleted = (index: number) => completedLevels.some(l => l.levelIndex === index);
   const getLevelStats = (index: number) => completedLevels.find(l => l.levelIndex === index);
 
@@ -47,7 +65,9 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
           <Icon name="arrow-back" size={28} color={colors.text.light} />
         </Pressable>
         <LabelButton style={styles.title}>{t('levels.title')}</LabelButton>
-        <View style={styles.placeholder} />
+        <Pressable onPress={handleClearProgress} style={styles.clearButton}>
+          <Icon name="trash-outline" size={22} color={colors.text.light} />
+        </Pressable>
       </View>
 
       <View style={styles.grid}>
@@ -109,8 +129,10 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xxl,
     color: colors.text.light,
   },
-  placeholder: {
+  clearButton: {
+    padding: spacing.sm,
     width: 44,
+    alignItems: 'center',
   },
   grid: {
     flexDirection: 'row',
