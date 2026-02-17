@@ -10,10 +10,12 @@ import { fetchAdSettings } from '../../services/supabase.ts';
 import { CompletedLevel, GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setAppSettings = useAppStore(state => state.setAppSettings);
   const [highestLevel, setHighestLevel] = useState(0);
@@ -63,7 +65,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <LabelButton style={styles.title}>Block Puzzle</LabelButton>
+        <LabelButton style={styles.title}>{t('home.title')}</LabelButton>
       </View>
 
       <View style={styles.menuContainer}>
@@ -74,10 +76,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.menuItem}
             >
               <View style={styles.continueContent} pointerEvents="none">
-                <LabelButton style={styles.continueText}>Continue</LabelButton>
+                <LabelButton style={styles.continueText}>{t('common.continue')}</LabelButton>
                 <View style={styles.continueDetails}>
                   <LabelButton style={styles.levelLabel}>
-                    Level {highestLevel + 1}
+                    {t('home.level', { number: highestLevel + 1 })}
                   </LabelButton>
                   {lastLevelStats?.stars !== undefined && (
                     <View style={styles.starsRow}>
@@ -109,7 +111,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               pressableProps={{ onPress: handleNewGame }}
               style={styles.menuItem}
             >
-              New Game
+              {t('common.newGame')}
             </LabelButton>
           </>
         ) : (
@@ -117,7 +119,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             pressableProps={{ onPress: handlePlay }}
             style={styles.menuItem}
           >
-            Play
+            {t('common.play')}
           </LabelButton>
         )}
 
@@ -125,7 +127,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
           pressableProps={{ onPress: handleSettings }}
           style={styles.menuItem}
         >
-          Settings
+          {t('common.settings')}
         </LabelButton>
       </View>
 

@@ -22,6 +22,7 @@ const STORAGE_KEYS = {
   SOUND_SETTINGS: 'soundSettings',
   FREE_HINT_COUNT: 'freeHintCount',
   TUTORIAL_SEEN: 'tutorialSeen',
+  LANGUAGE: 'language',
 } as const;
 
 const LEVELS_PER_FREE_HINT = 5;
@@ -215,6 +216,22 @@ export const GameStorage = {
       await AsyncStorage.setItem(STORAGE_KEYS.TUTORIAL_SEEN, 'true');
     } catch (error) {
       console.log('Failed to save tutorial seen:', error);
+    }
+  },
+
+  getLanguage: async (): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
+    } catch {
+      return null;
+    }
+  },
+
+  saveLanguage: async (language: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+    } catch (error) {
+      console.log('Failed to save language:', error);
     }
   },
 

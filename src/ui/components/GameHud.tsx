@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
+import { useTranslation } from 'react-i18next';
 
 type HeaderProps = {
   currentLevelNumber: number;
@@ -21,6 +22,7 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
   onMenuPress,
   onBackPress,
 }) => {
+  const { t } = useTranslation();
   return (
     <View>
       <View style={styles.headerRow}>
@@ -30,9 +32,9 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
           </View>
         </Pressable>
         <LabelButton style={styles.levelText} onPress={onLevelPress}>
-          Level {currentLevelNumber + 1}
+          {t('game.level', { number: currentLevelNumber + 1 })}
         </LabelButton>
-        <LabelButton style={styles.movesText}>Moves {moveCount}</LabelButton>
+        <LabelButton style={styles.movesText}>{t('game.moves', { count: moveCount })}</LabelButton>
       </View>
 
       <View style={styles.timerRow}>

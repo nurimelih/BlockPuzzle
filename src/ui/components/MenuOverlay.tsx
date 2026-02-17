@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   visible: boolean;
@@ -34,6 +35,7 @@ export const MenuOverlay: React.FC<Props> = ({
   isLastLevel,
   onDismiss,
 }) => {
+  const { t } = useTranslation();
   const translateY = useSharedValue(500);
 
   useEffect(() => {
@@ -64,10 +66,10 @@ export const MenuOverlay: React.FC<Props> = ({
       <Animated.View style={[styles.overlay, animatedStyle]}>
           {isWin ? (
             <LabelButton style={styles.title}>
-              Level {currentLevelNumber + 1} Complete!
+              {t('game.level', { number: currentLevelNumber + 1 })} - {t('win.complete')}
             </LabelButton>
           ) : (
-            <LabelButton style={styles.title}>Paused</LabelButton>
+            <LabelButton style={styles.title}>{t('game.paused')}</LabelButton>
           )}
 
           <View style={styles.buttonContainer}>
@@ -79,13 +81,13 @@ export const MenuOverlay: React.FC<Props> = ({
                 }}
                 style={styles.primaryButtonText}
               >
-                Next Level
+                {t('common.nextLevel')}
               </LabelButton>
             )}
 
             {isWin && isLastLevel && (
               <LabelButton style={styles.completionText}>
-                All levels completed!
+                {t('win.allCompleted')}
               </LabelButton>
             )}
 
@@ -97,7 +99,7 @@ export const MenuOverlay: React.FC<Props> = ({
                 }}
                 style={styles.primaryButtonText}
               >
-                Resume
+                {t('common.resume')}
               </LabelButton>
             )}
 
@@ -108,7 +110,7 @@ export const MenuOverlay: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Restart Level
+              {t('game.restartLevel')}
             </LabelButton>
 
             <LabelButton
@@ -118,7 +120,7 @@ export const MenuOverlay: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Previous Level
+              {t('game.previousLevel')}
             </LabelButton>
 
             <LabelButton
@@ -128,7 +130,7 @@ export const MenuOverlay: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Settings
+              {t('common.settings')}
             </LabelButton>
 
             <LabelButton
@@ -138,7 +140,7 @@ export const MenuOverlay: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Home
+              {t('common.home')}
             </LabelButton>
           </View>
       </Animated.View>
