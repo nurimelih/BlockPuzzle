@@ -1,0 +1,53 @@
+{
+  "common": {
+    "settings": "Ayarlar",
+    "home": "Ana Menü",
+    "play": "Oyna",
+    "newGame": "Yeni Oyun",
+    "continue": "Devam Et",
+    "nextLevel": "Sonraki Bölüm",
+    "retry": "Tekrar Dene",
+    "resume": "Devam Et",
+    "next": "İleri",
+    "gotIt": "Anladım!"
+  },
+  "home": {
+    "title": "Block Puzzle",
+    "level": "Bölüm {{number}}"
+  },
+  "game": {
+    "level": "Bölüm {{number}}",
+    "moves": "Hamle {{count}}",
+    "paused": "Duraklatıldı",
+    "restartLevel": "Yeniden Başlat",
+    "previousLevel": "Önceki Bölüm"
+  },
+  "win": {
+    "complete": "Tamamlandı!",
+    "levelComplete": "Bölüm {{number}}",
+    "moves": "Hamle",
+    "time": "Süre",
+    "score": "Puan",
+    "allCompleted": "Tüm bölümler tamamlandı!"
+  },
+  "levels": {
+    "title": "Bölümler"
+  },
+  "settings": {
+    "music": "Müzik",
+    "soundEffects": "Ses Efektleri",
+    "vibration": "Titreşim",
+    "low": "Düşük",
+    "mid": "Orta",
+    "high": "Yüksek",
+    "language": "Dil"
+  },
+  "tutorial": {
+    "dragDropTitle": "Sürükle & Bırak",
+    "dragDropDesc": "Parçaları tahtaya sürükleyerek yerleştirin",
+    "rotateTitle": "Döndürmek İçin Dokun",
+    "rotateDesc": "Yerleştirmeden önce parçaya dokunarak döndürün",
+    "fillTitle": "Tahtayı Doldur!",
+    "fillDesc": "Bölümü tamamlamak için tüm parçaları yerleştirin"
+  }
+}

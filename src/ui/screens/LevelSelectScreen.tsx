@@ -9,10 +9,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../../state/useAppStore.ts';
 import { Analytics } from '../../services/Analytics.ts';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LevelSelect'>;
 
 export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useTranslation();
   const levels = useAppStore(state => state.levels);
   const [completedLevels, setCompletedLevels] = useState<CompletedLevel[]>([]);
 
@@ -44,7 +46,7 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
         <Pressable onPress={handleBack} style={styles.backButton}>
           <Icon name="arrow-back" size={28} color={colors.text.light} />
         </Pressable>
-        <LabelButton style={styles.title}>Levels</LabelButton>
+        <LabelButton style={styles.title}>{t('levels.title')}</LabelButton>
         <View style={styles.placeholder} />
       </View>
 

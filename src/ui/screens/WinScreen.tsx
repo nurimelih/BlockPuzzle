@@ -11,6 +11,7 @@ import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { formatTime } from '../../core/utils.ts';
 import { calculateScore } from '../../core/scoring.ts';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   visible: boolean;
@@ -86,6 +87,7 @@ export const WinScreen: React.FC<Props> = ({
   onRestart,
   onHome,
 }) => {
+  const { t } = useTranslation();
   const translateY = useSharedValue(visible ? 0 : 800);
 
   React.useEffect(() => {
@@ -114,9 +116,9 @@ export const WinScreen: React.FC<Props> = ({
       <View style={styles.backdrop} />
       <Animated.View style={[styles.card, animatedStyle]}>
         <LabelButton style={styles.title}>
-          Level {levelNumber + 1}
+          {t('win.levelComplete', { number: levelNumber + 1 })}
         </LabelButton>
-        <LabelButton style={styles.subtitle}>Complete!</LabelButton>
+        <LabelButton style={styles.subtitle}>{t('win.complete')}</LabelButton>
 
         {/* Stars */}
         <View style={styles.starsRow}>
@@ -130,19 +132,19 @@ export const WinScreen: React.FC<Props> = ({
           <View style={styles.statItem}>
             <Icon name="footsteps-outline" size={20} color={colors.brown.medium} />
             <LabelButton style={styles.statValue}>{moves}</LabelButton>
-            <LabelButton style={styles.statLabel}>Moves</LabelButton>
+            <LabelButton style={styles.statLabel}>{t('win.moves')}</LabelButton>
           </View>
           <View style={styles.divider} />
           <View style={styles.statItem}>
             <Icon name="time-outline" size={20} color={colors.brown.medium} />
             <LabelButton style={styles.statValue}>{formatTime(time)}</LabelButton>
-            <LabelButton style={styles.statLabel}>Time</LabelButton>
+            <LabelButton style={styles.statLabel}>{t('win.time')}</LabelButton>
           </View>
           <View style={styles.divider} />
           <View style={styles.statItem}>
             <Icon name="trophy-outline" size={20} color={colors.brown.medium} />
             <LabelButton style={styles.statValue}>{score}</LabelButton>
-            <LabelButton style={styles.statLabel}>Score</LabelButton>
+            <LabelButton style={styles.statLabel}>{t('win.score')}</LabelButton>
           </View>
         </View>
 
@@ -156,13 +158,13 @@ export const WinScreen: React.FC<Props> = ({
               }}
               style={styles.primaryButtonText}
             >
-              Next Level
+              {t('common.nextLevel')}
             </LabelButton>
           )}
 
           {isLastLevel && (
             <LabelButton style={styles.completionText}>
-              All levels completed!
+              {t('win.allCompleted')}
             </LabelButton>
           )}
 
@@ -174,7 +176,7 @@ export const WinScreen: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Retry
+              {t('common.retry')}
             </LabelButton>
 
             <LabelButton
@@ -184,7 +186,7 @@ export const WinScreen: React.FC<Props> = ({
               }}
               style={styles.secondaryButtonText}
             >
-              Home
+              {t('common.home')}
             </LabelButton>
           </View>
         </View>

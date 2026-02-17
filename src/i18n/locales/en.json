@@ -1,0 +1,53 @@
+{
+  "common": {
+    "settings": "Settings",
+    "home": "Home",
+    "play": "Play",
+    "newGame": "New Game",
+    "continue": "Continue",
+    "nextLevel": "Next Level",
+    "retry": "Retry",
+    "resume": "Resume",
+    "next": "Next",
+    "gotIt": "Got it!"
+  },
+  "home": {
+    "title": "Block Puzzle",
+    "level": "Level {{number}}"
+  },
+  "game": {
+    "level": "Level {{number}}",
+    "moves": "Moves {{count}}",
+    "paused": "Paused",
+    "restartLevel": "Restart Level",
+    "previousLevel": "Previous Level"
+  },
+  "win": {
+    "complete": "Complete!",
+    "levelComplete": "Level {{number}}",
+    "moves": "Moves",
+    "time": "Time",
+    "score": "Score",
+    "allCompleted": "All levels completed!"
+  },
+  "levels": {
+    "title": "Levels"
+  },
+  "settings": {
+    "music": "Music",
+    "soundEffects": "Sound Effects",
+    "vibration": "Vibration",
+    "low": "Low",
+    "mid": "Mid",
+    "high": "High",
+    "language": "Language"
+  },
+  "tutorial": {
+    "dragDropTitle": "Drag & Drop",
+    "dragDropDesc": "Drag pieces onto the board to place them",
+    "rotateTitle": "Tap to Rotate",
+    "rotateDesc": "Tap a piece to rotate it before placing",
+    "fillTitle": "Fill the Board!",
+    "fillDesc": "Place all pieces to complete the level"
+  }
+}

@@ -9,31 +9,27 @@ import Animated, {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   visible: boolean;
   onComplete: () => void;
 };
 
-const STEPS = [
-  {
-    icon: 'hand-left-outline' as const,
-    title: 'Drag & Drop',
-    description: 'Drag pieces onto the board to place them',
-  },
-  {
-    icon: 'refresh-outline' as const,
-    title: 'Tap to Rotate',
-    description: 'Tap a piece to rotate it before placing',
-  },
-  {
-    icon: 'star-outline' as const,
-    title: 'Fill the Board!',
-    description: 'Place all pieces to complete the level',
-  },
+const STEP_ICONS = [
+  'hand-left-outline' as const,
+  'refresh-outline' as const,
+  'star-outline' as const,
+];
+
+const STEP_KEYS = [
+  { title: 'tutorial.dragDropTitle', desc: 'tutorial.dragDropDesc' },
+  { title: 'tutorial.rotateTitle', desc: 'tutorial.rotateDesc' },
+  { title: 'tutorial.fillTitle', desc: 'tutorial.fillDesc' },
 ];
 
 export const TutorialOverlay: React.FC<Props> = ({ visible, onComplete }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const translateY = useSharedValue(0);
 
@@ -53,8 +49,7 @@ export const TutorialOverlay: React.FC<Props> = ({ visible, onComplete }) => {
 
   if (!visible) return null;
 
-  const currentStep = STEPS[step];
-  const isLastStep = step === STEPS.length - 1;
+  const isLastStep = step === STEP_KEYS.length - 1;
 
   const handleNext = () => {
     if (isLastStep) {
@@ -69,16 +64,16 @@ export const TutorialOverlay: React.FC<Props> = ({ visible, onComplete }) => {
       <View style={styles.backdrop} />
       <Animated.View style={[styles.card, animatedStyle]}>
         <View style={styles.iconCircle}>
-          <Icon name={currentStep.icon} size={48} color={colors.primary} />
+          <Icon name={STEP_ICONS[step]} size={48} color={colors.primary} />
         </View>
 
-        <LabelButton style={styles.title}>{currentStep.title}</LabelButton>
+        <LabelButton style={styles.title}>{t(STEP_KEYS[step].title)}</LabelButton>
         <LabelButton style={styles.description}>
-          {currentStep.description}
+          {t(STEP_KEYS[step].desc)}
         </LabelButton>
 
         <View style={styles.dotsRow}>
-          {STEPS.map((_, i) => (
+          {STEP_KEYS.map((_, i) => (
             <View
               key={i}
               style={[styles.dot, i === step && styles.dotActive]}
@@ -93,7 +88,7 @@ export const TutorialOverlay: React.FC<Props> = ({ visible, onComplete }) => {
           }}
           style={styles.buttonText}
         >
-          {isLastStep ? 'Got it!' : 'Next'}
+          {isLastStep ? t('common.gotIt') : t('common.next')}
         </LabelButton>
       </Animated.View>
     </View>
