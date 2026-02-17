@@ -10,6 +10,7 @@ import {
 import { GameBoard } from '../components/GameBoard.tsx';
 import { GameHeader, GameFooter } from '../components/GameHud.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
+import { TutorialOverlay } from '../components/TutorialOverlay.tsx';
 import { WinScreen } from './WinScreen.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
@@ -59,6 +60,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [activePieceId, setActivePieceId] = useState<string>();
   const [resetKey, setResetKey] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const setBackgroundRevealing = useAppStore(state => state.setBackgroundRevealing);
   const isRevealing = useAppStore(state => state.isBackgroundRevealing);
@@ -169,6 +171,15 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     }, 1000);
     return () => clearInterval(interval);
   }, [isPaused, getElapsedTime, currentLevelNumber]);
+
+  // Tutorial check
+  useEffect(() => {
+    if (currentLevelNumber === 0) {
+      GameStorage.getTutorialSeen().then(seen => {
+        if (!seen) setShowTutorial(true);
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Win flow
   useEffect(() => {
@@ -309,6 +320,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         onHome={handleHome}
+      />
+
+      <TutorialOverlay
+        visible={showTutorial}
+        onComplete={() => {
+          setShowTutorial(false);
+          GameStorage.setTutorialSeen();
+        }}
       />
 
       <MenuOverlay

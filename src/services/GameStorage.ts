@@ -21,6 +21,7 @@ const STORAGE_KEYS = {
   CURRENT_LEVEL: 'currentLevel',
   SOUND_SETTINGS: 'soundSettings',
   FREE_HINT_COUNT: 'freeHintCount',
+  TUTORIAL_SEEN: 'tutorialSeen',
 } as const;
 
 const LEVELS_PER_FREE_HINT = 5;
@@ -198,6 +199,23 @@ export const GameStorage = {
     if (count <= 0) return false;
     await GameStorage.saveFreeHintCount(count - 1);
     return true;
+  },
+
+  getTutorialSeen: async (): Promise<boolean> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.TUTORIAL_SEEN);
+      return data === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setTutorialSeen: async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.TUTORIAL_SEEN, 'true');
+    } catch (error) {
+      console.log('Failed to save tutorial seen:', error);
+    }
   },
 
   clearAll: async (): Promise<void> => {
