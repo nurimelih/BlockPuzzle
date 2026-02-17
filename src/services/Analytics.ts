@@ -29,19 +29,22 @@ export const Analytics = {
     levelNumber: number,
     moves: number,
     time: number,
+    score?: number,
+    stars?: number,
+    hintCount?: number,
   ) => {
-    if (analytics) {
-      await analytics().logEvent('level_complete', {
-        level: levelNumber,
-        moves,
-        time,
-      });
-    }
-    posthog?.capture('level_complete', {
+    const payload = {
       level: levelNumber,
       moves,
       time,
-    });
+      ...(score !== undefined && { score }),
+      ...(stars !== undefined && { stars }),
+      ...(hintCount !== undefined && { hint_count: hintCount }),
+    };
+    if (analytics) {
+      await analytics().logEvent('level_complete', payload);
+    }
+    posthog?.capture('level_complete', payload);
   },
 
   logScreenView: async (screenName: string) => {
