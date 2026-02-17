@@ -1,81 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { LabelButton } from '../components/base/LabelButton.tsx';
-import { SoundManager } from '../../services/SoundManager.ts';
 import DeviceInfo from 'react-native-device-info';
 import { useAppStore } from '../../state/useAppStore.ts';
 import { fetchAdSettings } from '../../services/supabase.ts';
-import { GameStorage } from '../../services/GameStorage.ts';
+import { CompletedLevel, GameStorage } from '../../services/GameStorage.ts';
+import { useFocusEffect } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const setCurrentScreen = useAppStore(state => state.setCurrentScreen);
   const setAppSettings = useAppStore(state => state.setAppSettings);
-  const [playMenuOpen, setPlayMenuOpen] = useState(false);
-  const menuHeight = useSharedValue(0);
-  const menuOpacity = useSharedValue(0);
+  const [highestLevel, setHighestLevel] = useState(0);
+  const [lastLevelStats, setLastLevelStats] = useState<CompletedLevel | null>(null);
 
-  useEffect(() => {
-    if (__DEV__) {
-      const _getAllSettings = async () => {
-        try {
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentScreen('home');
+      fetchAdSettings().then(response => {
+        setAppSettings(response);
+      });
 
-        const settings = await GameStorage.getAllSettings();
-        console.log("All Settings", JSON.stringify(settings, null, 2));
-        }
-        catch (e){
-          console.log("error getting settings", e);
+      const loadProgress = async () => {
+        const level = await GameStorage.getHighestUnlockedLevel();
+        setHighestLevel(level);
+        if (level > 0) {
+          const stats = await GameStorage.getLevelStats(level - 1);
+          setLastLevelStats(stats);
         }
       };
+      loadProgress();
 
-      _getAllSettings();
-    }
-  }, []);
+      if (__DEV__) {
+        GameStorage.getAllSettings()
+          .then(settings => console.log('All Settings', JSON.stringify(settings, null, 2)))
+          .catch(e => console.log('error getting settings', e));
+      }
+    }, [setCurrentScreen, setAppSettings]),
+  );
 
-  useEffect(() => {
-    setCurrentScreen('home');
-    fetchAdSettings().then(response => {
-      setAppSettings(response);
-    });
-  }, [setCurrentScreen]);
-
-  const togglePlayMenu = () => {
-    if (playMenuOpen) {
-      menuHeight.value = withTiming(0, { duration: 200 });
-      menuOpacity.value = withTiming(0, { duration: 150 });
-    } else {
-      menuHeight.value = withTiming(80, { duration: 200 });
-      menuOpacity.value = withTiming(1, { duration: 200 });
-    }
-    setPlayMenuOpen(!playMenuOpen);
+  const handleContinue = () => {
+    navigation.navigate('GameScreen', { levelNumber: highestLevel });
   };
 
-  const handleNewGame = () => {
+  const handlePlay = () => {
     navigation.navigate('GameScreen', { levelNumber: 0 });
   };
 
-  const handleLevelSelect = () => {
+  const handleNewGame = () => {
     navigation.navigate('LevelSelect');
   };
 
   const handleSettings = () => {
     navigation.navigate('Settings');
   };
-
-  const animatedMenuStyle = useAnimatedStyle(() => ({
-    height: menuHeight.value,
-    opacity: menuOpacity.value,
-    overflow: 'hidden',
-  }));
 
   return (
     <View style={styles.container}>
@@ -84,28 +67,59 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.menuContainer}>
-        <LabelButton
-          pressableProps={{ onPress: togglePlayMenu }}
-          style={styles.menuItem}
-        >
-          Play
-        </LabelButton>
+        {highestLevel > 0 ? (
+          <>
+            <LabelButton
+              pressableProps={{ onPress: handleContinue }}
+              style={styles.menuItem}
+            >
+              <View style={styles.continueContent} pointerEvents="none">
+                <LabelButton style={styles.continueText}>Continue</LabelButton>
+                <View style={styles.continueDetails}>
+                  <LabelButton style={styles.levelLabel}>
+                    Level {highestLevel + 1}
+                  </LabelButton>
+                  {lastLevelStats?.stars !== undefined && (
+                    <View style={styles.starsRow}>
+                      {[1, 2, 3].map(i => (
+                        <Icon
+                          key={i}
+                          name={
+                            lastLevelStats.stars! >= i
+                              ? 'star'
+                              : lastLevelStats.stars! >= i - 0.5
+                                ? 'star-half'
+                                : 'star-outline'
+                          }
+                          size={14}
+                          color={
+                            lastLevelStats.stars! >= i - 0.5
+                              ? '#FFD700'
+                              : colors.brown.light
+                          }
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+            </LabelButton>
 
-        <Animated.View style={[styles.subMenu, animatedMenuStyle]}>
+            <LabelButton
+              pressableProps={{ onPress: handleNewGame }}
+              style={styles.menuItem}
+            >
+              New Game
+            </LabelButton>
+          </>
+        ) : (
           <LabelButton
-            pressableProps={{ onPress: handleNewGame }}
-            style={[styles.subMenuItem]}
+            pressableProps={{ onPress: handlePlay }}
+            style={styles.menuItem}
           >
-            New Games
+            Play
           </LabelButton>
-
-          <LabelButton
-            pressableProps={{ onPress: handleLevelSelect }}
-            style={styles.subMenuItem}
-          >
-            Level Select
-          </LabelButton>
-        </Animated.View>
+        )}
 
         <LabelButton
           pressableProps={{ onPress: handleSettings }}
@@ -116,7 +130,9 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.versionContainer}>
-        <LabelButton style={styles.versionText}>v {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})</LabelButton>
+        <LabelButton style={styles.versionText}>
+          v {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+        </LabelButton>
       </View>
     </View>
   );
@@ -152,13 +168,25 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadius.lg,
     paddingHorizontal: spacing.md,
   },
-  subMenu: {
+  continueContent: {
     alignItems: 'center',
   },
-  subMenuItem: {
-    fontSize: typography.fontSize.xl,
+  continueText: {
+    fontSize: 36,
     color: colors.text.light,
-    marginVertical: spacing.xs,
+  },
+  continueDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  levelLabel: {
+    fontSize: typography.fontSize.md,
+    color: colors.text.light,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    gap: 1,
   },
   versionContainer: {
     alignItems: 'center',
