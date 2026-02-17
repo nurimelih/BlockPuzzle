@@ -17,6 +17,7 @@ import { fetchAllLevels } from './src/services/supabase.ts';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
 import { GameStorage } from './src/services/GameStorage.ts';
+import { HapticsManager } from './src/services/HapticsManager.ts';
 import { Analytics } from './src/services/Analytics.ts';
 
 const theme = createTheme({
@@ -76,6 +77,7 @@ function App() {
       SoundManager.setEffectsMuted(!settings.effectsEnabled);
       SoundManager.setBackgroundVolume(settings.musicVolume);
       SoundManager.setEffectsVolume(settings.effectsVolume);
+      HapticsManager.setEnabled(settings.hapticsEnabled);
 
       // Sync store with persisted setting
       useAppStore.setState({isMusicMuted: !settings.musicEnabled});

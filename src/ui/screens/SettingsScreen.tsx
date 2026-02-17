@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
 import { SoundManager } from '../../services/SoundManager.ts';
+import { HapticsManager } from '../../services/HapticsManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { LabelButton } from '../components/base/LabelButton.tsx';
@@ -17,6 +18,9 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const [effectsEnabled, setEffectsEnabled] = useState(
     !SoundManager.isEffectsMutedState(),
+  );
+  const [hapticsEnabled, setHapticsEnabled] = useState(
+    HapticsManager.isHapticsEnabled(),
   );
   const [musicVolume, setMusicVolume] = useState(
     SoundManager.getBackgroundVolume(),
@@ -42,6 +46,14 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     setEffectsEnabled(value);
     SoundManager.setEffectsMuted(!value);
     saveSettings({ effects: value });
+  };
+
+  const handleHapticsToggle = (value: boolean) => {
+    setHapticsEnabled(value);
+    HapticsManager.setEnabled(value);
+    GameStorage.getSoundSettings().then(current => {
+      GameStorage.saveSoundSettings({ ...current, hapticsEnabled: value });
+    });
   };
 
   const handleVolumeChange = (volume: number) => {
@@ -136,6 +148,19 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           <Switch
             value={effectsEnabled}
             onValueChange={handleEffectsToggle}
+            trackColor={{
+              false: colors.brown.medium,
+              true: colors.primary,
+            }}
+            thumbColor={colors.text.light}
+          />
+        </View>
+
+        <View style={styles.settingRow}>
+          <LabelButton style={styles.settingLabel}>Vibration</LabelButton>
+          <Switch
+            value={hapticsEnabled}
+            onValueChange={handleHapticsToggle}
             trackColor={{
               false: colors.brown.medium,
               true: colors.primary,

@@ -16,6 +16,7 @@ import type { RootStackParamList } from '../../types/navigation.ts';
 import { spacing } from '../../theme';
 import { formatTime } from '../../core/utils.ts';
 import { SoundManager } from '../../services/SoundManager.ts';
+import { HapticsManager } from '../../services/HapticsManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import { useMusicMuted } from '../../state/useMusicMuted.ts';
 import { useAppStore } from '../../state/useAppStore.ts';
@@ -125,6 +126,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       const canPlace = tryPlacePiece(id, gridX, gridY);
       if (canPlace) {
         SoundManager.playPlaceEffect();
+        HapticsManager.impactMedium();
         const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
         const placedTop =
           gridY * CELL_HEIGHT - (baseH - rotatedH) / 2 - PIECE_CONTAINER_TOP_PADDING;
@@ -140,6 +142,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleTapRotate = useCallback(
     (id: string) => {
       SoundManager.playRotateEffect();
+      HapticsManager.impactLight();
       rotatePiece(id);
     },
     [rotatePiece],
@@ -185,6 +188,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         scoreResult.score, scoreResult.stars, hintCount,
       );
       SoundManager.playWinEffect();
+      HapticsManager.notificationSuccess();
       GameStorage.saveCompletedLevel(
         currentLevelNumber, moveCount, elapsed,
         scoreResult.stars, scoreResult.score,

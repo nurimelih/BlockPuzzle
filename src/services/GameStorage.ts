@@ -5,6 +5,7 @@ export type SoundSettings = {
   effectsEnabled: boolean;
   musicVolume: number;
   effectsVolume: number;
+  hapticsEnabled: boolean;
 };
 
 const DEFAULT_SOUND_SETTINGS: SoundSettings = {
@@ -12,6 +13,7 @@ const DEFAULT_SOUND_SETTINGS: SoundSettings = {
   effectsEnabled: true,
   musicVolume: 0.05,
   effectsVolume: 0.1,
+  hapticsEnabled: true,
 };
 
 const STORAGE_KEYS = {
@@ -129,7 +131,9 @@ export const GameStorage = {
   getSoundSettings: async (): Promise<SoundSettings> => {
     try {
       const result = await AsyncStorage.getItem(STORAGE_KEYS.SOUND_SETTINGS);
-      return result ? JSON.parse(result) : DEFAULT_SOUND_SETTINGS;
+      if (!result) return DEFAULT_SOUND_SETTINGS;
+      const parsed = JSON.parse(result);
+      return { ...DEFAULT_SOUND_SETTINGS, ...parsed };
     } catch (e) {
       console.log('Error when getting sound setting', e);
       return DEFAULT_SOUND_SETTINGS;
