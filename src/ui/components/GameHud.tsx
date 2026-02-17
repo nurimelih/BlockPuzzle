@@ -10,6 +10,7 @@ type HeaderProps = {
   gameTime: string;
   onLevelPress: () => void;
   onMenuPress: () => void;
+  onBackPress: () => void;
 };
 
 export const GameHeader: React.FC<HeaderProps> = React.memo(({
@@ -18,10 +19,16 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
   gameTime,
   onLevelPress,
   onMenuPress,
+  onBackPress,
 }) => {
   return (
     <View>
       <View style={styles.headerRow}>
+        <Pressable onPress={onBackPress} style={styles.backButton}>
+          <View style={styles.iconShadow}>
+            <Icon name="arrow-back" size={24} color={colors.white} />
+          </View>
+        </Pressable>
         <LabelButton style={styles.levelText} onPress={onLevelPress}>
           Level {currentLevelNumber + 1}
         </LabelButton>
@@ -91,10 +98,14 @@ export const GameFooter: React.FC<FooterProps> = React.memo(({
 const styles = StyleSheet.create({
   headerRow: {
     width: '100%',
-    paddingHorizontal: spacing.xxxxl,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  backButton: {
+    padding: spacing.sm,
   },
   levelText: {
     fontSize: typography.fontSize.xl,

@@ -260,6 +260,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           gameTime={gameTime}
           onLevelPress={handleNextLevel}
           onMenuPress={toggleMenu}
+          onBackPress={handleHome}
         />
       )}
 
