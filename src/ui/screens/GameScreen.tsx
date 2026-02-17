@@ -78,28 +78,72 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const BOARD_LEFT_POS = (screenWidth - BOARD_WIDTH) / 2;
   const BOARD_TOP_POS = (screenHeight - BOARD_HEIGHT) / 4;
   const PIECE_CONTAINER_TOP_PADDING = 0;
+  const FOOTER_HEIGHT = 100;
 
   const { isMusicMuted, setMusicMuted } = useMusicMuted();
 
   const pieceRefs = useRef<Record<string, AnimatedPieceHandle>>({});
 
   const generateScatteredPositions = useCallback(
-    (pieceCount: number) => {
+    (gamePieces: { baseMatrix: number[][] }[]) => {
       const positions: Record<string, { left: number; top: number }> = {};
-      const minLeft = CELL_WIDTH;
-      const maxLeft = screenWidth - CELL_WIDTH * 5;
-      for (let i = 0; i < pieceCount; i++) {
-        const left = minLeft + Math.random() * (maxLeft - minLeft);
-        const top = 100 + Math.random() * 300;
-        positions[`piece-${i}`] = { left, top };
+      const placed: { left: number; top: number; w: number; h: number }[] = [];
+      const EDGE_PADDING = 20;
+      const GAP = 20;
+
+      // Dağılım alanı: board'un altı (pieces container relative koordinatları)
+      const areaTop = BOARD_HEIGHT + GAP;
+      const areaBottom = screenHeight - BOARD_TOP_POS - FOOTER_HEIGHT - EDGE_PADDING;
+      const areaLeft = -BOARD_LEFT_POS + EDGE_PADDING;
+      const areaRight = screenWidth - BOARD_LEFT_POS - EDGE_PADDING;
+
+      for (let i = 0; i < gamePieces.length; i++) {
+        const piece = gamePieces[i];
+        const baseW = piece.baseMatrix[0].length * CELL_WIDTH;
+        const baseH = piece.baseMatrix.length * CELL_HEIGHT;
+        const boxSize = Math.max(baseW, baseH);
+
+        let bestLeft = areaLeft;
+        let bestTop = areaTop;
+        let bestOverlap = Infinity;
+
+        const maxAttempts = 50;
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const left = areaLeft + Math.random() * Math.max(0, areaRight - areaLeft - boxSize);
+          const top = areaTop + Math.random() * Math.max(0, areaBottom - areaTop - boxSize);
+
+          // AABB overlap kontrolü
+          let totalOverlap = 0;
+          for (const p of placed) {
+            const overlapX = Math.max(0, Math.min(left + boxSize, p.left + p.w) - Math.max(left, p.left));
+            const overlapY = Math.max(0, Math.min(top + boxSize, p.top + p.h) - Math.max(top, p.top));
+            totalOverlap += overlapX * overlapY;
+          }
+
+          if (totalOverlap === 0) {
+            bestLeft = left;
+            bestTop = top;
+            bestOverlap = 0;
+            break;
+          }
+
+          if (totalOverlap < bestOverlap) {
+            bestOverlap = totalOverlap;
+            bestLeft = left;
+            bestTop = top;
+          }
+        }
+
+        positions[`piece-${i}`] = { left: bestLeft, top: bestTop };
+        placed.push({ left: bestLeft, top: bestTop, w: boxSize, h: boxSize });
       }
       return positions;
     },
-    [screenWidth, CELL_WIDTH],
+    [screenWidth, screenHeight, CELL_WIDTH, CELL_HEIGHT, BOARD_WIDTH, BOARD_HEIGHT, BOARD_LEFT_POS, BOARD_TOP_POS, FOOTER_HEIGHT],
   );
 
   const scatteredPositions = useRef(
-    generateScatteredPositions(currentLevel.pieces.length),
+    generateScatteredPositions(currentLevel.pieces.map(m => ({ baseMatrix: m }))),
   );
 
   // Gesture callbacks
@@ -223,7 +267,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   // Level change reset
   useEffect(() => {
-    scatteredPositions.current = generateScatteredPositions(currentLevel.pieces.length);
+    scatteredPositions.current = generateScatteredPositions(currentLevel.pieces.map(m => ({ baseMatrix: m })));
     setResetKey(k => k + 1);
     resetHints();
     setShowWin(false);
@@ -234,7 +278,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const handleRestart = () => {
     logRestart();
     restart();
-    scatteredPositions.current = generateScatteredPositions(pieces.length);
+    scatteredPositions.current = generateScatteredPositions(pieces.map(p => ({ baseMatrix: p.baseMatrix })));
     setResetKey(k => k + 1);
     setMenuVisible(false);
     setShowWin(false);
@@ -288,6 +332,10 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
                 cellWidth={CELL_WIDTH}
                 cellHeight={CELL_HEIGHT}
                 isActive={activePieceId === gamePiece.id}
+                boardLeftPos={BOARD_LEFT_POS}
+                boardTopPos={BOARD_TOP_POS}
+                screenWidth={screenWidth}
+                screenHeight={screenHeight - FOOTER_HEIGHT}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 onTapRotate={handleTapRotate}

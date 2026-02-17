@@ -25,6 +25,10 @@ type Props = {
   cellWidth: number;
   cellHeight: number;
   isActive: boolean;
+  boardLeftPos: number;
+  boardTopPos: number;
+  screenWidth: number;
+  screenHeight: number;
   onDragStart: (id: string) => void;
   onDragEnd: (id: string, finalLeft: number, finalTop: number) => void;
   onTapRotate: (id: string) => void;
@@ -42,6 +46,10 @@ export const AnimatedPiece = React.forwardRef<AnimatedPieceHandle, Props>(
       cellWidth,
       cellHeight,
       isActive,
+      boardLeftPos,
+      boardTopPos,
+      screenWidth,
+      screenHeight,
       onDragStart,
       onDragEnd,
       onTapRotate,
@@ -100,8 +108,15 @@ export const AnimatedPiece = React.forwardRef<AnimatedPieceHandle, Props>(
       })
       .onUpdate(e => {
         'worklet';
-        translateX.value = startX.value + e.translationX;
-        translateY.value = startY.value + e.translationY;
+        const EDGE_PADDING = 20;
+        // translateX/Y container'ın köşesini verir, ama transform'da offsetX/Y çıkarılıyor
+        // Görünen parçanın sol kenarı: translateX - offsetX, sağ kenarı: translateX - offsetX + baseW
+        const minX = -boardLeftPos + EDGE_PADDING + offsetX;
+        const maxX = screenWidth - boardLeftPos - baseW - EDGE_PADDING + offsetX;
+        const minY = -boardTopPos + EDGE_PADDING + offsetY;
+        const maxY = screenHeight - boardTopPos - baseH - EDGE_PADDING + offsetY;
+        translateX.value = Math.max(minX, Math.min(maxX, startX.value + e.translationX));
+        translateY.value = Math.max(minY, Math.min(maxY, startY.value + e.translationY));
       })
       .onEnd(() => {
         'worklet';
