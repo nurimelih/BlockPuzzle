@@ -1,5 +1,5 @@
 import './src/i18n/i18n';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { LevelSelectScreen } from './src/ui/screens/LevelSelectScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
 import { fetchAllLevels } from './src/services/supabase.ts';
@@ -69,6 +69,8 @@ function PostHogInit() {
 
 function App() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
+  const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+  const routeNameRef = useRef<string | undefined>();
 
   useEffect(() => {
     const init = async () => {
@@ -109,7 +111,20 @@ function App() {
         <GestureHandlerRootView style={styles.container}>
           <BackgroundImage />
           <SafeAreaView style={styles.safeArea}>
-            <NavigationContainer>
+            <NavigationContainer
+              ref={navigationRef}
+              onReady={() => {
+                routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
+              }}
+              onStateChange={() => {
+                const previousRouteName = routeNameRef.current;
+                const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
+                if (currentRouteName && previousRouteName !== currentRouteName) {
+                  Analytics.logScreenView(currentRouteName);
+                }
+                routeNameRef.current = currentRouteName;
+              }}
+            >
               <PostHogProvider
                 apiKey="phc_I1R5cQvmIOeeXfJgqQYoTKs2M8Uq0KLsH0Ow45lsi4g"
                 options={{
@@ -117,7 +132,9 @@ function App() {
                   enableSessionReplay: false,
                 }}
                 autocapture={{
-                  captureScreens: true,
+                  // PostHog bug: captureScreens broken with React Navigation v7
+                  // https://github.com/PostHog/posthog-js/issues/2349
+                  captureScreens: false,
                   captureTouches: true,
                 }}
               >
