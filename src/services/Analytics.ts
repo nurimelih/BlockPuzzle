@@ -95,4 +95,12 @@ export const Analytics = {
     }
     posthog?.capture('level_selected', { level: levelNumber, was_completed: wasCompleted });
   },
+
+  logHintSolveTime: async (levelNumber: number, solveMs: number, cached: boolean) => {
+    const payload = { level: levelNumber, hint_solve_ms: solveMs, cached };
+    if (analytics) {
+      await analytics().logEvent('hint_solve_ms', payload);
+    }
+    posthog?.capture('hint_solve_ms', payload);
+  },
 };
