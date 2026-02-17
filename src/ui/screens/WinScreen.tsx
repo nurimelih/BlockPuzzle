@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { formatTime } from '../../core/utils.ts';
+import { calculateScore } from '../../core/scoring.ts';
 
 type Props = {
   visible: boolean;
@@ -17,23 +18,14 @@ type Props = {
   moves: number;
   time: number;
   pieceCount: number;
+  boardSize: number;
+  hintCount: number;
   isLastLevel: boolean;
   onNextLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
 };
 
-// TODO: buraya makul mantıklı bir puanlama oluştur.
-// bu fonksiyon şuan manasız, sadece görsel şekil oluşturmak için
-function calculateStars(moves: number): number {
-  const ratio = moves;
-  if (ratio <= 10) return 3;
-  if (ratio <= 15) return 2.5;
-  if (ratio <= 20) return 2;
-  if (ratio <= 25) return 1.5;
-  if (ratio <= 30) return 1;
-  return 0.5;
-}
 
 type StarProps = {
   filled: 'full' | 'half' | 'empty';
@@ -87,6 +79,8 @@ export const WinScreen: React.FC<Props> = ({
   moves,
   time,
   pieceCount,
+  boardSize,
+  hintCount,
   isLastLevel,
   onNextLevel,
   onRestart,
@@ -111,7 +105,8 @@ export const WinScreen: React.FC<Props> = ({
 
   if (!visible) return null;
 
-  const stars = calculateStars(moves, pieceCount);
+  const scoreResult = calculateScore({ moves, time, hintCount, pieceCount, boardSize });
+  const { stars, score, grade } = scoreResult;
   const [star1, star2, star3] = getStarStates(stars);
 
   return (
@@ -142,6 +137,12 @@ export const WinScreen: React.FC<Props> = ({
             <Icon name="time-outline" size={20} color={colors.brown.medium} />
             <LabelButton style={styles.statValue}>{formatTime(time)}</LabelButton>
             <LabelButton style={styles.statLabel}>Time</LabelButton>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.statItem}>
+            <Icon name="trophy-outline" size={20} color={colors.brown.medium} />
+            <LabelButton style={styles.statValue}>{score}</LabelButton>
+            <LabelButton style={styles.statLabel}>Score</LabelButton>
           </View>
         </View>
 

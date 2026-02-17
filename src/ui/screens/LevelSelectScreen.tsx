@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
 import { LabelButton } from '../components/base/LabelButton.tsx';
-import { GameStorage } from '../../services/GameStorage.ts';
+import { CompletedLevel, GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAppStore } from '../../state/useAppStore.ts';
@@ -14,13 +14,13 @@ type Props = NativeStackScreenProps<RootStackParamList, 'LevelSelect'>;
 
 export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
   const levels = useAppStore(state => state.levels);
-  const [completedLevels, setCompletedLevels] = useState<number[]>([]);
+  const [completedLevels, setCompletedLevels] = useState<CompletedLevel[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       const loadCompletedLevels = async () => {
         const completed = await GameStorage.getCompletedLevels();
-        setCompletedLevels(completed.map(l => l.levelIndex));
+        setCompletedLevels(completed);
       };
       loadCompletedLevels();
     }, [])
@@ -35,7 +35,8 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const isCompleted = (index: number) => completedLevels.includes(index);
+  const isCompleted = (index: number) => completedLevels.some(l => l.levelIndex === index);
+  const getLevelStats = (index: number) => completedLevels.find(l => l.levelIndex === index);
 
   return (
     <View style={styles.container}>
@@ -48,18 +49,40 @@ export const LevelSelectScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.grid}>
-        {levels.map((_, index) => (
-          <Pressable
-            key={index}
-            style={[styles.levelCard, isCompleted(index) && styles.levelCardCompleted]}
-            onPress={() => handleLevelSelect(index)}
-          >
-            <LabelButton style={styles.levelNumber}>{index + 1}</LabelButton>
-            {isCompleted(index) && (
-              <Icon name="checkmark-circle" size={16} color={colors.primary} style={styles.checkIcon} />
-            )}
-          </Pressable>
-        ))}
+        {levels.map((_, index) => {
+          const stats = getLevelStats(index);
+          const completed = !!stats;
+          return (
+            <Pressable
+              key={index}
+              style={[styles.levelCard, completed && styles.levelCardCompleted]}
+              onPress={() => handleLevelSelect(index)}
+            >
+              <LabelButton style={styles.levelNumber}>{index + 1}</LabelButton>
+              {completed && stats.stars !== undefined && (
+                <View style={styles.starsRow}>
+                  {[1, 2, 3].map(i => (
+                    <Icon
+                      key={i}
+                      name={
+                        stats.stars! >= i
+                          ? 'star'
+                          : stats.stars! >= i - 0.5
+                            ? 'star-half'
+                            : 'star-outline'
+                      }
+                      size={12}
+                      color={stats.stars! >= i - 0.5 ? '#FFD700' : colors.brown.light}
+                    />
+                  ))}
+                </View>
+              )}
+              {completed && !stats.stars && (
+                <Icon name="checkmark-circle" size={16} color={colors.primary} style={styles.checkIcon} />
+              )}
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -119,5 +142,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
+  },
+  starsRow: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 4,
+    gap: 1,
   },
 });
