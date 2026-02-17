@@ -110,7 +110,6 @@ export const useGameState = (initialLevel: number) => {
   const tryPlacePiece = (id: string, x: number, y: number) => {
     const freshPieces = piecesRef.current;
     const piece = freshPieces.find(piece => piece.id === id);
-    setMoveCount((prev: number) => prev + 1);
 
     if (!piece) return false;
     const matrix = getRotatedMatrix(piece.baseMatrix, piece.rotation);
@@ -128,6 +127,8 @@ export const useGameState = (initialLevel: number) => {
     );
 
     if (!result) return false;
+
+    setMoveCount((prev: number) => prev + 1);
 
     setPieces(prev =>
       prev.map(p =>
