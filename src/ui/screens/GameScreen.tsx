@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text } from '../components/base/Text.tsx';
 import { useGameState } from '../../state/useGameState.ts';
 import { useHintSystem } from '../../state/useHintSystem.ts';
 import { useGameSession } from '../../state/useGameSession.ts';
@@ -24,6 +25,7 @@ import { useAppStore } from '../../state/useAppStore.ts';
 import { showInterstitialIfReady } from '../../services/AdManager.ts';
 import { calculateScore } from '../../core/scoring.ts';
 import { Analytics } from '../../services/Analytics.ts';
+import { useSolverVisualizer } from '../../state/useSolverVisualizer.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -82,6 +84,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const FOOTER_HEIGHT = 100;
 
   const { isMusicMuted, setMusicMuted } = useMusicMuted();
+
+  const { solverCells, isRunning: isSolverRunning, totalSteps, start: startSolver, stop: stopSolver } =
+    useSolverVisualizer(currentLevel);
 
   const pieceRefs = useRef<Record<string, AnimatedPieceHandle>>({});
 
@@ -296,6 +301,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           hintCells={hintCells}
           boardTopPos={BOARD_TOP_POS}
           boardLeftPos={BOARD_LEFT_POS}
+          solverCells={solverCells}
         />
       )}
 
@@ -360,6 +366,25 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         />
       )}
 
+      {__DEV__ && !isRevealing && (
+        <TouchableOpacity
+          style={[
+            styles.solverButton,
+            isSolverRunning && styles.solverButtonActive,
+          ]}
+          onPress={isSolverRunning ? stopSolver : startSolver}
+        >
+          <Text style={styles.solverButtonText}>
+            {isSolverRunning ? '⏹ Stop' : '▶ Solver'}
+          </Text>
+          {totalSteps > 0 && (
+            <Text style={styles.solverStepsText}>
+              {totalSteps.toLocaleString()} steps
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
+
       <WinScreen
         visible={showWin}
         levelNumber={currentLevelNumber}
@@ -417,5 +442,29 @@ const styles = StyleSheet.create({
     width: 160,
     height: 240,
     borderWidth: 0,
+  },
+  solverButton: {
+    position: 'absolute',
+    bottom: 110,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    zIndex: 99,
+  },
+  solverButtonActive: {
+    backgroundColor: 'rgba(200,50,50,0.8)',
+  },
+  solverButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  solverStepsText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 20,
+    marginTop: 2,
+    textAlign: 'center',
   },
 });
