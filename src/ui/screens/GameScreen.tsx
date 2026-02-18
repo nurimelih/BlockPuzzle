@@ -24,6 +24,7 @@ import { useAppStore } from '../../state/useAppStore.ts';
 import { showInterstitialIfReady } from '../../services/AdManager.ts';
 import { calculateScore } from '../../core/scoring.ts';
 import { Analytics } from '../../services/Analytics.ts';
+import { submitScore } from '../../services/supabase.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -246,6 +247,16 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       SoundManager.playWinEffect();
       HapticsManager.notificationSuccess();
       if (isDaily) GameStorage.markDailyCompleted();
+
+      // Leaderboard score gönder (fire and forget)
+      if (!isDaily) {
+        GameStorage.getPlayerId().then(playerId => {
+          if (playerId) {
+            submitScore(playerId, currentLevelNumber, scoreResult.score, moveCount, elapsed);
+          }
+        });
+      }
+
       GameStorage.saveCompletedLevel(
         currentLevelNumber, moveCount, elapsed,
         scoreResult.stars, scoreResult.score,
@@ -373,6 +384,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         onHome={handleHome}
+        onLeaderboard={() => navigation.navigate('Leaderboard')}
       />
 
       <TutorialOverlay

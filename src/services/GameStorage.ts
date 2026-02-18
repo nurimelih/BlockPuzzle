@@ -26,6 +26,8 @@ const STORAGE_KEYS = {
   DAILY_LAST_DATE: 'dailyLastDate',
   DAILY_STREAK: 'dailyStreak',
   DAILY_COMPLETED: 'dailyCompleted',
+  PLAYER_ID: 'playerId',
+  PLAYER_NICKNAME: 'playerNickname',
 } as const;
 
 const LEVELS_PER_FREE_HINT = 5;
@@ -292,6 +294,34 @@ export const GameStorage = {
   setDailyCompleted: async (completed: boolean): Promise<void> => {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.DAILY_COMPLETED, completed ? 'true' : 'false');
+    } catch {}
+  },
+
+  getPlayerId: async (): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.PLAYER_ID);
+    } catch {
+      return null;
+    }
+  },
+
+  savePlayerId: async (id: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PLAYER_ID, id);
+    } catch {}
+  },
+
+  getPlayerNickname: async (): Promise<string | null> => {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.PLAYER_NICKNAME);
+    } catch {
+      return null;
+    }
+  },
+
+  savePlayerNickname: async (nickname: string): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PLAYER_NICKNAME, nickname);
     } catch {}
   },
 
