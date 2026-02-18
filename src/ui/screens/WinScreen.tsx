@@ -26,6 +26,7 @@ type Props = {
   onNextLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
+  onLeaderboard: () => void;
 };
 
 
@@ -88,6 +89,7 @@ export const WinScreen: React.FC<Props> = ({
   onNextLevel,
   onRestart,
   onHome,
+  onLeaderboard,
 }) => {
   const { t } = useTranslation();
   const translateY = useSharedValue(visible ? 0 : 800);
@@ -197,6 +199,16 @@ export const WinScreen: React.FC<Props> = ({
               style={styles.secondaryButtonText}
             >
               {t('common.home')}
+            </LabelButton>
+
+            <LabelButton
+              pressableProps={{
+                onPress: onLeaderboard,
+                style: styles.secondaryButton,
+              }}
+              style={styles.secondaryButtonText}
+            >
+              {t('leaderboard.title')}
             </LabelButton>
           </View>
         </View>

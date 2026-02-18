@@ -68,6 +68,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handleLeaderboard = () => {
+    navigation.navigate('Leaderboard');
+  };
+
   const handleDailyChallenge = () => {
     if (!dailyLevel) return;
     navigation.navigate('GameScreen', { levelNumber: 0, dailyChallenge: dailyLevel, mode: 'daily' });
@@ -154,6 +158,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             {t('common.play')}
           </LabelButton>
         )}
+
+        <LabelButton
+          pressableProps={{ onPress: handleLeaderboard }}
+          style={styles.menuItem}
+        >
+          {t('leaderboard.title')}
+        </LabelButton>
 
         <LabelButton
           pressableProps={{ onPress: handleSettings }}
