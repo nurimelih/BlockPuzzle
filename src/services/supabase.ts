@@ -5,6 +5,20 @@ import {
   AppSettings,
 } from '../types/types.ts';
 
+export type Player = {
+  id: string;
+  device_id: string;
+  nickname: string;
+  created_at: string;
+};
+
+export type LeaderboardEntry = {
+  player_id: string;
+  nickname: string;
+  total_score: number;
+  levels_completed: number;
+};
+
 const SUPABASE_URL = 'https://zngtmhzwpsqfqkfawobr.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ3RtaHp3cHNxZnFrZmF3b2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MzI3MjYsImV4cCI6MjA4NTIwODcyNn0.753amyfGAlxoA4H7OyQ6w-FwfG5feAgZOPqIOHtEAxM';
@@ -110,6 +124,60 @@ export async function fetchDailyChallenge(date: string): Promise<LevelDefinition
   } catch (error) {
     console.log('Failed to fetch daily challenge:', error);
     return null;
+  }
+}
+
+export async function createPlayer(deviceId: string, nickname: string): Promise<Player | null> {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify({ device_id: deviceId, nickname }),
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitScore(
+  playerId: string,
+  levelNumber: number,
+  score: number,
+  moves: number,
+  time: number,
+): Promise<void> {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/scores`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({ player_id: playerId, level_number: levelNumber, score, moves, time }),
+    });
+  } catch {
+    // Fire and forget — hata olursa sessizce geç
+  }
+}
+
+export async function fetchLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/leaderboard_total?order=total_score.desc&limit=${limit}`,
+      { headers },
+    );
+    if (!response.ok) return [];
+    return await response.json();
+  } catch {
+    return [];
   }
 }
 
