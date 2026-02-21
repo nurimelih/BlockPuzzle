@@ -76,10 +76,15 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Icon name="arrow-back" size={24} color={colors.text.primary} />
         </Pressable>
-        <LabelButton style={styles.headerTitle}>{t('leaderboard.title')}</LabelButton>
+        <LabelButton style={styles.headerTitle}>
+          {t('leaderboard.title')}
+        </LabelButton>
         <View style={styles.backButton} />
       </View>
 
@@ -93,10 +98,16 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+          style={styles.loader}
+        />
       ) : entries.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <LabelButton style={styles.emptyText}>{t('leaderboard.empty')}</LabelButton>
+          <LabelButton style={styles.emptyText}>
+            {t('leaderboard.empty')}
+          </LabelButton>
         </View>
       ) : (
         <FlatList
@@ -114,14 +125,12 @@ export const LeaderboardScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.cream,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxxxl + spacing.xl,
     paddingBottom: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.brown.light,
@@ -165,9 +174,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: spacing.borderRadius.lg,
     gap: spacing.md,
+    backgroundColor: colors.background.cream + 'd0',
   },
   rowMe: {
-    backgroundColor: colors.primary + '18',
+    backgroundColor: colors.background.cream,
   },
   rankContainer: {
     width: 32,

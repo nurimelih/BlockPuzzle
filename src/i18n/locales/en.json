@@ -16,13 +16,13 @@
   "nickname": {
     "title": "Username",
     "subtitle": "How do you want to appear on the leaderboard?",
-    "placeholder": "Enter name...",
+    "placeholder": "Enter name",
     "tooShort": "Must be at least 2 characters",
     "tooLong": "Must be 16 characters or less"
   },
   "leaderboard": {
     "title": "Leaderboard",
-    "yourRank": "Your rank: #{{rank}}",
+    "yourRank": "Your rank: {{rank}}",
     "levels": "{{count}} levels",
     "empty": "No one yet. Be the first!"
   },

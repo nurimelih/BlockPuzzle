@@ -16,7 +16,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
-import { fetchAllLevels } from './src/services/supabase.ts';
+import { fetchAllLevels, createPlayer } from './src/services/supabase.ts';
+import DeviceInfo from 'react-native-device-info';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
 import { GameStorage } from './src/services/GameStorage.ts';
@@ -56,7 +57,10 @@ function RootStack({ initialRoute }: { initialRoute: 'HomeScreen' | 'Nickname' }
       />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="LevelSelect" component={LevelSelectScreen} />
-      <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+      <Stack.Screen
+        name="Leaderboard"
+        component={LeaderboardScreen}
+      />
     </Stack.Navigator>
   );
 }
@@ -85,7 +89,19 @@ function App() {
 
       // Nickname kontrolü
       const nickname = await GameStorage.getPlayerNickname();
-      setInitialRoute(nickname ? 'HomeScreen' : 'Nickname');
+      setInitialRoute( 'HomeScreen');
+
+      // player_id yoksa ama nickname varsa (önceki oturum başarısız) → tekrar kaydet
+      if (nickname) {
+        const playerId = await GameStorage.getPlayerId();
+        if (!playerId) {
+          const deviceId = await DeviceInfo.getUniqueId();
+          const player = await createPlayer(deviceId, nickname);
+          if (player) {
+            await GameStorage.savePlayerId(player.id);
+          }
+        }
+      }
 
       SoundManager.setEffectsMuted(!settings.effectsEnabled);
       SoundManager.setBackgroundVolume(settings.musicVolume);

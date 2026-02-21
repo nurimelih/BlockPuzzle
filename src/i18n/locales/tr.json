@@ -15,14 +15,14 @@
   },
   "nickname": {
     "title": "Kullanıcı Adı",
-    "subtitle": "Sıralama tablosunda nasıl görünmek istiyorsun?",
-    "placeholder": "İsim gir...",
+    "subtitle": "İsmin sıralama tablosunda bu şekilde görünecek",
+    "placeholder": "İsim gir",
     "tooShort": "En az 2 karakter olmalı",
     "tooLong": "En fazla 16 karakter olabilir"
   },
   "leaderboard": {
     "title": "Sıralama",
-    "yourRank": "Sıran: #{{rank}}",
+    "yourRank": "Sıran: {{rank}}",
     "levels": "{{count}} bölüm",
     "empty": "Henüz kimse yok. İlk sen ol!"
   },
