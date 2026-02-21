@@ -58,18 +58,15 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
-      - name: Set version code
-        if: ${{ github.event.inputs.versionCode != '' }}
-        run: |
-          sed -i "s/versionCode [0-9]*/versionCode ${{ github.event.inputs.versionCode }}/" android/app/build.gradle
-          echo "Version code set to ${{ github.event.inputs.versionCode }}"
-
       - name: Build Release AAB
         working-directory: android
         env:
           BLOCKPUZZLE_KEYSTORE_PASSWORD: ${{ secrets.BLOCKPUZZLE_KEYSTORE_PASSWORD }}
         run: |
+          VERSION_CODE=$(date -u +%y%j%H%M)
+          echo "Using versionCode=$VERSION_CODE"
           ./gradlew bundleRelease \
+            -PVERSION_CODE=$VERSION_CODE \
             -PMYAPP_UPLOAD_STORE_FILE=release.keystore \
             -PMYAPP_UPLOAD_KEY_ALIAS=blockpuzzle
 
