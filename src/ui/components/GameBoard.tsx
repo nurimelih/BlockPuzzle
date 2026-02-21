@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Cell } from '../../types/types.ts';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, shadows } from '../../theme';
 
 type Props = {
   board: Cell[][];
@@ -56,17 +56,7 @@ export const GameBoard: React.FC<Props> = React.memo(({
 const styles = StyleSheet.create({
   level: {
     position: 'absolute',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 1, height: 1 },
-        shadowOpacity: 1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    ...shadows.board,
     zIndex: 1,
   },
   row: {

@@ -1,5 +1,5 @@
 import React, { useEffect, useImperativeHandle } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { GamePiece, PieceMatrix } from '../../types/types.ts';
 import Animated, {
   useAnimatedStyle,
@@ -8,7 +8,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, shadows } from '../../theme';
 
 export type AnimatedPieceHandle = {
   setPosition: (left: number, top: number) => void;
@@ -226,17 +226,7 @@ export const AnimatedPiece = React.forwardRef<AnimatedPieceHandle, Props>(
                             borderLeftColor: pieceColors.highlight,
                             borderRightWidth: hasRight ? 0 : 2,
                             borderRightColor: pieceColors.shadow,
-                            ...Platform.select({
-                              ios: {
-                                shadowColor: colors.black,
-                                shadowOffset: { width: 0, height: 0 },
-                                shadowOpacity: gamePiece.placed ? 0.5 : 0.3,
-                                shadowRadius: gamePiece.placed ? 2 : 4,
-                              },
-                              android: {
-                                elevation: gamePiece.placed ? 1 : 2,
-                              },
-                            }),
+                            ...shadows.piece(gamePiece.placed ?? false),
                           },
                         ]}
                       />

@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, shadows } from '../../theme';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { CompletedLevel, GameStorage } from '../../services/GameStorage.ts';
 import { useFocusEffect } from '@react-navigation/native';
@@ -149,11 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 4,
+    ...shadows.cardSmall,
   },
   levelCardCompleted: {
     backgroundColor: colors.brown.dark,

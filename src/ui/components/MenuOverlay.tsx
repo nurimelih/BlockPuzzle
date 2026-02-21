@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, shadows, buttons } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
 import { useTranslation } from 'react-i18next';
 
@@ -164,11 +164,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: spacing.borderRadius.xl,
     padding: spacing.xxxl,
     alignItems: 'center',
-    shadowColor: colors.brown.dark,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    ...shadows.menu,
   },
   title: {
     fontSize: typography.fontSize.xxl,
@@ -182,28 +178,18 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   primaryButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.xxxl,
-    borderRadius: spacing.borderRadius.lg,
-    alignItems: 'center',
+    ...buttons.primary,
+    width: '100%',
   },
   primaryButtonText: {
-    color: colors.text.light,
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
+    ...buttons.primaryText,
   },
   secondaryButton: {
-    backgroundColor: colors.piece.base,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: spacing.borderRadius.lg,
-    alignItems: 'center',
+    ...buttons.secondary,
+    width: '100%',
   },
   secondaryButtonText: {
-    color: colors.text.primary,
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
+    ...buttons.secondaryText,
   },
   completionText: {
     fontSize: typography.fontSize.lg,

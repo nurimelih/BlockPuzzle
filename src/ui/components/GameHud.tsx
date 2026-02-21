@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, shadows } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
 import { useTranslation } from 'react-i18next';
 
@@ -114,16 +114,12 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: typography.fontSize.xl,
     color: colors.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 3,
+    ...shadows.text,
   },
   movesText: {
     fontSize: typography.fontSize.xl,
     color: colors.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 3,
+    ...shadows.text,
   },
   timerRow: {
     flex: 1,
@@ -134,9 +130,7 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: typography.fontSize.xl,
     color: colors.white,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 3,
+    ...shadows.text,
   },
   footerIcons: {
     flexDirection: 'row',
@@ -148,10 +142,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   iconShadow: {
-    shadowColor: 'rgba(0, 0, 0, 0.75)',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 3,
+    ...shadows.icon,
   },
   hintBadge: {
     position: 'absolute',

@@ -7,7 +7,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, shadows, buttons } from '../../theme';
 import { LabelButton } from './base/LabelButton.tsx';
 import { useTranslation } from 'react-i18next';
 
@@ -113,11 +113,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxxl,
     alignItems: 'center',
     width: '80%',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    ...shadows.card,
   },
   iconCircle: {
     width: 80,
@@ -157,16 +153,10 @@ const styles = StyleSheet.create({
     width: 20,
   },
   button: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm + 4,
-    paddingHorizontal: spacing.xxxxl,
-    borderRadius: spacing.borderRadius.lg,
-    alignItems: 'center',
+    ...buttons.primary,
     width: '100%',
   },
   buttonText: {
-    color: colors.text.light,
-    fontSize: typography.fontSize.xl + 4,
-    fontWeight: typography.fontWeight.bold,
+    ...buttons.primaryText,
   },
 });
