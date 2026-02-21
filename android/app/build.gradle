@@ -88,7 +88,11 @@ android {
         applicationId "com.nurimelih.blockpuzzle"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        def versionCodeFromCI = project.hasProperty("VERSION_CODE")
+            ? VERSION_CODE.toInteger()
+            : 1
+
+        versionCode versionCodeFromCI
         versionName "1.0"
     }
     signingConfigs {
