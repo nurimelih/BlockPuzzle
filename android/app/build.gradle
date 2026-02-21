@@ -90,7 +90,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         def versionCodeFromCI = project.hasProperty("VERSION_CODE")
             ? VERSION_CODE.toInteger()
-            : 1
+            : new Date().format("yyDDDHHmm").toInteger()
 
         versionCode versionCodeFromCI
         versionName "1.0"
