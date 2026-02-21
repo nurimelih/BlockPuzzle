@@ -52,11 +52,24 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     getPieceFresh,
   } = useGameState(levelNumber, dailyChallenge);
 
-  const { hintCells, hintCount, freeHints, resetHints, refreshFreeHints, shouldShowHintButton, onHintPress, hasFreeHints } =
-    useHintSystem(currentLevel, pieces, currentLevelNumber);
+  const {
+    hintCells,
+    hintCount,
+    freeHints,
+    resetHints,
+    refreshFreeHints,
+    shouldShowHintButton,
+    onHintPress,
+    hasFreeHints,
+  } = useHintSystem(currentLevel, pieces, currentLevelNumber);
 
-  const { handleHome, handleSettings, logRestart } =
-    useGameSession(navigation, currentLevelNumber, moveCount, getElapsedTime, isOver);
+  const { handleHome, handleSettings, logRestart } = useGameSession(
+    navigation,
+    currentLevelNumber,
+    moveCount,
+    getElapsedTime,
+    isOver,
+  );
 
   const [gameTime, setGameTime] = useState('00:00');
   const [showWin, setShowWin] = useState(false);
@@ -65,14 +78,20 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [resetKey, setResetKey] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
-  const pendingScoreRef = useRef<{ score: number; elapsed: number } | null>(null);
+  const isNicknameModalActive = showNicknameModal;
+  const pendingScoreRef = useRef<{ score: number; elapsed: number } | null>(
+    null,
+  );
 
-  const setBackgroundRevealing = useAppStore(state => state.setBackgroundRevealing);
+  const setBackgroundRevealing = useAppStore(
+    state => state.setBackgroundRevealing,
+  );
   const isRevealing = useAppStore(state => state.isBackgroundRevealing);
   const levels = useAppStore(state => state.levels);
 
   const LEVELS_PER_IMAGE = 4;
-  const isRevealLevel = currentLevelNumber % LEVELS_PER_IMAGE === LEVELS_PER_IMAGE - 1;
+  const isRevealLevel =
+    currentLevelNumber % LEVELS_PER_IMAGE === LEVELS_PER_IMAGE - 1;
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -98,7 +117,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
       // Dağılım alanı: board'un altı (pieces container relative koordinatları)
       const areaTop = BOARD_HEIGHT + GAP;
-      const areaBottom = screenHeight - BOARD_TOP_POS - FOOTER_HEIGHT - EDGE_PADDING;
+      const areaBottom =
+        screenHeight - BOARD_TOP_POS - FOOTER_HEIGHT - EDGE_PADDING;
       const areaLeft = -BOARD_LEFT_POS + EDGE_PADDING;
       const areaRight = screenWidth - BOARD_LEFT_POS - EDGE_PADDING;
 
@@ -114,14 +134,24 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
         const maxAttempts = 50;
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
-          const left = areaLeft + Math.random() * Math.max(0, areaRight - areaLeft - boxSize);
-          const top = areaTop + Math.random() * Math.max(0, areaBottom - areaTop - boxSize);
+          const left =
+            areaLeft +
+            Math.random() * Math.max(0, areaRight - areaLeft - boxSize);
+          const top =
+            areaTop +
+            Math.random() * Math.max(0, areaBottom - areaTop - boxSize);
 
           // AABB overlap kontrolü
           let totalOverlap = 0;
           for (const p of placed) {
-            const overlapX = Math.max(0, Math.min(left + boxSize, p.left + p.w) - Math.max(left, p.left));
-            const overlapY = Math.max(0, Math.min(top + boxSize, p.top + p.h) - Math.max(top, p.top));
+            const overlapX = Math.max(
+              0,
+              Math.min(left + boxSize, p.left + p.w) - Math.max(left, p.left),
+            );
+            const overlapY = Math.max(
+              0,
+              Math.min(top + boxSize, p.top + p.h) - Math.max(top, p.top),
+            );
             totalOverlap += overlapX * overlapY;
           }
 
@@ -144,11 +174,23 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       }
       return positions;
     },
-    [screenWidth, screenHeight, CELL_WIDTH, CELL_HEIGHT, BOARD_WIDTH, BOARD_HEIGHT, BOARD_LEFT_POS, BOARD_TOP_POS, FOOTER_HEIGHT],
+    [
+      screenWidth,
+      screenHeight,
+      CELL_WIDTH,
+      CELL_HEIGHT,
+      BOARD_WIDTH,
+      BOARD_HEIGHT,
+      BOARD_LEFT_POS,
+      BOARD_TOP_POS,
+      FOOTER_HEIGHT,
+    ],
   );
 
   const scatteredPositions = useRef(
-    generateScatteredPositions(currentLevel.pieces.map(m => ({ baseMatrix: m }))),
+    generateScatteredPositions(
+      currentLevel.pieces.map(m => ({ baseMatrix: m })),
+    ),
   );
 
   // Gesture callbacks
@@ -180,14 +222,23 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         HapticsManager.impactMedium();
         const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
         const placedTop =
-          gridY * CELL_HEIGHT - (baseH - rotatedH) / 2 - PIECE_CONTAINER_TOP_PADDING;
+          gridY * CELL_HEIGHT -
+          (baseH - rotatedH) / 2 -
+          PIECE_CONTAINER_TOP_PADDING;
         pieceRefs.current[id]?.setPosition(placedLeft, placedTop);
       }
 
       releaseAndTryLockPiece(id, gridX, gridY, canPlace);
       setActivePieceId(undefined);
     },
-    [getPieceFresh, tryPlacePiece, releaseAndTryLockPiece, CELL_WIDTH, CELL_HEIGHT, PIECE_CONTAINER_TOP_PADDING],
+    [
+      getPieceFresh,
+      tryPlacePiece,
+      releaseAndTryLockPiece,
+      CELL_WIDTH,
+      CELL_HEIGHT,
+      PIECE_CONTAINER_TOP_PADDING,
+    ],
   );
 
   const handleTapRotate = useCallback(
@@ -234,7 +285,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     if (isOver) {
       const elapsed = getElapsedTime();
-      const boardSize = currentLevel.board.length * currentLevel.board[0].length;
+      const boardSize =
+        currentLevel.board.length * currentLevel.board[0].length;
       const scoreResult = calculateScore({
         moves: moveCount,
         time: elapsed,
@@ -244,8 +296,12 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       });
 
       Analytics.logLevelComplete(
-        currentLevelNumber, moveCount, elapsed,
-        scoreResult.score, scoreResult.stars, hintCount,
+        currentLevelNumber,
+        moveCount,
+        elapsed,
+        scoreResult.score,
+        scoreResult.stars,
+        hintCount,
       );
       SoundManager.playWinEffect();
       HapticsManager.notificationSuccess();
@@ -260,7 +316,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           } else {
             GameStorage.getPlayerId().then(playerId => {
               if (playerId) {
-                submitScore(playerId, currentLevelNumber, scoreResult.score, moveCount, elapsed);
+                submitScore(
+                  playerId,
+                  currentLevelNumber,
+                  scoreResult.score,
+                  moveCount,
+                  elapsed,
+                );
               }
             });
           }
@@ -268,8 +330,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       }
 
       GameStorage.saveCompletedLevel(
-        currentLevelNumber, moveCount, elapsed,
-        scoreResult.stars, scoreResult.score,
+        currentLevelNumber,
+        moveCount,
+        elapsed,
+        scoreResult.stars,
+        scoreResult.score,
       ).then(() => refreshFreeHints());
       showInterstitialIfReady();
 
@@ -286,22 +351,41 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     } else {
       setShowWin(false);
     }
-  }, [isOver, currentLevelNumber, moveCount, getElapsedTime, isRevealLevel, setBackgroundRevealing, hintCount, currentLevel, refreshFreeHints]);
+  }, [
+    isOver,
+    currentLevelNumber,
+    moveCount,
+    getElapsedTime,
+    isRevealLevel,
+    setBackgroundRevealing,
+    hintCount,
+    currentLevel,
+    refreshFreeHints,
+  ]);
 
   // Level change reset
   useEffect(() => {
-    scatteredPositions.current = generateScatteredPositions(currentLevel.pieces.map(m => ({ baseMatrix: m })));
+    scatteredPositions.current = generateScatteredPositions(
+      currentLevel.pieces.map(m => ({ baseMatrix: m })),
+    );
     setResetKey(k => k + 1);
     resetHints();
     setShowWin(false);
     setBackgroundRevealing(false);
-  }, [currentLevel, generateScatteredPositions, setBackgroundRevealing, resetHints]);
+  }, [
+    currentLevel,
+    generateScatteredPositions,
+    setBackgroundRevealing,
+    resetHints,
+  ]);
 
   // Restart
   const handleRestart = () => {
     logRestart();
     restart();
-    scatteredPositions.current = generateScatteredPositions(pieces.map(p => ({ baseMatrix: p.baseMatrix })));
+    scatteredPositions.current = generateScatteredPositions(
+      pieces.map(p => ({ baseMatrix: p.baseMatrix })),
+    );
     setResetKey(k => k + 1);
     setMenuVisible(false);
     setShowWin(false);
@@ -311,7 +395,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {!isRevealing && (
+      {!isRevealing && !isNicknameModalActive && (
         <GameBoard
           board={board}
           hintCells={hintCells}
@@ -320,7 +404,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         />
       )}
 
-      {!isRevealing && (
+      {!isRevealing && !isNicknameModalActive && (
         <GameHeader
           currentLevelNumber={currentLevelNumber}
           moveCount={moveCount}
@@ -332,7 +416,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         />
       )}
 
-      {!isRevealing && (
+      {!isRevealing && !isNicknameModalActive && (
         <View
           style={[
             styles.piecesContainer,
@@ -369,7 +453,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
       )}
 
-      {!isRevealing && (
+      {!isRevealing && !isNicknameModalActive && (
         <GameFooter
           isOver={isOver}
           isMusicMuted={isMusicMuted}
@@ -382,7 +466,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       )}
 
       <WinScreen
-        visible={showWin}
+        visible={showWin && !isNicknameModalActive}
         levelNumber={currentLevelNumber}
         moves={moveCount}
         time={getElapsedTime()}
@@ -405,7 +489,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           if (pending) {
             GameStorage.getPlayerId().then(playerId => {
               if (playerId) {
-                submitScore(playerId, currentLevelNumber, pending.score, moveCount, pending.elapsed);
+                submitScore(
+                  playerId,
+                  currentLevelNumber,
+                  pending.score,
+                  moveCount,
+                  pending.elapsed,
+                );
               }
             });
             pendingScoreRef.current = null;

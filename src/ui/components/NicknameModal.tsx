@@ -56,22 +56,37 @@ export const NicknameModal: React.FC<Props> = ({ visible, onComplete }) => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+    >
       <Pressable style={styles.backdrop} onPress={undefined}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.centeredView}
         >
           <View style={styles.card}>
-            <LabelButton style={styles.title}>{t('nickname.title')}</LabelButton>
-            <LabelButton style={styles.subtitle}>{t('nickname.subtitle')}</LabelButton>
+            <LabelButton style={styles.title}>
+              {t('nickname.title')}
+            </LabelButton>
+            <LabelButton style={styles.subtitle}>
+              {t('nickname.subtitle')}
+            </LabelButton>
 
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                { fontFamily: typography.fontFamily.primary },
+              ]}
               value={nickname}
-              onChangeText={text => { setNickname(text); setError(''); }}
+              onChangeText={text => {
+                setNickname(text);
+                setError('');
+              }}
               placeholder={t('nickname.placeholder')}
-              placeholderTextColor={colors.brown.light}
+              placeholderTextColor="rgba(255,255,255,0.6)"
               maxLength={16}
               autoFocus
               autoCapitalize="none"
@@ -88,7 +103,11 @@ export const NicknameModal: React.FC<Props> = ({ visible, onComplete }) => {
               pressableProps={{
                 onPress: handleConfirm,
                 disabled: loading || nickname.trim().length < 2,
-                style: [styles.button, (loading || nickname.trim().length < 2) && styles.buttonDisabled],
+                style: [
+                  styles.button,
+                  (loading || nickname.trim().length < 2) &&
+                    styles.buttonDisabled,
+                ],
               }}
               style={styles.buttonText}
             >
@@ -104,7 +123,7 @@ export const NicknameModal: React.FC<Props> = ({ visible, onComplete }) => {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -113,39 +132,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    backgroundColor: 'rgba(160,160,160,.1)',
-
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: spacing.borderRadius.xl,
     padding: spacing.xxxxl,
     width: '85%',
     alignItems: 'center',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
     gap: spacing.md,
   },
   title: {
     fontSize: typography.fontSize.xxxl,
     fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
+    color: colors.white,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: typography.fontSize.md,
-    color: colors.text.secondary,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
   input: {
     width: '100%',
-    borderWidth: 2,
-    borderColor: colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
     borderRadius: spacing.borderRadius.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     fontSize: typography.fontSize.xl,
-    color: colors.text.primary,
+    color: colors.white,
     textAlign: 'center',
     marginTop: spacing.md,
   },

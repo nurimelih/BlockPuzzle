@@ -66,7 +66,9 @@ export const useDailyChallenge = (): DailyChallengeState => {
     setIsLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const markCompleted = useCallback(async () => {
     await GameStorage.markDailyCompleted();
@@ -75,5 +77,12 @@ export const useDailyChallenge = (): DailyChallengeState => {
     setCompletedToday(true);
   }, []);
 
-  return { level, streak, completedToday, isLoading, reload: load, markCompleted };
+  return {
+    level,
+    streak,
+    completedToday,
+    isLoading,
+    reload: load,
+    markCompleted,
+  };
 };

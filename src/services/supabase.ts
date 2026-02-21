@@ -134,7 +134,7 @@ export async function createPlayer(deviceId: string, nickname: string): Promise<
       headers: {
         ...headers,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
+        'Prefer': 'resolution=merge-duplicates,return=representation',
       },
       body: JSON.stringify({ device_id: deviceId, nickname }),
     });

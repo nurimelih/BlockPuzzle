@@ -175,7 +175,16 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.versionContainer}>
-        <LabelButton style={styles.versionText}>
+        <LabelButton
+          style={styles.versionText}
+          pressableProps={__DEV__ ? {
+            onPress: () => {
+              GameStorage.savePlayerNickname('').then(() =>
+                GameStorage.savePlayerId(''),
+              );
+            },
+          } : undefined}
+        >
           v {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
         </LabelButton>
       </View>
