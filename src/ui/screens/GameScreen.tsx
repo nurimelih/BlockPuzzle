@@ -25,6 +25,7 @@ import { showInterstitialIfReady } from '../../services/AdManager.ts';
 import { calculateScore } from '../../core/scoring.ts';
 import { Analytics } from '../../services/Analytics.ts';
 import { submitScore } from '../../services/supabase.ts';
+import { NicknameModal } from '../components/NicknameModal.tsx';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -63,6 +64,8 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [activePieceId, setActivePieceId] = useState<string>();
   const [resetKey, setResetKey] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const pendingScoreRef = useRef<{ score: number; elapsed: number } | null>(null);
 
   const setBackgroundRevealing = useAppStore(state => state.setBackgroundRevealing);
   const isRevealing = useAppStore(state => state.isBackgroundRevealing);
@@ -250,9 +253,16 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
       // Leaderboard score gönder (fire and forget)
       if (!isDaily) {
-        GameStorage.getPlayerId().then(playerId => {
-          if (playerId) {
-            submitScore(playerId, currentLevelNumber, scoreResult.score, moveCount, elapsed);
+        GameStorage.getPlayerNickname().then(nickname => {
+          if (!nickname) {
+            pendingScoreRef.current = { score: scoreResult.score, elapsed };
+            setShowNicknameModal(true);
+          } else {
+            GameStorage.getPlayerId().then(playerId => {
+              if (playerId) {
+                submitScore(playerId, currentLevelNumber, scoreResult.score, moveCount, elapsed);
+              }
+            });
           }
         });
       }
@@ -385,6 +395,22 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         onRestart={handleRestart}
         onHome={handleHome}
         onLeaderboard={() => navigation.navigate('Leaderboard')}
+      />
+
+      <NicknameModal
+        visible={showNicknameModal}
+        onComplete={() => {
+          setShowNicknameModal(false);
+          const pending = pendingScoreRef.current;
+          if (pending) {
+            GameStorage.getPlayerId().then(playerId => {
+              if (playerId) {
+                submitScore(playerId, currentLevelNumber, pending.score, moveCount, pending.elapsed);
+              }
+            });
+            pendingScoreRef.current = null;
+          }
+        }}
       />
 
       <TutorialOverlay

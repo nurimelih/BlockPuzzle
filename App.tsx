@@ -8,7 +8,6 @@ import { GameScreen } from './src/ui/screens/GameScreen.tsx';
 import { HomeScreen } from './src/ui/screens/HomeScreen.tsx';
 import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
 import { LevelSelectScreen } from './src/ui/screens/LevelSelectScreen.tsx';
-import { NicknameScreen } from './src/ui/screens/NicknameScreen.tsx';
 import { LeaderboardScreen } from './src/ui/screens/LeaderboardScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
@@ -38,7 +37,7 @@ const theme = createTheme({
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function RootStack({ initialRoute }: { initialRoute: 'HomeScreen' | 'Nickname' }) {
+function RootStack({ initialRoute }: { initialRoute: 'HomeScreen' }) {
   return (
     <Stack.Navigator
       initialRouteName={initialRoute}
@@ -47,8 +46,7 @@ function RootStack({ initialRoute }: { initialRoute: 'HomeScreen' | 'Nickname' }
         contentStyle: { backgroundColor: 'transparent' },
       }}
     >
-      <Stack.Screen name="Nickname" component={NicknameScreen} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
+<Stack.Screen name="HomeScreen" component={HomeScreen} />
       <Stack.Screen
         name="GameScreen"
         component={GameScreen}
@@ -79,7 +77,7 @@ function App() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
-  const [initialRoute, setInitialRoute] = useState<'HomeScreen' | 'Nickname' | null>(null);
+  const [initialRoute, setInitialRoute] = useState<'HomeScreen' | null>(null);
 
   useEffect(() => {
     const init = async () => {
