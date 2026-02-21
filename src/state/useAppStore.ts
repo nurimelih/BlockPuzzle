@@ -15,12 +15,14 @@ interface AppState {
   appSettings: AppSettings;
   isMusicMuted: boolean;
   isBackgroundRevealing: boolean;
+  remoteBackgroundUrls: string[];
   setCurrentScreen: (screen: ScreenName) => void;
   setCurrentLevel: (level: number) => void;
   setRemoteLevels: (levels: LevelDefinition[]) => void;
   setAppSettings: (settings: AppSettings) => void;
   setMusicMuted: (muted: boolean) => void;
   setBackgroundRevealing: (revealing: boolean) => void;
+  setRemoteBackgroundUrls: (urls: string[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -35,6 +37,7 @@ export const useAppStore = create<AppState>((set) => ({
   },
   isMusicMuted: true,
   isBackgroundRevealing: false,
+  remoteBackgroundUrls: [],
   setCurrentScreen: (screen: ScreenName) => set({currentScreen: screen}),
   setCurrentLevel: (level: number) => set({currentLevel: level}),
   setRemoteLevels: (remoteLevels: LevelDefinition[]) =>
@@ -47,5 +50,6 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setMusicMuted: (muted: boolean) => set({isMusicMuted: muted}),
   setBackgroundRevealing: (revealing: boolean) => set({isBackgroundRevealing: revealing}),
+  setRemoteBackgroundUrls: (urls: string[]) => set({remoteBackgroundUrls: urls}),
 
 }));

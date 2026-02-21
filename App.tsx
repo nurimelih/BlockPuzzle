@@ -14,8 +14,9 @@ import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
+import { Image } from 'expo-image';
 import { SoundManager } from './src/services/SoundManager.ts';
-import { fetchAllLevels, createPlayer } from './src/services/supabase.ts';
+import { fetchAllLevels, fetchBackgroundUrls, createPlayer } from './src/services/supabase.ts';
 import DeviceInfo from 'react-native-device-info';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
@@ -75,6 +76,7 @@ function PostHogInit() {
 
 function App() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
+  const setRemoteBackgroundUrls = useAppStore(state => state.setRemoteBackgroundUrls);
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
   const [initialRoute, setInitialRoute] = useState<'HomeScreen' | null>(null);
@@ -115,9 +117,20 @@ function App() {
       SoundManager.setMusicMuted(!settings.musicEnabled);
       shouldInitAds && initAds();
 
-      const levels = await fetchAllLevels();
+      // Fetch levels and background URLs in parallel
+      const [levels, backgroundUrls] = await Promise.all([
+        fetchAllLevels(),
+        fetchBackgroundUrls(),
+      ]);
+
       if (levels.length > 0) {
         setRemoteLevels(levels);
+      }
+
+      // Prefetch background images before surfacing them to avoid FOUC
+      if (backgroundUrls.length > 0) {
+        await Image.prefetch(backgroundUrls);
+        setRemoteBackgroundUrls(backgroundUrls);
       }
     };
 
@@ -126,7 +139,7 @@ function App() {
     return () => {
       SoundManager.release();
     };
-  }, [setRemoteLevels]);
+  }, [setRemoteLevels, setRemoteBackgroundUrls]);
 
   if (!initialRoute) return null;
 

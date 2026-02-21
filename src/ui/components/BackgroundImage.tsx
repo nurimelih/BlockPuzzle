@@ -9,7 +9,6 @@ import Animated, {
 import {Image, ImageSource} from 'expo-image';
 import {Bird} from './Bird';
 import {useAppStore} from '../../state/useAppStore';
-import {fetchBackgroundUrls} from '../../services/supabase';
 
 const BIRDS = [
   {id: 1, startY: 80, size: 6, duration: 25000, delay: 0, flapSpeed: 300},
@@ -42,28 +41,23 @@ export default function BackgroundImage() {
   const currentScreen = useAppStore(state => state.currentScreen);
   const currentLevel = useAppStore(state => state.currentLevel);
   const isRevealing = useAppStore(state => state.isBackgroundRevealing);
+  const remoteBackgroundUrls = useAppStore(state => state.remoteBackgroundUrls);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const imageWidth = useSharedValue(SCREEN_WIDTH * 2);
   const imageHeight = useSharedValue(SCREEN_HEIGHT * 2);
 
   const [blurRadius, setBlurRadius] = useState(BLUR_RADIUS);
-  const [backgrounds, setBackgrounds] = useState<ImageSource[]>(FALLBACK_BACKGROUNDS);
 
-  // App başlangıcında remote URL'leri fetch et ve prefetch yap
-  //
-  useEffect(() => {
-    fetchBackgroundUrls().then(urls => {
-      if (urls.length > 0) {
-        Image.prefetch(urls);
-        const remoteSources: ImageSource[] = urls.map(url => ({uri: url}));
-        // TODO: açılışta remote gelene kadar fallback görünüyor, sonra remote geliyor.
-        // O yüzden önce fallback'ler sonra remote var. ama bu değişecek.
-        // splash'te remote resimler çekilsin, FOUC olmasın
-        setBackgrounds([...FALLBACK_BACKGROUNDS, ...remoteSources]);
-      }
-    });
-  }, []);
+  // Remote URLs are prefetched during app init (App.tsx) before being stored,
+  // so switching from fallbacks to remote images happens without FOUC.
+  const backgrounds: ImageSource[] =
+    remoteBackgroundUrls.length > 0
+      ? [
+          ...FALLBACK_BACKGROUNDS,
+          ...remoteBackgroundUrls.map(url => ({uri: url} as ImageSource)),
+        ]
+      : FALLBACK_BACKGROUNDS;
 
   const imageIndex = Math.floor(currentLevel / LEVELS_PER_IMAGE) % backgrounds.length;
   const levelInCycle = currentLevel % LEVELS_PER_IMAGE;
