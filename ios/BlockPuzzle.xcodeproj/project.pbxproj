@@ -47,6 +47,7 @@
 		D4EE30E52F31F3A7009C20C2 /* game1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game1.mp3; path = ../assets/sounds/game1.mp3; sourceTree = SOURCE_ROOT; };
 		D4EE30E62F31F3A7009C20C2 /* game2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game2.mp3; path = ../assets/sounds/game2.mp3; sourceTree = SOURCE_ROOT; };
 		D4EE30E92F31F408009C20C2 /* game3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game3.mp3; path = ../assets/sounds/game3.mp3; sourceTree = SOURCE_ROOT; };
+		D4EXPO0100000000000A0001 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA2D65689FAB4CE8B174C793 /* placed.mp3 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = placed.mp3; path = ../assets/sounds/placed.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,6 +70,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
+				D4EXPO0100000000000A0001 /* Expo.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				D4465A5F2F2A5E1200F8A2E0 /* GoogleService-Info.plist */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -413,6 +415,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nurimelih.blockpuzzle";
 				PRODUCT_NAME = BlockPuzzle;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
