@@ -27,10 +27,13 @@
     "empty": "No one yet. Be the first!"
   },
   "update": {
-    "title": "Update Available",
+    "title": "Update",
     "message": "A new update is available. Would you like to update now?",
     "later": "Later",
-    "update": "Update"
+    "update": "Update",
+    "checkForUpdates": "Check for Updates",
+    "upToDate": "You're up to date!",
+    "error": "Could not check for updates. Please try again later."
   },
   "home": {
     "title": "Block Puzzle",

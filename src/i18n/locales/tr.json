@@ -27,10 +27,13 @@
     "empty": "Henüz kimse yok. İlk sen ol!"
   },
   "update": {
-    "title": "Güncelleme Mevcut",
+    "title": "Güncelleme",
     "message": "Yeni bir güncelleme mevcut. Şimdi güncellemek ister misiniz?",
     "later": "Sonra",
-    "update": "Güncelle"
+    "update": "Güncelle",
+    "checkForUpdates": "Güncellemeleri Kontrol Et",
+    "upToDate": "Uygulama güncel!",
+    "error": "Güncelleme kontrol edilemedi. Lütfen daha sonra tekrar deneyin."
   },
   "home": {
     "title": "Block Puzzle",
