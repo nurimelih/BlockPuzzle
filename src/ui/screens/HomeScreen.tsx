@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useState, useEffect } from 'react';
+import { StyleSheet, View, Alert } from 'react-native';
+import * as Updates from 'expo-updates';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
@@ -49,6 +50,28 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       }
     }, [setCurrentScreen, setAppSettings, reloadDaily]),
   );
+
+  useEffect(() => {
+    if (__DEV__) return;
+    Updates.checkForUpdateAsync()
+      .then(result => {
+        if (result.isAvailable) {
+          Alert.alert(
+            t('update.title'),
+            t('update.message'),
+            [
+              { text: t('update.later'), style: 'cancel' },
+              {
+                text: t('update.update'),
+                onPress: () =>
+                  Updates.fetchUpdateAsync().then(() => Updates.reloadAsync()),
+              },
+            ],
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const allLevelsCompleted = highestLevel >= levels.length;
 

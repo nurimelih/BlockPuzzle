@@ -26,6 +26,12 @@
     "levels": "{{count}} levels",
     "empty": "No one yet. Be the first!"
   },
+  "update": {
+    "title": "Update Available",
+    "message": "A new update is available. Would you like to update now?",
+    "later": "Later",
+    "update": "Update"
+  },
   "home": {
     "title": "Block Puzzle",
     "level": "Level {{number}}",

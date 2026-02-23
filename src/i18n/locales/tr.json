@@ -26,6 +26,12 @@
     "levels": "{{count}} bölüm",
     "empty": "Henüz kimse yok. İlk sen ol!"
   },
+  "update": {
+    "title": "Güncelleme Mevcut",
+    "message": "Yeni bir güncelleme mevcut. Şimdi güncellemek ister misiniz?",
+    "later": "Sonra",
+    "update": "Güncelle"
+  },
   "home": {
     "title": "Block Puzzle",
     "level": "Bölüm {{number}}",
