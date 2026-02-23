@@ -8,7 +8,7 @@ import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
 
-  override fun getMainComponentName(): String = "BlockPuzzle"
+  override fun getMainComponentName(): String = "main"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       ReactActivityDelegateWrapper(

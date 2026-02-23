@@ -42,7 +42,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func startReactNative() {
     guard let factory = reactNativeFactory, let window = window else { return }
     factory.startReactNative(
-      withModuleName: "BlockPuzzle",
+      withModuleName: "main",
       in: window,
       launchOptions: launchOptions
     )
