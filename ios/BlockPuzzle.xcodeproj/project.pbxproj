@@ -47,7 +47,7 @@
 		D4EE30E52F31F3A7009C20C2 /* game1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game1.mp3; path = ../assets/sounds/game1.mp3; sourceTree = SOURCE_ROOT; };
 		D4EE30E62F31F3A7009C20C2 /* game2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game2.mp3; path = ../assets/sounds/game2.mp3; sourceTree = SOURCE_ROOT; };
 		D4EE30E92F31F408009C20C2 /* game3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game3.mp3; path = ../assets/sounds/game3.mp3; sourceTree = SOURCE_ROOT; };
-		D4EXPO0100000000000A0001 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		D4EXPO0100000000000A0001 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Supporting/Expo.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA2D65689FAB4CE8B174C793 /* placed.mp3 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = placed.mp3; path = ../assets/sounds/placed.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
