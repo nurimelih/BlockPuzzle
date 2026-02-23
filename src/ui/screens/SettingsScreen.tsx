@@ -38,6 +38,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       effectsEnabled: overrides.effects ?? effectsEnabled,
       musicVolume: overrides.volume ?? musicVolume,
       effectsVolume: SoundManager.getEffectsVolume(),
+      hapticsEnabled
     });
   };
 
@@ -84,15 +85,16 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             text: t('update.update'),
             onPress: async () => {
               await Updates.fetchUpdateAsync();
-              await Updates.reloadAsync();
+              Alert.alert(t('update.title'), t('update.restart'));
             },
           },
         ]);
       } else {
         Alert.alert(t('update.title'), t('update.upToDate'));
       }
-    } catch {
-      Alert.alert(t('update.title'), t('update.error'));
+    // TODO: revert to t('update.error') before release
+    } catch (e) {
+      Alert.alert(t('update.title'), String(e));
     }
   };
 

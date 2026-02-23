@@ -33,6 +33,7 @@
     "update": "Update",
     "checkForUpdates": "Check for Updates",
     "upToDate": "You're up to date!",
+    "restart": "Update downloaded! The update will apply after reopen.",
     "error": "Could not check for updates. Please try again later."
   },
   "home": {

@@ -33,6 +33,7 @@
     "update": "Güncelle",
     "checkForUpdates": "Güncellemeleri Kontrol Et",
     "upToDate": "Uygulama güncel!",
+    "restart": "Güncelleme indirildi! Uygulamayı yeniden açtığınızda güncellenecek.",
     "error": "Güncelleme kontrol edilemedi. Lütfen daha sonra tekrar deneyin."
   },
   "home": {
