@@ -12,7 +12,6 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
       "ios": {
         "scheme": "BlockPuzzle-Prod",
         "buildConfiguration": "Release"

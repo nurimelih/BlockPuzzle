@@ -22,9 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   updates: {
     url: 'https://u.expo.dev/10f43049-6f71-4498-a61b-f384fb000dbe',
   },
-  runtimeVersion: {
-    policy: 'appVersion',
-  },
+  runtimeVersion: '1.0.0',
   plugins: [
     'expo-localization',
     [
