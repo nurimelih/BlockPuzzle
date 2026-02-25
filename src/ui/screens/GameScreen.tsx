@@ -409,7 +409,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           currentLevelNumber={currentLevelNumber}
           moveCount={moveCount}
           gameTime={gameTime}
-          title={isDaily ? new Date().toLocaleDateString() : undefined}
+          title={isDaily ? new Date().toLocaleDateString('tr-TR') : undefined}
           onLevelPress={isDaily ? undefined : handleNextLevel}
           onMenuPress={toggleMenu}
           onBackPress={handleHome}
