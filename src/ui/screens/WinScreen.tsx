@@ -7,7 +7,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, shadows, buttons } from '../../theme';
 import { LabelButton } from '../components/base/LabelButton.tsx';
 import { formatTime } from '../../core/utils.ts';
 import { calculateScore } from '../../core/scoring.ts';
@@ -26,6 +26,7 @@ type Props = {
   onNextLevel: () => void;
   onRestart: () => void;
   onHome: () => void;
+  onLeaderboard: () => void;
 };
 
 
@@ -88,6 +89,7 @@ export const WinScreen: React.FC<Props> = ({
   onNextLevel,
   onRestart,
   onHome,
+  onLeaderboard,
 }) => {
   const { t } = useTranslation();
   const translateY = useSharedValue(visible ? 0 : 800);
@@ -198,6 +200,16 @@ export const WinScreen: React.FC<Props> = ({
             >
               {t('common.home')}
             </LabelButton>
+
+            <LabelButton
+              pressableProps={{
+                onPress: onLeaderboard,
+                style: styles.secondaryButton,
+              }}
+              style={styles.secondaryButtonText}
+            >
+              {t('leaderboard.title')}
+            </LabelButton>
           </View>
         </View>
       </Animated.View>
@@ -223,11 +235,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxxl,
     alignItems: 'center',
     width: '85%',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    ...shadows.card,
   },
   title: {
     fontSize: typography.fontSize.xxxl + 8,
@@ -285,16 +293,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   primaryButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm + 4,
-    paddingHorizontal: spacing.xxxl,
-    borderRadius: spacing.borderRadius.lg,
-    alignItems: 'center',
+    ...buttons.primary,
   },
   primaryButtonText: {
-    color: colors.text.light,
-    fontSize: typography.fontSize.xl + 4,
-    fontWeight: typography.fontWeight.bold,
+    ...buttons.primaryText,
   },
   secondaryRow: {
     flexDirection: 'row',
@@ -302,16 +304,10 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     flex: 1,
-    backgroundColor: colors.piece.base,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: spacing.borderRadius.lg,
-    alignItems: 'center',
+    ...buttons.secondary,
   },
   secondaryButtonText: {
-    color: colors.text.primary,
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
+    ...buttons.secondaryText,
   },
   completionText: {
     fontSize: typography.fontSize.lg,

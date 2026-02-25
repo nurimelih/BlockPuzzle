@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
+import * as Updates from 'expo-updates';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
 import { colors, spacing, typography } from '../../theme';
@@ -37,6 +38,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       effectsEnabled: overrides.effects ?? effectsEnabled,
       musicVolume: overrides.volume ?? musicVolume,
       effectsVolume: SoundManager.getEffectsVolume(),
+      hapticsEnabled
     });
   };
 
@@ -67,6 +69,33 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang);
     GameStorage.saveLanguage(lang);
+  };
+
+  const handleCheckUpdate = async () => {
+    if (__DEV__) {
+      Alert.alert(t('update.title'), 'Update check is disabled in dev mode.');
+      return;
+    }
+    try {
+      const result = await Updates.checkForUpdateAsync();
+      if (result.isAvailable) {
+        Alert.alert(t('update.title'), t('update.message'), [
+          { text: t('update.later'), style: 'cancel' },
+          {
+            text: t('update.update'),
+            onPress: async () => {
+              await Updates.fetchUpdateAsync();
+              Alert.alert(t('update.title'), t('update.restart'));
+            },
+          },
+        ]);
+      } else {
+        Alert.alert(t('update.title'), t('update.upToDate'));
+      }
+    // TODO: revert to t('update.error') before release
+    } catch (e) {
+      Alert.alert(t('update.title'), String(e));
+    }
   };
 
   const handleBack = () => {
@@ -213,6 +242,11 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             </Pressable>
           </View>
         </View>
+        <Pressable style={styles.updateButton} onPress={handleCheckUpdate}>
+          <LabelButton style={styles.updateButtonText}>
+            {t('update.checkForUpdates')}
+          </LabelButton>
+        </Pressable>
       </View>
     </View>
   );
@@ -299,6 +333,17 @@ const styles = StyleSheet.create({
     color: colors.text.light,
   },
   languageButtonTextActive: {
+    color: colors.text.light,
+  },
+  updateButton: {
+    marginTop: spacing.xxxl,
+    paddingVertical: spacing.lg,
+    borderRadius: spacing.borderRadius.lg,
+    backgroundColor: colors.brown.medium,
+    alignItems: 'center',
+  },
+  updateButtonText: {
+    fontSize: typography.fontSize.xl,
     color: colors.text.light,
   },
 });
