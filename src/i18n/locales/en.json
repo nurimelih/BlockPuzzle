@@ -9,7 +9,32 @@
     "retry": "Retry",
     "resume": "Resume",
     "next": "Next",
-    "gotIt": "Got it!"
+    "gotIt": "Got it!",
+    "confirm": "Confirm",
+    "loading": "Loading..."
+  },
+  "nickname": {
+    "title": "Username",
+    "subtitle": "How do you want to appear on the leaderboard?",
+    "placeholder": "Enter name",
+    "tooShort": "Must be at least 2 characters",
+    "tooLong": "Must be 16 characters or less"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "yourRank": "Your rank: {{rank}}",
+    "levels": "{{count}} levels",
+    "empty": "No one yet. Be the first!"
+  },
+  "update": {
+    "title": "Update",
+    "message": "A new update is available. Would you like to update now?",
+    "later": "Later",
+    "update": "Update",
+    "checkForUpdates": "Check for Updates",
+    "upToDate": "You're up to date!",
+    "restart": "Update downloaded! The update will apply after reopen.",
+    "error": "Could not check for updates. Please try again later."
   },
   "home": {
     "title": "Block Puzzle",

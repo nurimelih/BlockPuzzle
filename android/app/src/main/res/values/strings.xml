@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BlockPuzzle</string>
+    <string name="expo_runtime_version" translatable="false">1.0.0</string>
+    <string name="expo_updates_url" translatable="false">https://u.expo.dev/10f43049-6f71-4498-a61b-f384fb000dbe</string>
 </resources>

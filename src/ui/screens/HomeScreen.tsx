@@ -68,6 +68,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('Settings');
   };
 
+  const handleLeaderboard = () => {
+    navigation.navigate('Leaderboard');
+  };
+
   const handleDailyChallenge = () => {
     if (!dailyLevel) return;
     navigation.navigate('GameScreen', { levelNumber: 0, dailyChallenge: dailyLevel, mode: 'daily' });
@@ -156,6 +160,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         )}
 
         <LabelButton
+          pressableProps={{ onPress: handleLeaderboard }}
+          style={styles.menuItem}
+        >
+          {t('leaderboard.title')}
+        </LabelButton>
+
+        <LabelButton
           pressableProps={{ onPress: handleSettings }}
           style={styles.menuItem}
         >
@@ -164,7 +175,16 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <View style={styles.versionContainer}>
-        <LabelButton style={styles.versionText}>
+        <LabelButton
+          style={styles.versionText}
+          pressableProps={__DEV__ ? {
+            onPress: () => {
+              GameStorage.savePlayerNickname('').then(() =>
+                GameStorage.savePlayerId(''),
+              );
+            },
+          } : undefined}
+        >
           v {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
         </LabelButton>
       </View>
