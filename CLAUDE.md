@@ -72,6 +72,7 @@ yarn pod-install      # Install CocoaPods (static frameworks, new arch)
 yarn reset            # Clean rebuild (node_modules, Pods, builds)
 yarn reset-hard       # Nuclear clean (+ DerivedData, cache clean)
 yarn icon-make        # Generate Android icons from iOS 1024.png
+yarn import-level     # Import levels to Supabase (edit scripts/import-level.ts first)
 ```
 
 ## Key Patterns
@@ -93,7 +94,8 @@ yarn icon-make        # Generate Android icons from iOS 1024.png
 - Run: `yarn test`
 
 ## Known Considerations
-- Supabase keys are in client code (public anon key, acceptable for RLS-protected tables)
+- Supabase anon key is in client code (`src/services/supabase.ts`) — acceptable for RLS-protected tables
+- Supabase service role key is in `.env.local` (git-ignored) — used only by `scripts/import-level.ts`
 - New Architecture (Fabric) is enabled
 - iOS uses multiple schemes: BlockPuzzle-Dev, BlockPuzzle-Prod
 - CocoaPods requires `USE_FRAMEWORKS=static` flag
