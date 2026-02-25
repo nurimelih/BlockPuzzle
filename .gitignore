@@ -80,3 +80,9 @@ yarn-error.log
 !.yarn/sdks
 !.yarn/versions
 .aider*
+
+# Local env (secrets)
+.env.local
+
+# Claude (local tooling, not part of the project source)
+.claude/
