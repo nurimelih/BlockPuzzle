@@ -13,12 +13,9 @@ This project started as an architecture showcase, and grew into a fully shipped 
 ---
 
 
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/2f08e5b9-482d-4dd4-b13a-3a10d04a0b6d" />
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/f5521fe3-2558-424a-bdce-39d30d41d3c5"  />
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/830be66f-6804-4990-96db-409172b68394" />
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/1297298c-da16-4646-b23b-5b80fdf235b2" />
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/c6340510-90f9-4ba9-a97b-5e677aa27709" />
-<img width="282" height="633"  src="https://github.com/user-attachments/assets/35216af4-f056-40c5-9732-e48f699931e1" />
+<img width="200" height="580"  src="https://github.com/user-attachments/assets/2f08e5b9-482d-4dd4-b13a-3a10d04a0b6d" />
+<img width="200" height="580"  src="https://github.com/user-attachments/assets/f5521fe3-2558-424a-bdce-39d30d41d3c5"  />
+<img width="200" height="580"  src="https://github.com/user-attachments/assets/c6340510-90f9-4ba9-a97b-5e677aa27709" />
 
 
 
