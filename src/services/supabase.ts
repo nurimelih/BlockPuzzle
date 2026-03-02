@@ -19,7 +19,7 @@ export type LeaderboardEntry = {
   levels_completed: number;
 };
 
-const SUPABASE_URL = 'https://zngtmhzwpsqfqkfawobr.supabase.co';
+const SUPABASE_URL = 'blockpuzzle.nmelih.workers.dev';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ3RtaHp3cHNxZnFrZmF3b2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MzI3MjYsImV4cCI6MjA4NTIwODcyNn0.753amyfGAlxoA4H7OyQ6w-FwfG5feAgZOPqIOHtEAxM';
 
