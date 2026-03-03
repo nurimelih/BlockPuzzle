@@ -28,6 +28,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     window = UIWindow(frame: UIScreen.main.bounds)
 
     #if DEBUG
+    AppController.initializeWithoutStarting()
     startReactNative()
     #else
     AppController.initializeWithoutStarting()
