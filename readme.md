@@ -5,6 +5,7 @@
 Inspired by Block Puzzle Ancient-style, free placement puzzle games.
 This project started as an architecture showcase, and grew into a fully shipped mobile game.
 
+[![App Store](https://img.shields.io/badge/App_Store-Download-blue?logo=apple)](https://apps.apple.com/tr/app/blockly-puzzle/id6758401097?l=tr)
 [![Google Play](https://img.shields.io/badge/Google_Play-Download-green?logo=google-play)](https://play.google.com/store/apps/details?id=com.nurimelih.blockpuzzle)
 
 - Design a game core (engine) completely independent from UI
