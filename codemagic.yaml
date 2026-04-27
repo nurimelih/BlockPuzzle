@@ -14,6 +14,7 @@ workflows:
         BUNDLE_ID: "com.nurimelih.blockpuzzle"
         XCODE_WORKSPACE: "BlockPuzzle.xcworkspace"
         XCODE_SCHEME: "BlockPuzzle-Prod"
+        APP_STORE_APPLE_ID: "6758401097"
     scripts:
       - name: Install dependencies
         script: yarn install --no-immutable
@@ -26,7 +27,7 @@ workflows:
       - name: Increment build number
         script: |
           cd $CM_BUILD_DIR/ios
-          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID")
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID")
           agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
       - name: Build IPA
         script: |
