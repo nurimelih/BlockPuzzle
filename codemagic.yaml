@@ -1,0 +1,58 @@
+workflows:
+  react-native-ios:
+    name: React Native iOS
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: BlockPuzzle
+    environment:
+      xcode: "26.3"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.nurimelih.blockpuzzle
+      vars:
+        BUNDLE_ID: "com.nurimelih.blockpuzzle"
+        XCODE_WORKSPACE: "BlockPuzzle.xcworkspace"
+        XCODE_SCHEME: "BlockPuzzle-Prod"
+    scripts:
+      - name: Install dependencies
+        script: yarn install --no-immutable
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 pod install
+      - name: Set up provisioning profiles
+        script: xcode-project use-profiles
+      - name: Increment build number
+        script: |
+          cd $CM_BUILD_DIR/ios
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-app-store-build-number "$BUNDLE_ID")
+          agvtool new-version -all $(($LATEST_BUILD_NUMBER + 1))
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/ios/$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+  react-native-android:
+    name: React Native Android
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        PACKAGE_NAME: "com.nurimelih.blockpuzzle"
+    scripts:
+      - name: Install dependencies
+        script: yarn install --no-immutable
+      - name: Build Android debug
+        script: |
+          cd android
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
