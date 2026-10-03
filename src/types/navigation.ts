@@ -6,4 +6,5 @@ export type RootStackParamList = {
   LevelSelect: undefined;
   Settings: undefined;
   Leaderboard: undefined;
+  Album: undefined;
 };

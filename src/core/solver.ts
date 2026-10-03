@@ -1,5 +1,4 @@
-import {Board, Cell, GamePiece, LevelDefinition, OccupiedCell, PieceMatrix} from '../types/types.ts';
-import {canPlace, getAdjustedPlacement} from './gameCore.ts';
+import {Board, Cell, GamePiece, LevelDefinition, PieceMatrix} from '../types/types.ts';
 import {rotate90CW, getRotatedMatrix} from './transformHelpers.ts';
 import type {PieceDirection} from '../types/types.ts';
 
@@ -13,14 +12,36 @@ export type PieceSolution = {
 
 export type LevelSolution = PieceSolution[];
 
+type CellOffset = {x: number; y: number};
+
+type Variant = {
+  matrix: PieceMatrix;
+  rotation: PieceDirection;
+  // Satır-öncelikli sırada; ilk eleman "çapa" hücresi
+  cells: CellOffset[];
+};
+
+/** true = doldurulamaz (board dışı/void/invalid ya da dolu) */
+type FilledGrid = boolean[][];
+
+function getCells(matrix: PieceMatrix): CellOffset[] {
+  const cells: CellOffset[] = [];
+  for (let y = 0; y < matrix.length; y++) {
+    for (let x = 0; x < matrix[y].length; x++) {
+      if (matrix[y][x] === 1) {
+        cells.push({x, y});
+      }
+    }
+  }
+  return cells;
+}
+
 /**
  * Get all 4 rotation variants of a piece matrix.
  * Deduplicates identical rotations (e.g., O_PIECE is same in all rotations).
  */
-function getRotationVariants(
-  base: PieceMatrix,
-): {matrix: PieceMatrix; rotation: PieceDirection}[] {
-  const variants: {matrix: PieceMatrix; rotation: PieceDirection}[] = [];
+function getRotationVariants(base: PieceMatrix): Variant[] {
+  const variants: Variant[] = [];
   const seen = new Set<string>();
 
   let current = base;
@@ -30,7 +51,7 @@ function getRotationVariants(
     const key = JSON.stringify(current);
     if (!seen.has(key)) {
       seen.add(key);
-      variants.push({matrix: current, rotation});
+      variants.push({matrix: current, rotation, cells: getCells(current)});
     }
     current = rotate90CW(current);
   }
@@ -38,111 +59,137 @@ function getRotationVariants(
   return variants;
 }
 
-/**
- * Get all AVAILABLE cells on the board.
- */
-function getAvailableCells(board: Board): {x: number; y: number}[] {
-  const cells: {x: number; y: number}[] = [];
-  for (let y = 0; y < board.length; y++) {
-    for (let x = 0; x < board[0].length; x++) {
-      if (board[y][x] === Cell.AVAILABLE) {
-        cells.push({x, y});
+function createFilledGrid(board: Board): FilledGrid {
+  return board.map(row => row.map(cell => cell !== Cell.AVAILABLE));
+}
+
+function fits(filled: FilledGrid, cells: CellOffset[], originX: number, originY: number): boolean {
+  for (const c of cells) {
+    const x = originX + c.x;
+    const y = originY + c.y;
+    if (y < 0 || x < 0 || y >= filled.length || x >= filled[0].length || filled[y][x]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function setCells(
+  filled: FilledGrid,
+  cells: CellOffset[],
+  originX: number,
+  originY: number,
+  value: boolean,
+): void {
+  for (const c of cells) {
+    filled[originY + c.y][originX + c.x] = value;
+  }
+}
+
+function findFirstEmpty(filled: FilledGrid): CellOffset | null {
+  for (let y = 0; y < filled.length; y++) {
+    for (let x = 0; x < filled[0].length; x++) {
+      if (!filled[y][x]) {
+        return {x, y};
       }
     }
   }
-  return cells;
+  return null;
+}
+
+function countEmpty(filled: FilledGrid): number {
+  return filled.reduce((sum, row) => sum + row.filter(c => !c).length, 0);
 }
 
 /**
- * Get the occupied cells if a piece were placed at (x, y).
+ * Kalan parçaları boş hücrelere yerleştirir.
+ *
+ * Parçalar boş alanı tam dolduruyorsa (normal level'lar) exact-cover araması yapılır:
+ * satır-öncelikli ilk boş hücre mutlaka bir parçanın çapa hücresiyle kapanmalıdır, bu
+ * yüzden yalnızca o yerleşimler denenir ve aynı şekilli parçalar bir kez denenir.
+ * Saf "her parça her pozisyonda" aramasına göre kat kat hızlıdır; ipucu UI thread'inde
+ * hesaplandığı için bu önemli. Alan uyuşmuyorsa (hatalı/uzak level) kapsamlı aramaya düşer.
  */
-function getOccupiedCellsForPiece(
-  matrix: PieceMatrix,
-  x: number,
-  y: number,
-): OccupiedCell[] {
-  const cells: OccupiedCell[] = [];
-  for (let i = 0; i < matrix.length; i++) {
-    for (let j = 0; j < matrix[i].length; j++) {
-      if (matrix[i][j] === 1) {
-        cells.push({x: x + j, y: y + i});
-      }
-    }
-  }
-  return cells;
-}
-
-/**
- * Solve a level using backtracking.
- * Tries placing each piece in every valid position and rotation.
- */
-export function solveLevel(level: LevelDefinition): LevelSolution | null {
-  const {board, pieces} = level;
+function search(
+  pieces: PieceMatrix[],
+  filled: FilledGrid,
+  usedPieces: Set<number>,
+): LevelSolution | null {
+  const variantsByPiece = pieces.map(getRotationVariants);
+  const remaining = pieces.map((_, i) => i).filter(i => !usedPieces.has(i));
+  const remainingArea = remaining.reduce((sum, i) => sum + variantsByPiece[i][0].cells.length, 0);
   const solution: LevelSolution = [];
-  const occupiedCells: OccupiedCell[] = [];
-  const usedPieces = new Set<number>();
 
-  const rows = board.length;
-  const cols = board[0].length;
+  const place = (pieceIndex: number, variant: Variant, originX: number, originY: number) => {
+    setCells(filled, variant.cells, originX, originY, true);
+    usedPieces.add(pieceIndex);
+    solution.push({pieceIndex, matrix: variant.matrix, rotation: variant.rotation, x: originX, y: originY});
+  };
 
-  function backtrack(): boolean {
-    // All pieces placed -> solved
-    if (solution.length === pieces.length) {
+  const unplace = (pieceIndex: number, variant: Variant, originX: number, originY: number) => {
+    solution.pop();
+    usedPieces.delete(pieceIndex);
+    setCells(filled, variant.cells, originX, originY, false);
+  };
+
+  function exactCover(): boolean {
+    const target = findFirstEmpty(filled);
+    if (!target) {
+      return usedPieces.size === pieces.length;
+    }
+
+    const triedShapes = new Set<string>();
+    for (const pieceIndex of remaining) {
+      if (usedPieces.has(pieceIndex)) continue;
+      const shapeKey = JSON.stringify(pieces[pieceIndex]);
+      if (triedShapes.has(shapeKey)) continue;
+      triedShapes.add(shapeKey);
+
+      for (const variant of variantsByPiece[pieceIndex]) {
+        const originX = target.x - variant.cells[0].x;
+        const originY = target.y - variant.cells[0].y;
+        if (!fits(filled, variant.cells, originX, originY)) continue;
+
+        place(pieceIndex, variant, originX, originY);
+        if (exactCover()) return true;
+        unplace(pieceIndex, variant, originX, originY);
+      }
+    }
+    return false;
+  }
+
+  function exhaustive(): boolean {
+    if (usedPieces.size === pieces.length) {
       return true;
     }
 
-    // Try each unused piece
-    for (let pieceIndex = 0; pieceIndex < pieces.length; pieceIndex++) {
+    for (const pieceIndex of remaining) {
       if (usedPieces.has(pieceIndex)) continue;
 
-      const base = pieces[pieceIndex];
-      const variants = getRotationVariants(base);
+      for (const variant of variantsByPiece[pieceIndex]) {
+        for (let originY = 0; originY < filled.length; originY++) {
+          for (let originX = 0; originX < filled[0].length; originX++) {
+            if (!fits(filled, variant.cells, originX, originY)) continue;
 
-      for (const {matrix, rotation} of variants) {
-        // Try every position on the board
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            const adjusted = getAdjustedPlacement(matrix, x, y);
-
-            if (canPlace(board, adjusted, occupiedCells)) {
-              // Place piece
-              const newCells = getOccupiedCellsForPiece(
-                adjusted.matrix,
-                adjusted.x,
-                adjusted.y,
-              );
-              occupiedCells.push(...newCells);
-              usedPieces.add(pieceIndex);
-              solution.push({
-                pieceIndex,
-                matrix: adjusted.matrix,
-                rotation,
-                x: adjusted.x,
-                y: adjusted.y,
-              });
-
-              if (backtrack()) {
-                return true;
-              }
-
-              // Undo placement
-              solution.pop();
-              usedPieces.delete(pieceIndex);
-              occupiedCells.splice(
-                occupiedCells.length - newCells.length,
-                newCells.length,
-              );
-            }
+            place(pieceIndex, variant, originX, originY);
+            if (exhaustive()) return true;
+            unplace(pieceIndex, variant, originX, originY);
           }
         }
       }
     }
-
     return false;
   }
 
-  const solved = backtrack();
+  const solved = remainingArea === countEmpty(filled) ? exactCover() : exhaustive();
   return solved ? solution : null;
+}
+
+/**
+ * Solve a level using backtracking.
+ */
+export function solveLevel(level: LevelDefinition): LevelSolution | null {
+  return search(level.pieces, createFilledGrid(level.board), new Set<number>());
 }
 
 /**
@@ -154,10 +201,7 @@ export function solvePartial(
   level: LevelDefinition,
   gamePieces: GamePiece[],
 ): LevelSolution | null {
-  const {board, pieces} = level;
-
-  // Build occupied cells from already placed pieces
-  const occupiedCells: OccupiedCell[] = [];
+  const filled = createFilledGrid(level.board);
   const usedPieces = new Set<number>();
 
   for (const gp of gamePieces) {
@@ -169,73 +213,16 @@ export function solvePartial(
     usedPieces.add(pieceIndex);
 
     const matrix = getRotatedMatrix(gp.baseMatrix, gp.rotation);
-    for (let i = 0; i < matrix.length; i++) {
-      for (let j = 0; j < matrix[i].length; j++) {
-        if (matrix[i][j] === 1) {
-          occupiedCells.push({x: gp.boardX + j, y: gp.boardY + i});
-        }
+    for (const c of getCells(matrix)) {
+      const x = gp.boardX + c.x;
+      const y = gp.boardY + c.y;
+      if (y >= 0 && x >= 0 && y < filled.length && x < filled[0].length) {
+        filled[y][x] = true;
       }
     }
   }
 
-  const remainingCount = pieces.length - usedPieces.size;
-  if (remainingCount === 0) return [];
+  if (usedPieces.size === level.pieces.length) return [];
 
-  const solution: LevelSolution = [];
-  const rows = board.length;
-  const cols = board[0].length;
-
-  function backtrack(): boolean {
-    if (solution.length === remainingCount) {
-      return true;
-    }
-
-    for (let pieceIndex = 0; pieceIndex < pieces.length; pieceIndex++) {
-      if (usedPieces.has(pieceIndex)) continue;
-
-      const base = pieces[pieceIndex];
-      const variants = getRotationVariants(base);
-
-      for (const {matrix, rotation} of variants) {
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            const adjusted = getAdjustedPlacement(matrix, x, y);
-
-            if (canPlace(board, adjusted, occupiedCells)) {
-              const newCells = getOccupiedCellsForPiece(
-                adjusted.matrix,
-                adjusted.x,
-                adjusted.y,
-              );
-              occupiedCells.push(...newCells);
-              usedPieces.add(pieceIndex);
-              solution.push({
-                pieceIndex,
-                matrix: adjusted.matrix,
-                rotation,
-                x: adjusted.x,
-                y: adjusted.y,
-              });
-
-              if (backtrack()) {
-                return true;
-              }
-
-              solution.pop();
-              usedPieces.delete(pieceIndex);
-              occupiedCells.splice(
-                occupiedCells.length - newCells.length,
-                newCells.length,
-              );
-            }
-          }
-        }
-      }
-    }
-
-    return false;
-  }
-
-  const solved = backtrack();
-  return solved ? solution : null;
+  return search(level.pieces, filled, usedPieces);
 }

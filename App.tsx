@@ -10,12 +10,15 @@ import { SettingsScreen } from './src/ui/screens/SettingsScreen.tsx';
 import { LevelSelectScreen } from './src/ui/screens/LevelSelectScreen.tsx';
 import { LeaderboardScreen } from './src/ui/screens/LeaderboardScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
-import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
+import { GradientBackground } from './src/ui/components/GradientBackground.tsx';
+import { JourneyBackground } from './src/ui/components/JourneyBackground.tsx';
+import { AlbumScreen } from './src/ui/screens/AlbumScreen.tsx';
+import { Image } from 'expo-image';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
-import { fetchAllLevels, createPlayer } from './src/services/supabase.ts';
+import { fetchAllLevels, createPlayer, fetchPostcards } from './src/services/supabase.ts';
 import DeviceInfo from 'react-native-device-info';
 import { useAppStore } from './src/state/useAppStore.ts';
 import { initAds } from './src/services/AdManager.ts';
@@ -59,6 +62,7 @@ function RootStack({ initialRoute }: { initialRoute: 'HomeScreen' }) {
         name="Leaderboard"
         component={LeaderboardScreen}
       />
+      <Stack.Screen name="Album" component={AlbumScreen} />
     </Stack.Navigator>
   );
 }
@@ -75,6 +79,7 @@ function PostHogInit() {
 
 function App() {
   const setRemoteLevels = useAppStore(state => state.setRemoteLevels);
+  const setRemotePostcards = useAppStore(state => state.setRemotePostcards);
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const routeNameRef = useRef<string | undefined>(undefined);
   const [initialRoute, setInitialRoute] = useState<'HomeScreen' | null>(null);
@@ -115,6 +120,15 @@ function App() {
       SoundManager.setMusicMuted(!settings.musicEnabled);
       shouldInitAds && initAds();
 
+      // Kartpostallar önceden indirilir ki parça açılırken resim boş görünmesin
+      fetchPostcards().then(postcards => {
+        if (postcards.length === 0) return;
+        Image.prefetch(
+          postcards.flatMap(p => (typeof p.source === 'number' ? [] : [p.source.uri])),
+        );
+        setRemotePostcards(postcards);
+      });
+
       const levels = await fetchAllLevels();
       if (levels.length > 0) {
         setRemoteLevels(levels);
@@ -126,7 +140,7 @@ function App() {
     return () => {
       SoundManager.release();
     };
-  }, [setRemoteLevels]);
+  }, [setRemoteLevels, setRemotePostcards]);
 
   if (!initialRoute) return null;
 
@@ -134,7 +148,8 @@ function App() {
     <ThemeProvider theme={theme}>
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.container}>
-          <BackgroundImage />
+          <GradientBackground />
+          <JourneyBackground />
           <SafeAreaView style={styles.safeArea}>
             <NavigationContainer
               ref={navigationRef}

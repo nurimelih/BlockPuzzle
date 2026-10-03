@@ -41,7 +41,9 @@
     "level": "Bölüm {{number}}",
     "dailyChallenge": "Günün Bulmacası",
     "dailyDone": "Bugün Tamamlandı ✓",
-    "streak": "{{count}} Günlük Seri"
+    "streak": "{{count}} Günlük Seri",
+    "levels": "Bölümler",
+    "dailyReady": "Yeni bulmaca hazır"
   },
   "daily": {
     "title": "Günlük Bulmaca",
@@ -60,6 +62,7 @@
     "moves": "Hamle",
     "time": "Süre",
     "score": "Puan",
+    "hints": "İpucu",
     "allCompleted": "Tüm bölümler tamamlandı!"
   },
   "levels": {
@@ -85,5 +88,14 @@
     "rotateDesc": "Yerleştirmeden önce parçaya dokunarak döndürün",
     "fillTitle": "Tahtayı Doldur!",
     "fillDesc": "Bölümü tamamlamak için tüm parçaları yerleştirin"
+  },
+  "journey": {
+    "stop": "Durak {{number}}",
+    "levelsLeft_one": "Resmi açmak için {{count}} bölüm",
+    "levelsLeft_other": "Resmi açmak için {{count}} bölüm",
+    "addedToAlbum": "Albümüne eklendi!",
+    "album": "Albüm",
+    "collected": "{{count}} / {{total}} kartpostal",
+    "unlockHint": "{{number}}. durağı bitir"
   }
 }

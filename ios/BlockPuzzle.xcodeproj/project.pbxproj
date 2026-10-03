@@ -10,7 +10,6 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		17DE76EC843343E1975469FB /* rotated.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = C6EA09ED62DB4FF09E5B7DC6 /* rotated.mp3 */; };
 		21530BBDD5EE41B597AEDF37 /* win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = CB596BD665884F45B064E6E8 /* win.mp3 */; };
-		2918BF493E2F416FBDDA61B0 /* JustMeAgainDownHereRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 06E4EB9364D44C399F2405A8 /* JustMeAgainDownHereRegular.ttf */; };
 		4F663A55D55084806A4446D8 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B74A4E0EF6ECC095FB9DCAD1 /* ExpoModulesProvider.swift */; };
 		5A201E9AB320990F685FAD8D /* Pods_BlockPuzzle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 71704EAB88441B8FC7B398B5 /* Pods_BlockPuzzle.framework */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
@@ -24,10 +23,13 @@
 		D4EE30E82F31F3A7009C20C2 /* game2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D4EE30E62F31F3A7009C20C2 /* game2.mp3 */; };
 		D4EE30EA2F31F408009C20C2 /* game3.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = D4EE30E92F31F408009C20C2 /* game3.mp3 */; };
 		F6E8B6BE4EEB40B39BC31D92 /* placed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = FA2D65689FAB4CE8B174C793 /* placed.mp3 */; };
+		C0636872A5BF40C38F5BCC58 /* Fredoka-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F26ED9041DF492EA274A826 /* Fredoka-Medium.ttf */; };
+		AD1A8A50D98341D396265ACA /* Fredoka-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E03693BE988F4F24A89674B7 /* Fredoka-Bold.ttf */; };
+		E5AB086023F848C7BC4044FF /* Fredoka-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8F9FE469E0524780B7A97940 /* Fredoka-SemiBold.ttf */; };
+		367229C1B2204CFAA8466D1B /* JustMeAgainDownHereRegular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9F31D721139C4A0E81346191 /* JustMeAgainDownHereRegular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		06E4EB9364D44C399F2405A8 /* JustMeAgainDownHereRegular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = JustMeAgainDownHereRegular.ttf; path = ../assets/fonts/JustMeAgainDownHereRegular.ttf; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* BlockPuzzle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlockPuzzle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BlockPuzzle/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BlockPuzzle/Info.plist; sourceTree = "<group>"; };
@@ -51,6 +53,10 @@
 		D4EE30E92F31F408009C20C2 /* game3.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = game3.mp3; path = ../assets/sounds/game3.mp3; sourceTree = SOURCE_ROOT; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA2D65689FAB4CE8B174C793 /* placed.mp3 */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = placed.mp3; path = ../assets/sounds/placed.mp3; sourceTree = "<group>"; };
+		8F26ED9041DF492EA274A826 /* Fredoka-Medium.ttf */ = {isa = PBXFileReference; name = "Fredoka-Medium.ttf"; path = "../assets/fonts/Fredoka-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E03693BE988F4F24A89674B7 /* Fredoka-Bold.ttf */ = {isa = PBXFileReference; name = "Fredoka-Bold.ttf"; path = "../assets/fonts/Fredoka-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		8F9FE469E0524780B7A97940 /* Fredoka-SemiBold.ttf */ = {isa = PBXFileReference; name = "Fredoka-SemiBold.ttf"; path = "../assets/fonts/Fredoka-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9F31D721139C4A0E81346191 /* JustMeAgainDownHereRegular.ttf */ = {isa = PBXFileReference; name = "JustMeAgainDownHereRegular.ttf"; path = "../assets/fonts/JustMeAgainDownHereRegular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,7 +146,6 @@
 		B90010710C404BC293596CF4 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				06E4EB9364D44C399F2405A8 /* JustMeAgainDownHereRegular.ttf */,
 				C622E4D65D2141BC88E4AC31 /* homescreen.mp3 */,
 				D4EE30E52F31F3A7009C20C2 /* game1.mp3 */,
 				D4EE30E62F31F3A7009C20C2 /* game2.mp3 */,
@@ -149,6 +154,10 @@
 				FA2D65689FAB4CE8B174C793 /* placed.mp3 */,
 				CB596BD665884F45B064E6E8 /* win.mp3 */,
 				C6EA09ED62DB4FF09E5B7DC6 /* rotated.mp3 */,
+				8F26ED9041DF492EA274A826 /* Fredoka-Medium.ttf */,
+				E03693BE988F4F24A89674B7 /* Fredoka-Bold.ttf */,
+				8F9FE469E0524780B7A97940 /* Fredoka-SemiBold.ttf */,
+				9F31D721139C4A0E81346191 /* JustMeAgainDownHereRegular.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -227,7 +236,6 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				AE53159F8ADD7E9570917EAE /* PrivacyInfo.xcprivacy in Resources */,
-				2918BF493E2F416FBDDA61B0 /* JustMeAgainDownHereRegular.ttf in Resources */,
 				D4EE30E72F31F3A7009C20C2 /* game1.mp3 in Resources */,
 				D4EE30E82F31F3A7009C20C2 /* game2.mp3 in Resources */,
 				D4EE30EA2F31F408009C20C2 /* game3.mp3 in Resources */,
@@ -237,6 +245,10 @@
 				D409AB5F2F2AB35800C91302 /* homescreen_2.mp3 in Resources */,
 				D4CC1EF92F4BF9E1007F41BB /* Expo.plist in Resources */,
 				17DE76EC843343E1975469FB /* rotated.mp3 in Resources */,
+				C0636872A5BF40C38F5BCC58 /* Fredoka-Medium.ttf in Resources */,
+				AD1A8A50D98341D396265ACA /* Fredoka-Bold.ttf in Resources */,
+				E5AB086023F848C7BC4044FF /* Fredoka-SemiBold.ttf in Resources */,
+				367229C1B2204CFAA8466D1B /* JustMeAgainDownHereRegular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,6 +1,9 @@
 export const typography = {
+  // PostScript adı = dosya adı, böylece iOS ve Android aynı değeri kullanır
   fontFamily: {
-    primary: 'Just Me Again Down Here',
+    primary: 'Fredoka-Medium',
+    semibold: 'Fredoka-SemiBold',
+    bold: 'Fredoka-Bold',
   },
 
   fontSize: {

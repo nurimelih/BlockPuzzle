@@ -1,4 +1,5 @@
 import { Text as RNText, TextProps, StyleSheet } from 'react-native';
+import { typography } from '../../../theme';
 
 export function Text({ style, ...props }: TextProps) {
   return <RNText style={[styles.default, style]} {...props} />;
@@ -6,6 +7,6 @@ export function Text({ style, ...props }: TextProps) {
 
 const styles = StyleSheet.create({
   default: {
-    fontFamily: 'Just Me Again Down Here',
+    fontFamily: typography.fontFamily.primary,
   },
 });

@@ -3,6 +3,22 @@ import { GamePiece, LevelDefinition, PieceDirection } from '../types/types.ts';
 import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { canPlace, getAdjustedPlacement } from '../core/gameCore.ts';
 import { useAppStore } from './useAppStore.ts';
+import { PIECE_COLORS } from '../theme/colors.ts';
+
+function assignPieceColors(count: number): number[] {
+  const indices = Array.from({ length: PIECE_COLORS.length }, (_, i) => i);
+  // Fisher-Yates shuffle
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  // Tekrar et eğer parça sayısı renk sayısından fazlaysa
+  const result: number[] = [];
+  for (let i = 0; i < count; i++) {
+    result.push(indices[i % indices.length]);
+  }
+  return result;
+}
 
 export const useGameState = (initialLevel: number, overrideLevel?: LevelDefinition) => {
   const levels = useAppStore(state => state.levels);
@@ -21,14 +37,16 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
   // const [hintCount, setHintCount] = useState(0);
   // const [score, setScore] = useState(0);
 
-  const [pieces, setPieces] = useState<GamePiece[]>(() =>
-    currentLevel.pieces.map((matrix, index) => ({
+  const [pieces, setPieces] = useState<GamePiece[]>(() => {
+    const colorIndices = assignPieceColors(currentLevel.pieces.length);
+    return currentLevel.pieces.map((matrix, index) => ({
       id: `piece-${index}`,
       baseMatrix: matrix,
       rotation: 0,
+      colorIndex: colorIndices[index],
       placed: false,
-    })),
-  );
+    }));
+  });
 
   const piecesRef = useRef<GamePiece[]>(pieces);
 
@@ -160,6 +178,7 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
     pauseStartTimeRef.current = null;
     setIsPaused(false);
 
+    // colorIndex korunur — restart'ta renkler değişmemeli
     setPieces(curr => {
       return curr.map(currPiece => ({
         ...currPiece,
@@ -241,11 +260,13 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
     setCurrentLevel(newLevel);
     currentLevelRef.current = newLevel;
 
+    const colorIndices = assignPieceColors(newLevel.pieces.length);
     setPieces(() => {
       return newLevel.pieces.map((matrix, index) => ({
         id: `piece-${index}`,
         baseMatrix: matrix,
         rotation: 0,
+        colorIndex: colorIndices[index],
         placed: false,
       }));
     });

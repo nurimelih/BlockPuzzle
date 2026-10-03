@@ -6,8 +6,8 @@ import {
   PressableProps,
   TextProps,
   ViewStyle,
-  Platform,
 } from 'react-native';
+import { typography } from '../../../theme';
 
 type Props = TextProps & {
   pressableProps?: PressableProps;
@@ -19,18 +19,6 @@ export const LabelButton: React.FC<Props> = ({
   children,
   ...textProps
 }) => {
-
-  const FONT_FAMILY =
-    Platform.OS === 'ios'
-      ? 'Just Me Again Down Here'
-      : 'JustMeAgainDownHereRegular';
-
-
-  const styles = StyleSheet.create({
-    default: {
-      fontFamily: FONT_FAMILY,
-    },
-  });
 
   return (
     <Pressable
@@ -46,3 +34,9 @@ export const LabelButton: React.FC<Props> = ({
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  default: {
+    fontFamily: typography.fontFamily.primary,
+  },
+});

@@ -8,7 +8,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { colors, spacing, shadows } from '../../theme';
+import { PIECE_COLORS, spacing, shadows } from '../../theme';
 
 export type AnimatedPieceHandle = {
   setPosition: (left: number, top: number) => void;
@@ -95,7 +95,9 @@ export const AnimatedPiece = React.forwardRef<AnimatedPieceHandle, Props>(
     const offsetX = (containerSize - baseW) / 2;
     const offsetY = (containerSize - baseH) / 2;
 
-    const pieceColors = gamePiece.placed ? colors.piecePlaced : colors.piece;
+    const baseColor = PIECE_COLORS[gamePiece.colorIndex % PIECE_COLORS.length];
+    const pieceColors = { base: baseColor.base, highlight: baseColor.highlight, shadow: baseColor.shadow };
+    const pieceOpacity = gamePiece.placed ? 1 : 0.92;
 
     const panGesture = Gesture.Pan()
       .minDistance(8)
@@ -160,6 +162,7 @@ export const AnimatedPiece = React.forwardRef<AnimatedPieceHandle, Props>(
 
     const activeStyle = {
       transform: [{ scale: isActive ? 1.1 : 1 }],
+      opacity: pieceOpacity,
     };
 
     return (

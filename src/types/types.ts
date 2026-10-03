@@ -42,6 +42,7 @@ export type GamePiece = {
   id: string;
   baseMatrix: PieceMatrix; // base'i update etme, bu matris hep kalacak. rotate edilse bile bu değişmeyecek
   rotation: PieceDirection;
+  colorIndex: number;
   placed?: boolean;
   boardX?: number;
   boardY?: number;
@@ -83,3 +84,13 @@ export const Z_PIECE: PieceMatrix = [
   [0, 1, 1],
 ];
 
+
+// Supabase'den ya düz metin ya da dil koduna göre metin gelir: { en: '...', tr: '...' }
+export type LocalizedText = string | Record<string, string>;
+
+export type Postcard = {
+  // require() ile gelen yerel asset (number) ya da uzak URL
+  source: number | { uri: string };
+  title?: LocalizedText;
+  caption?: LocalizedText;
+};

@@ -89,6 +89,7 @@ describe('solvePartial', () => {
       id: `piece-${i}`,
       baseMatrix: matrix,
       rotation: 0,
+      colorIndex: i,
       placed: false,
     }));
 
@@ -115,6 +116,7 @@ describe('solvePartial', () => {
         id: `piece-${i}`,
         baseMatrix: matrix,
         rotation: sol.rotation,
+        colorIndex: i,
         placed: true,
         boardX: sol.x,
         boardY: sol.y,
@@ -141,6 +143,7 @@ describe('solvePartial', () => {
         id: 'piece-0',
         baseMatrix: [[1, 1]],
         rotation: 0,
+        colorIndex: 0,
         placed: true,
         boardX: 0,
         boardY: 0,
@@ -149,6 +152,7 @@ describe('solvePartial', () => {
         id: 'piece-1',
         baseMatrix: [[1, 1]],
         rotation: 0,
+        colorIndex: 1,
         placed: false,
       },
     ];

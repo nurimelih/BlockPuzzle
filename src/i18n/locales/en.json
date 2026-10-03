@@ -41,7 +41,9 @@
     "level": "Level {{number}}",
     "dailyChallenge": "Daily Challenge",
     "dailyDone": "Today's Done ✓",
-    "streak": "{{count}} Day Streak"
+    "streak": "{{count}} Day Streak",
+    "levels": "Levels",
+    "dailyReady": "New puzzle ready"
   },
   "daily": {
     "title": "Daily Puzzle",
@@ -60,6 +62,7 @@
     "moves": "Moves",
     "time": "Time",
     "score": "Score",
+    "hints": "Hints",
     "allCompleted": "All levels completed!"
   },
   "levels": {
@@ -85,5 +88,14 @@
     "rotateDesc": "Tap a piece to rotate it before placing",
     "fillTitle": "Fill the Board!",
     "fillDesc": "Place all pieces to complete the level"
+  },
+  "journey": {
+    "stop": "Stop {{number}}",
+    "levelsLeft_one": "{{count}} level to reveal the picture",
+    "levelsLeft_other": "{{count}} levels to reveal the picture",
+    "addedToAlbum": "Added to your album!",
+    "album": "Album",
+    "collected": "{{count}} / {{total}} postcards",
+    "unlockHint": "Finish stop {{number}}"
   }
 }

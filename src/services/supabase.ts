@@ -3,6 +3,8 @@ import {
   PieceMatrix,
   Board,
   AppSettings,
+  LocalizedText,
+  Postcard,
 } from '../types/types.ts';
 
 export type Player = {
@@ -28,7 +30,17 @@ const headers = {
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
 };
 
-export async function fetchBackgroundUrls(): Promise<string[]> {
+type RemotePostcard = string | { url: string; title?: LocalizedText; caption?: LocalizedText };
+
+const isRemotePostcard = (item: unknown): item is RemotePostcard =>
+  typeof item === 'string' ||
+  (typeof item === 'object' && item !== null && typeof (item as { url?: unknown }).url === 'string');
+
+/**
+ * `background_urls` config'i iki formatı da kabul eder:
+ * eski düz URL listesi ["url", ...] ya da [{ url, title, caption }, ...].
+ */
+export async function fetchPostcards(): Promise<Postcard[]> {
   try {
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/app_config?key=eq.background_urls&select=value`,
@@ -36,7 +48,7 @@ export async function fetchBackgroundUrls(): Promise<string[]> {
     );
 
     if (!response.ok) {
-      console.log('Failed to fetch background URLs:', response.status);
+      console.log('Failed to fetch postcards:', response.status);
       return [];
     }
 
@@ -46,11 +58,16 @@ export async function fetchBackgroundUrls(): Promise<string[]> {
       return [];
     }
 
-    // value JSON array olarak saklanıyor: ["url1", "url2", ...]
-    const urls = JSON.parse(data[0].value);
-    return Array.isArray(urls) ? urls : [];
+    const items: unknown = JSON.parse(data[0].value);
+    if (!Array.isArray(items)) return [];
+
+    return items.filter(isRemotePostcard).map(item =>
+      typeof item === 'string'
+        ? {source: {uri: item}}
+        : {source: {uri: item.url}, title: item.title, caption: item.caption},
+    );
   } catch (error) {
-    console.log('Failed to fetch background URLs:', error);
+    console.log('Failed to fetch postcards:', error);
     return [];
   }
 }

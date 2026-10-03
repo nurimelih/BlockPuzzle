@@ -26,6 +26,9 @@ import { calculateScore } from '../../core/scoring.ts';
 import { Analytics } from '../../services/Analytics.ts';
 import { submitScore } from '../../services/supabase.ts';
 import { NicknameModal } from '../components/NicknameModal.tsx';
+import { PostcardReveal } from '../components/PostcardReveal.tsx';
+import { getRevealUpdate, getStopIndex, RevealUpdate } from '../../core/journey.ts';
+import { useStopPostcard } from '../../state/useStopPostcard.ts';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -83,15 +86,18 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     null,
   );
 
-  const setBackgroundRevealing = useAppStore(
-    state => state.setBackgroundRevealing,
-  );
-  const isRevealing = useAppStore(state => state.isBackgroundRevealing);
   const levels = useAppStore(state => state.levels);
+  const setDailyGame = useAppStore(state => state.setDailyGame);
+  const [revealUpdate, setRevealUpdate] = useState<RevealUpdate | null>(null);
+  const [showStopReveal, setShowStopReveal] = useState(false);
+  const stopPostcard = useStopPostcard(
+    revealUpdate?.stopIndex ?? getStopIndex(currentLevelNumber),
+  );
 
-  const LEVELS_PER_IMAGE = 4;
-  const isRevealLevel =
-    currentLevelNumber % LEVELS_PER_IMAGE === LEVELS_PER_IMAGE - 1;
+  useEffect(() => {
+    setDailyGame(isDaily);
+    return () => setDailyGame(false);
+  }, [isDaily, setDailyGame]);
 
   const CELL_WIDTH = spacing.cell.width;
   const CELL_HEIGHT = spacing.cell.height;
@@ -329,35 +335,43 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         });
       }
 
-      GameStorage.saveCompletedLevel(
-        currentLevelNumber,
-        moveCount,
-        elapsed,
-        scoreResult.stars,
-        scoreResult.score,
-      ).then(() => refreshFreeHints());
+      // Kaydetmeden önceki en yüksek level'a bakılır ki yeni açılan kartpostal parçası bilinsin
+      const saveProgress = async (): Promise<RevealUpdate | null> => {
+        const highestBefore = await GameStorage.getHighestUnlockedLevel();
+        await GameStorage.saveCompletedLevel(
+          currentLevelNumber,
+          moveCount,
+          elapsed,
+          scoreResult.stars,
+          scoreResult.score,
+        );
+        refreshFreeHints();
+        return isDaily ? null : getRevealUpdate(highestBefore, currentLevelNumber);
+      };
       showInterstitialIfReady();
 
-      if (isRevealLevel) {
-        setBackgroundRevealing(true);
-        const timer = setTimeout(() => {
-          setBackgroundRevealing(false);
+      let cancelled = false;
+      saveProgress().then(update => {
+        if (cancelled) return;
+        setRevealUpdate(update);
+        if (update?.completedStop) {
+          setShowStopReveal(true);
+        } else {
           setShowWin(true);
-        }, 3500);
-        return () => clearTimeout(timer);
-      } else {
-        setShowWin(true);
-      }
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
     } else {
       setShowWin(false);
+      setShowStopReveal(false);
     }
   }, [
     isOver,
     currentLevelNumber,
     moveCount,
     getElapsedTime,
-    isRevealLevel,
-    setBackgroundRevealing,
     hintCount,
     currentLevel,
     refreshFreeHints,
@@ -371,11 +385,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     setResetKey(k => k + 1);
     resetHints();
     setShowWin(false);
-    setBackgroundRevealing(false);
+    setShowStopReveal(false);
+    setRevealUpdate(null);
   }, [
     currentLevel,
     generateScatteredPositions,
-    setBackgroundRevealing,
     resetHints,
   ]);
 
@@ -390,12 +404,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     setMenuVisible(false);
     setShowWin(false);
     resetHints();
-    setBackgroundRevealing(false);
+    setShowStopReveal(false);
+    setRevealUpdate(null);
   };
 
   return (
     <View style={styles.container}>
-      {!isRevealing && !isNicknameModalActive && (
+      {!isNicknameModalActive && (
         <GameBoard
           board={board}
           hintCells={hintCells}
@@ -404,7 +419,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         />
       )}
 
-      {!isRevealing && !isNicknameModalActive && (
+      {!isNicknameModalActive && (
         <GameHeader
           currentLevelNumber={currentLevelNumber}
           moveCount={moveCount}
@@ -416,7 +431,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         />
       )}
 
-      {!isRevealing && !isNicknameModalActive && (
+      {!isNicknameModalActive && (
         <View
           style={[
             styles.piecesContainer,
@@ -453,7 +468,7 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
       )}
 
-      {!isRevealing && !isNicknameModalActive && (
+      {!isNicknameModalActive && (
         <GameFooter
           isOver={isOver}
           isMusicMuted={isMusicMuted}
@@ -475,10 +490,35 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         hintCount={hintCount}
         isLastLevel={currentLevelNumber === levels.length - 1}
         isDaily={isDaily}
+        journey={
+          revealUpdate
+            ? {
+                postcard: stopPostcard.postcard,
+                title: stopPostcard.title,
+                revealedAfter: revealUpdate.revealedAfter,
+                // Durak tamamlandıysa son parça zaten PostcardReveal'da açıldı
+                newQuadrantIndex: revealUpdate.completedStop
+                  ? null
+                  : revealUpdate.newQuadrantIndex,
+              }
+            : undefined
+        }
         onNextLevel={handleNextLevel}
         onRestart={handleRestart}
         onHome={handleHome}
         onLeaderboard={() => navigation.navigate('Leaderboard')}
+      />
+
+      <PostcardReveal
+        visible={showStopReveal && !isNicknameModalActive}
+        postcard={stopPostcard.postcard}
+        title={stopPostcard.title}
+        caption={stopPostcard.caption}
+        stopNumber={(revealUpdate?.stopIndex ?? 0) + 1}
+        onContinue={() => {
+          setShowStopReveal(false);
+          setShowWin(true);
+        }}
       />
 
       <NicknameModal
