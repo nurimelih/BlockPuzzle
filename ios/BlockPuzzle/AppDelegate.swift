@@ -25,11 +25,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
     #if DEBUG
     AppController.initializeWithoutStarting()
-    startReactNative()
     #else
     AppController.initializeWithoutStarting()
     let updatesController = AppController.sharedInstance
