@@ -39,5 +39,18 @@ target 'BlockPuzzle' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Xcode 27 requires minimum iOS 15 deployment target
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current && current.to_f < 15.0
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+        end
+        # Xcode 27 clang is stricter about consteval — disable for fmt pod
+        if target.name == 'fmt'
+          config.build_settings['OTHER_CPLUSPLUSFLAGS'] = '$(inherited) -DFMT_USE_CONSTEVAL=0'
+        end
+      end
+    end
   end
 end
