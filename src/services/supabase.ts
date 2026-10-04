@@ -6,12 +6,12 @@ import {
   LocalizedText,
   Postcard,
 } from '../types/types.ts';
+import DeviceInfo from 'react-native-device-info';
 
+// device_id istemciye geri dönmez; DB'de herkese kapalı bir kolon
 export type Player = {
   id: string;
-  device_id: string;
   nickname: string;
-  created_at: string;
 };
 
 export type LeaderboardEntry = {
@@ -104,65 +104,61 @@ export async  function fetchAdSettings(): Promise<AppSettings> {
 
 export async function fetchDailyChallenge(date: string): Promise<LevelDefinition | null> {
   try {
-    const [challengeRes, boardsRes, piecesRes] = await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/daily_challenges?date=eq.${date}&select=*`, {headers}),
-      fetch(`${SUPABASE_URL}/rest/v1/boards?select=*`, {headers}),
-      fetch(`${SUPABASE_URL}/rest/v1/pieces?select=*`, {headers}),
+    // Board'u embed ederek yalnızca o günün board'u gelir; boards tablosu her daily ile büyüyor
+    const [challengeRes, piecesRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/daily_challenges?date=eq.${date}&select=piece_ids,board:boards(matrix)`,
+        {headers},
+      ),
+      fetch(`${SUPABASE_URL}/rest/v1/pieces?select=id,matrix`, {headers}),
     ]);
 
-    if (!challengeRes.ok || !boardsRes.ok || !piecesRes.ok) {
+    if (!challengeRes.ok || !piecesRes.ok) {
       console.log('Failed to fetch daily challenge');
       return null;
     }
 
-    const [challenges, boards, pieces] = await Promise.all([
-      challengeRes.json(),
-      boardsRes.json(),
-      piecesRes.json(),
-    ]);
-
-    if (!challenges || challenges.length === 0) return null;
+    const [challenges, pieces]: [
+      {piece_ids: number[]; board: {matrix: Board} | null}[],
+      {id: number; matrix: PieceMatrix}[],
+    ] = await Promise.all([challengeRes.json(), piecesRes.json()]);
 
     const challenge = challenges[0];
-    const boardMap = new Map<number, Board>(
-      boards.map((b: {id: number; matrix: Board}) => [b.id, b.matrix]),
-    );
-    const pieceMap = new Map<number, PieceMatrix>(
-      pieces.map((p: {id: number; matrix: PieceMatrix}) => [p.id, p.matrix]),
-    );
+    if (!challenge?.board) return null;
 
-    const board = boardMap.get(challenge.board_id);
-    if (!board) return null;
+    const pieceMap = new Map<number, PieceMatrix>(pieces.map(p => [p.id, p.matrix]));
+    const resolvedPieces = challenge.piece_ids
+      .map(id => pieceMap.get(id))
+      .filter((m): m is PieceMatrix => m !== undefined);
 
-    return {
-      board,
-      pieces: challenge.piece_ids.map((id: number) => pieceMap.get(id)!).filter(Boolean),
-    };
+    // Eksik parça varsa bulmaca çözülemez; hiç göstermemek daha iyi
+    if (resolvedPieces.length !== challenge.piece_ids.length) return null;
+
+    return {board: challenge.board.matrix, pieces: resolvedPieces};
   } catch (error) {
     console.log('Failed to fetch daily challenge:', error);
     return null;
   }
 }
 
+// Tablolara doğrudan yazma kapalı; oyuncu ve skor yalnızca RPC ile yazılır.
+// Aynı cihaz tekrar kaydolursa yeni oyuncu açılmaz, nickname güncellenir.
 export async function createPlayer(deviceId: string, nickname: string): Promise<Player | null> {
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/register_player`, {
       method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=representation',
-      },
-      body: JSON.stringify({ device_id: deviceId, nickname }),
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_device_id: deviceId, p_nickname: nickname }),
     });
     if (!response.ok) return null;
-    const data = await response.json();
+    const data: Player[] = await response.json();
     return data[0] ?? null;
   } catch {
     return null;
   }
 }
 
+// Sunucu, device_id'nin oyuncuya ait olduğunu doğrular ve yalnızca daha yüksek skoru yazar
 export async function submitScore(
   playerId: string,
   levelNumber: number,
@@ -171,14 +167,18 @@ export async function submitScore(
   time: number,
 ): Promise<void> {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/scores`, {
+    const deviceId = await DeviceInfo.getUniqueId();
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/submit_score`, {
       method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify({ player_id: playerId, level_number: levelNumber, score, moves, time }),
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_player_id: playerId,
+        p_device_id: deviceId,
+        p_level_number: levelNumber,
+        p_score: score,
+        p_moves: moves,
+        p_time: time,
+      }),
     });
   } catch {
     // Fire and forget — hata olursa sessizce geç
