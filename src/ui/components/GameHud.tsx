@@ -9,6 +9,9 @@ type HeaderProps = {
   currentLevelNumber: number;
   moveCount: number;
   gameTime: string;
+  // Countdown is about to run out
+  isTimeCritical?: boolean;
+  winStreak?: number;
   title?: string;
   onLevelPress?: () => void;
   onMenuPress: () => void;
@@ -19,6 +22,8 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
   currentLevelNumber,
   moveCount,
   gameTime,
+  isTimeCritical = false,
+  winStreak = 0,
   title,
   onLevelPress,
   onMenuPress,
@@ -40,7 +45,17 @@ export const GameHeader: React.FC<HeaderProps> = React.memo(({
       </View>
 
       <View style={styles.timerRow}>
-        <LabelButton style={styles.timerText}>{gameTime}</LabelButton>
+        <LabelButton style={[styles.timerText, isTimeCritical && styles.timerCritical]}>
+          {gameTime}
+        </LabelButton>
+        {winStreak > 0 && (
+          <View style={styles.streakBadge}>
+            <View style={styles.iconShadow}>
+              <Icon name="flame" size={18} color="#FF6B35" />
+            </View>
+            <LabelButton style={styles.streakText}>{winStreak}</LabelButton>
+          </View>
+        )}
       </View>
 
       <Pressable onPress={onMenuPress} />
@@ -53,6 +68,8 @@ type FooterProps = {
   isMusicMuted: boolean;
   shouldShowHintButton: boolean;
   freeHints?: number;
+  // Nudge the player towards the hint when a timed level is running out
+  showHintNudge?: boolean;
   onMenuPress: () => void;
   onHintPress: () => void;
   onMusicToggle: () => void;
@@ -63,10 +80,12 @@ export const GameFooter: React.FC<FooterProps> = React.memo(({
   isMusicMuted,
   shouldShowHintButton,
   freeHints = 0,
+  showHintNudge = false,
   onMenuPress,
   onHintPress,
   onMusicToggle,
 }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.footerIcons}>
       <Pressable onPress={onMenuPress} style={styles.footerIcon}>
@@ -82,6 +101,11 @@ export const GameFooter: React.FC<FooterProps> = React.memo(({
           {freeHints > 0 && (
             <View style={styles.hintBadge}>
               <Text style={styles.hintBadgeText}>{freeHints}</Text>
+            </View>
+          )}
+          {showHintNudge && (
+            <View style={styles.hintNudge} pointerEvents="none">
+              <LabelButton style={styles.hintNudgeText}>{t('game.hintNudge')}</LabelButton>
             </View>
           )}
         </Pressable>
@@ -131,6 +155,35 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xl,
     color: colors.white,
     ...shadows.text,
+  },
+  timerCritical: {
+    color: '#FF5252',
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: spacing.md,
+    gap: 2,
+  },
+  streakText: {
+    fontSize: typography.fontSize.xl,
+    color: '#FF6B35',
+    ...shadows.text,
+  },
+  hintNudge: {
+    position: 'absolute',
+    bottom: '100%',
+    alignSelf: 'center',
+    backgroundColor: colors.background.cream,
+    borderRadius: spacing.borderRadius.lg,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    width: 110,
+    alignItems: 'center',
+  },
+  hintNudgeText: {
+    fontSize: typography.fontSize.md,
+    color: colors.text.primary,
   },
   footerIcons: {
     flexDirection: 'row',

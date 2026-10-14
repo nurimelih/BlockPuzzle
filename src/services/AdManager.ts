@@ -28,7 +28,12 @@ const AD_UNIT_IDS = {
 
 import {Platform} from 'react-native';
 import {Analytics} from './Analytics.ts';
+import {GameStorage} from './GameStorage.ts';
 import {useAppStore} from '../state/useAppStore.ts';
+import {
+  DEFAULT_AD_PACING_CONFIG,
+  shouldShowInterstitial,
+} from '../core/progression.ts';
 
 const getAdUnitId = (type: 'rewarded' | 'interstitial') => {
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
@@ -46,9 +51,14 @@ let isRewardedAdLoaded = false;
 let interstitialAd: InterstitialAd | null = null;
 let isInterstitialAdLoaded = false;
 
-// Track levels for interstitial frequency
-let levelsSinceLastAd = 0;
-const LEVELS_BETWEEN_ADS = 5; // Show interstitial every 3 levels
+// Any full-screen ad pushes the next interstitial back by the minimum gap
+const markAdShown = async (resetLevelCount: boolean) => {
+  const pacing = await GameStorage.getAdPacing();
+  await GameStorage.saveAdPacing({
+    levelsSinceAd: resetLevelCount ? 0 : pacing.levelsSinceAd,
+    lastAdAt: Date.now(),
+  });
+};
 
 /**
  * Initialize and preload ads
@@ -122,19 +132,21 @@ export const showRewardedAd = (): Promise<boolean> => {
       },
     );
 
-    const closeListener = rewardedAd.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        rewardListener();
-        closeListener();
-        if (rewarded) {
-          Analytics.logAdRewarded(useAppStore.getState().currentLevel);
-        }
-        resolve(rewarded);
-      },
-    );
+    const finish = () => {
+      rewardListener();
+      closeListener();
+      errorListener();
+      markAdShown(false);
+      if (rewarded) {
+        Analytics.logAdRewarded(useAppStore.getState().currentLevel);
+      }
+      resolve(rewarded);
+    };
 
-    rewardedAd.show();
+    const closeListener = rewardedAd.addAdEventListener(AdEventType.CLOSED, finish);
+    const errorListener = rewardedAd.addAdEventListener(AdEventType.ERROR, finish);
+
+    rewardedAd.show().catch(finish);
   });
 };
 
@@ -180,44 +192,62 @@ export const loadInterstitialAd = () => {
 };
 
 /**
- * Show interstitial ad between levels
- * Call this when a level is completed
+ * Count a completed level towards interstitial pacing.
+ * Call when a level is won; the ad itself is shown later, on the next transition.
  */
-export const showInterstitialIfReady = (): Promise<boolean> => {
+export const registerLevelComplete = async () => {
+  const pacing = await GameStorage.getAdPacing();
+  await GameStorage.saveAdPacing({
+    ...pacing,
+    levelsSinceAd: pacing.levelsSinceAd + 1,
+  });
+};
+
+/**
+ * Show an interstitial if pacing allows. Resolves once the ad is closed (or
+ * immediately when skipped), so callers can await it before navigating.
+ */
+export const showInterstitialIfReady = async (): Promise<boolean> => {
+  const {appSettings} = useAppStore.getState();
+  if (!appSettings.interstitialAdsActive) return false;
+
+  const [pacing, completed] = await Promise.all([
+    GameStorage.getAdPacing(),
+    GameStorage.getCompletedLevels(),
+  ]);
+  const config = {
+    ...DEFAULT_AD_PACING_CONFIG,
+    ...(appSettings.levelsBetweenAds !== undefined && {
+      levelsBetweenAds: appSettings.levelsBetweenAds,
+    }),
+    ...(appSettings.minSecondsBetweenAds !== undefined && {
+      minSecondsBetweenAds: appSettings.minSecondsBetweenAds,
+    }),
+  };
+
+  if (!shouldShowInterstitial(pacing, Date.now(), completed.length, config)) {
+    console.log('[AdManager] Skipping interstitial', pacing);
+    return false;
+  }
+
+  if (!interstitialAd || !isInterstitialAdLoaded) {
+    console.log('[AdManager] Interstitial ad not ready');
+    return false;
+  }
+
+  const ad = interstitialAd;
+  await markAdShown(true);
+  Analytics.logAdInterstitial(useAppStore.getState().currentLevel);
+
   return new Promise(resolve => {
-    levelsSinceLastAd++;
-
-    if (levelsSinceLastAd < LEVELS_BETWEEN_ADS) {
-      console.log(
-        `[AdManager] Skipping interstitial (${levelsSinceLastAd}/${LEVELS_BETWEEN_ADS})`,
-      );
-      resolve(false);
-      return;
-    }
-
-    if (!interstitialAd || !isInterstitialAdLoaded) {
-      console.log('[AdManager] Interstitial ad not ready');
-      if (__DEV__ && adsAreActiveInTest) {
-        console.log('[AdManager] DEV mode - skipping interstitial');
-        levelsSinceLastAd = 0;
-      }
-      resolve(false);
-      return;
-    }
-
-    levelsSinceLastAd = 0;
-
-    Analytics.logAdInterstitial(useAppStore.getState().currentLevel);
-
-    const closeListener = interstitialAd.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        closeListener();
-        resolve(true);
-      },
-    );
-
-    interstitialAd.show();
+    const finish = () => {
+      closeListener();
+      errorListener();
+      resolve(true);
+    };
+    const closeListener = ad.addAdEventListener(AdEventType.CLOSED, finish);
+    const errorListener = ad.addAdEventListener(AdEventType.ERROR, finish);
+    ad.show().catch(finish);
   });
 };
 
@@ -239,6 +269,7 @@ export default {
   showRewardedAd,
   isRewardedAdReady,
   loadInterstitialAd,
+  registerLevelComplete,
   showInterstitialIfReady,
   isInterstitialAdReady,
   setAdsActiveInTest,

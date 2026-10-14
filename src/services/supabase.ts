@@ -210,10 +210,13 @@ export async function fetchAllLevels(): Promise<LevelDefinition[]> {
     );
 
     // Level'ları LevelDefinition formatına çevir
-    return levels.map((level: {board_id: number; piece_ids: number[]}) => ({
-      board: boardMap.get(level.board_id)!,
-      pieces: level.piece_ids.map(id => pieceMap.get(id)!),
-    }));
+    return levels.map(
+      (level: {board_id: number; piece_ids: number[]; time_limit?: number | null}) => ({
+        board: boardMap.get(level.board_id)!,
+        pieces: level.piece_ids.map(id => pieceMap.get(id)!),
+        ...(level.time_limit != null && {timeLimit: level.time_limit}),
+      }),
+    );
   } catch (error) {
     console.log('Failed to fetch levels:', error);
     return [];

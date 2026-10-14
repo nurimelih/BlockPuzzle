@@ -1,4 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  AdPacing,
+  freezesAfterCompletion,
+  LIVES_MAX,
+  LivesState,
+} from '../core/progression.ts';
+import { PieceDirection } from '../types/types.ts';
 
 export type SoundSettings = {
   musicEnabled: boolean;
@@ -28,7 +35,55 @@ const STORAGE_KEYS = {
   DAILY_COMPLETED: 'dailyCompleted',
   PLAYER_ID: 'playerId',
   PLAYER_NICKNAME: 'playerNickname',
+  LIVES: 'lives',
+  WIN_STREAK: 'winStreak',
+  AD_PACING: 'adPacing',
+  LEVEL_PROGRESS: 'levelProgress',
+  STREAK_FREEZES: 'streakFreezes',
 } as const;
+
+// Keep in-progress snapshots for the most recent few levels only
+const MAX_LEVEL_PROGRESS_ENTRIES = 5;
+
+export type LevelProgressSnapshot = {
+  // Detects remote level edits: a snapshot for a different board is ignored
+  signature: string;
+  pieces: {
+    id: string;
+    rotation: PieceDirection;
+    placed?: boolean;
+    boardX?: number;
+    boardY?: number;
+  }[];
+  moveCount: number;
+  hintCount: number;
+  elapsed: number;
+  savedAt: number;
+};
+
+const readJson = async <T>(key: string, fallback: T): Promise<T> => {
+  try {
+    const data = await AsyncStorage.getItem(key);
+    return data ? { ...fallback, ...JSON.parse(data) } : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+// Serializes read-modify-write updates of the level progress map
+let levelProgressQueue: Promise<void> = Promise.resolve();
+const enqueueLevelProgress = (task: () => Promise<void>): Promise<void> => {
+  levelProgressQueue = levelProgressQueue.then(task, task);
+  return levelProgressQueue;
+};
+
+const writeJson = async (key: string, value: unknown): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.log(`Failed to save ${key}:`, error);
+  }
+};
 
 const LEVELS_PER_FREE_HINT = 5;
 
@@ -251,6 +306,24 @@ export const GameStorage = {
     await AsyncStorage.setItem(STORAGE_KEYS.DAILY_LAST_DATE, dateStr);
     await AsyncStorage.setItem(STORAGE_KEYS.DAILY_STREAK, newStreak.toString());
     await AsyncStorage.setItem(STORAGE_KEYS.DAILY_COMPLETED, 'true');
+
+    const freezes = await GameStorage.getStreakFreezes();
+    await GameStorage.setStreakFreezes(freezesAfterCompletion(newStreak, freezes));
+  },
+
+  getStreakFreezes: async (): Promise<number> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.STREAK_FREEZES);
+      return data ? parseInt(data, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  setStreakFreezes: async (count: number): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.STREAK_FREEZES, count.toString());
+    } catch {}
   },
 
   getDailyLastDate: async (): Promise<string | null> => {
@@ -325,12 +398,77 @@ export const GameStorage = {
     } catch {}
   },
 
+  getLivesState: (): Promise<LivesState> =>
+    readJson<LivesState>(STORAGE_KEYS.LIVES, {
+      lives: LIVES_MAX,
+      regenStartedAt: Date.now(),
+    }),
+
+  saveLivesState: (state: LivesState): Promise<void> =>
+    writeJson(STORAGE_KEYS.LIVES, state),
+
+  getWinStreak: async (): Promise<number> => {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.WIN_STREAK);
+      return data ? parseInt(data, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  setWinStreak: async (count: number): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.WIN_STREAK, count.toString());
+    } catch {}
+  },
+
+  getAdPacing: (): Promise<AdPacing> =>
+    readJson<AdPacing>(STORAGE_KEYS.AD_PACING, { levelsSinceAd: 0, lastAdAt: 0 }),
+
+  saveAdPacing: (pacing: AdPacing): Promise<void> =>
+    writeJson(STORAGE_KEYS.AD_PACING, pacing),
+
+  getLevelProgress: async (key: string): Promise<LevelProgressSnapshot | null> => {
+    const all = await readJson<Record<string, LevelProgressSnapshot>>(
+      STORAGE_KEYS.LEVEL_PROGRESS,
+      {},
+    );
+    return all[key] ?? null;
+  },
+
+  saveLevelProgress: (
+    key: string,
+    snapshot: LevelProgressSnapshot,
+  ): Promise<void> => enqueueLevelProgress(async () => {
+    const all = await readJson<Record<string, LevelProgressSnapshot>>(
+      STORAGE_KEYS.LEVEL_PROGRESS,
+      {},
+    );
+    all[key] = snapshot;
+    const kept = Object.entries(all)
+      .sort(([, a], [, b]) => b.savedAt - a.savedAt)
+      .slice(0, MAX_LEVEL_PROGRESS_ENTRIES);
+    await writeJson(STORAGE_KEYS.LEVEL_PROGRESS, Object.fromEntries(kept));
+  }),
+
+  clearLevelProgress: (key: string): Promise<void> => enqueueLevelProgress(async () => {
+    const all = await readJson<Record<string, LevelProgressSnapshot>>(
+      STORAGE_KEYS.LEVEL_PROGRESS,
+      {},
+    );
+    if (!(key in all)) return;
+    delete all[key];
+    await writeJson(STORAGE_KEYS.LEVEL_PROGRESS, all);
+  }),
+
   clearAll: async (): Promise<void> => {
     try {
       await AsyncStorage.multiRemove([
         STORAGE_KEYS.COMPLETED_LEVELS,
         STORAGE_KEYS.CURRENT_LEVEL,
         STORAGE_KEYS.FREE_HINT_COUNT,
+        STORAGE_KEYS.LEVEL_PROGRESS,
+        STORAGE_KEYS.WIN_STREAK,
       ]);
     } catch (error) {
       console.log('Failed to clear storage:', error);

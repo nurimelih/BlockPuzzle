@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { solvePartial, LevelSolution } from '../core/solver.ts';
+import { computeHintPlacement, HintPlacement } from '../core/hint.ts';
+import { getRotatedMatrix } from '../core/transformHelpers.ts';
 import { showRewardedAd, isRewardedAdReady } from '../services/AdManager.ts';
 import { Analytics } from '../services/Analytics.ts';
 import { GameStorage } from '../services/GameStorage.ts';
@@ -19,17 +20,28 @@ function getBoardStateHash(pieces: GamePiece[]): string {
   return placedState;
 }
 
+const HINT_HIGHLIGHT_MS = 1500;
+
+type Options = {
+  // Timed levels only accept ad hints: free hints would undercut the retry economy
+  isTimedLevel: boolean;
+  // Puts the hinted piece on the board (state + visuals)
+  onApplyHint: (placement: HintPlacement) => void;
+};
+
 export const useHintSystem = (
   currentLevel: LevelDefinition,
   pieces: GamePiece[],
   currentLevelNumber: number,
+  { isTimedLevel, onApplyHint }: Options,
 ) => {
   const [hintCells, setHintCells] = useState<{ x: number; y: number }[]>([]);
   const [hintCount, setHintCount] = useState(0);
   const [freeHints, setFreeHints] = useState(0);
 
-  // Cache: key = board state hash, value = solver result
-  const solverCache = useRef<Map<string, LevelSolution | null>>(new Map());
+  // Cache: key = board state hash, value = hint for that state
+  const hintCache = useRef<Map<string, HintPlacement | null>>(new Map());
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isRewardedAdsActive = useAppStore(
     state => state.appSettings,
@@ -46,12 +58,19 @@ export const useHintSystem = (
 
   // Clear cache when level changes
   useEffect(() => {
-    solverCache.current.clear();
+    hintCache.current.clear();
   }, [currentLevelNumber]);
 
-  const solveCached = useCallback((): LevelSolution | null => {
+  useEffect(
+    () => () => {
+      if (highlightTimer.current) clearTimeout(highlightTimer.current);
+    },
+    [],
+  );
+
+  const computeCached = useCallback((): HintPlacement | null => {
     const hash = getBoardStateHash(pieces);
-    const cached = solverCache.current.get(hash);
+    const cached = hintCache.current.get(hash);
 
     if (cached !== undefined) {
       Analytics.logHintSolveTime(currentLevelNumber, 0, true);
@@ -59,68 +78,73 @@ export const useHintSystem = (
     }
 
     const start = performance.now();
-    const solution = solvePartial(currentLevel, pieces);
+    const placement = computeHintPlacement(currentLevel, pieces);
     const elapsed = Math.round(performance.now() - start);
 
-    solverCache.current.set(hash, solution);
+    hintCache.current.set(hash, placement);
     Analytics.logHintSolveTime(currentLevelNumber, elapsed, false);
 
-    return solution;
+    return placement;
   }, [currentLevel, pieces, currentLevelNumber]);
 
-  const showHintCells = useCallback((solution: LevelSolution | null) => {
-    if (!solution || solution.length === 0) return;
-
-    const hint = solution[0];
-    const cells: { x: number; y: number }[] = [];
-    for (let i = 0; i < hint.matrix.length; i++) {
-      for (let j = 0; j < hint.matrix[i].length; j++) {
-        if (hint.matrix[i][j] === 1) {
-          cells.push({ x: hint.x + j, y: hint.y + i });
+  const highlight = useCallback(
+    (placement: HintPlacement) => {
+      const matrix = getRotatedMatrix(
+        currentLevel.pieces[placement.pieceIndex],
+        placement.rotation,
+      );
+      const cells: { x: number; y: number }[] = [];
+      for (let i = 0; i < matrix.length; i++) {
+        for (let j = 0; j < matrix[i].length; j++) {
+          if (matrix[i][j] === 1) {
+            cells.push({ x: placement.x + j, y: placement.y + i });
+          }
         }
       }
-    }
+      setHintCells(cells);
+      if (highlightTimer.current) clearTimeout(highlightTimer.current);
+      highlightTimer.current = setTimeout(() => setHintCells([]), HINT_HIGHLIGHT_MS);
+    },
+    [currentLevel],
+  );
 
-    setHintCells(cells);
-    setTimeout(() => {
-      setHintCells([]);
-    }, 3000);
-  }, []);
-
-  const applyHint = useCallback((adWatched: boolean) => {
-    const solution = solveCached();
-    if (!solution || solution.length === 0) return;
-
-    setHintCount(c => c + 1);
-    Analytics.logHintUsed(currentLevelNumber, adWatched);
-    showHintCells(solution);
-  }, [solveCached, currentLevelNumber, showHintCells]);
+  const applyHint = useCallback(
+    (placement: HintPlacement, adWatched: boolean) => {
+      setHintCount(c => c + 1);
+      Analytics.logHintUsed(currentLevelNumber, adWatched);
+      onApplyHint(placement);
+      highlight(placement);
+    },
+    [currentLevelNumber, onApplyHint, highlight],
+  );
 
   const handleFreeHint = useCallback(async () => {
+    const placement = computeCached();
+    if (!placement) return;
     const used = await GameStorage.useFreeHint();
     if (!used) return;
     setFreeHints(c => c - 1);
-    applyHint(false);
-  }, [applyHint]);
+    applyHint(placement, false);
+  }, [computeCached, applyHint]);
 
   const handleHint = useCallback(() => {
-    applyHint(false);
-  }, [applyHint]);
+    const placement = computeCached();
+    if (placement) applyHint(placement, false);
+  }, [computeCached, applyHint]);
 
   const handleHintWithAd = useCallback(async () => {
-    const solution = solveCached();
-    if (!solution || solution.length === 0) return;
+    // Never charge an ad for a hint we can't deliver
+    const placement = computeCached();
+    if (!placement) return;
 
     const rewarded = await showRewardedAd();
-    if (rewarded) {
-      applyHint(true);
-    }
-  }, [solveCached, applyHint]);
+    if (rewarded) applyHint(placement, true);
+  }, [computeCached, applyHint]);
 
   const resetHints = useCallback(() => {
     setHintCells([]);
     setHintCount(0);
-    solverCache.current.clear();
+    hintCache.current.clear();
   }, []);
 
   const refreshFreeHints = useCallback(async () => {
@@ -128,8 +152,8 @@ export const useHintSystem = (
     setFreeHints(count);
   }, []);
 
-  const hasFreeHints = freeHints > 0;
-  const isAdHintAvailable = isRewardedAdReady() && isRewardedAdsActive;
+  const hasFreeHints = freeHints > 0 && !isTimedLevel;
+  const isAdHintAvailable = isRewardedAdReady() && !!isRewardedAdsActive;
   const shouldShowHintButton = hasFreeHints || isAdHintAvailable || !!forceToShowHints;
 
   // Priority: force > free > ad
@@ -142,7 +166,8 @@ export const useHintSystem = (
   return {
     hintCells,
     hintCount,
-    freeHints,
+    setHintCount,
+    freeHints: isTimedLevel ? 0 : freeHints,
     handleHint,
     handleHintWithAd,
     handleFreeHint,

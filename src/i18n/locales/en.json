@@ -52,7 +52,8 @@
     "moves": "Moves {{count}}",
     "paused": "Paused",
     "restartLevel": "Restart Level",
-    "previousLevel": "Previous Level"
+    "previousLevel": "Previous Level",
+    "hintNudge": "Stuck?"
   },
   "win": {
     "complete": "Complete!",
@@ -60,7 +61,8 @@
     "moves": "Moves",
     "time": "Time",
     "score": "Score",
-    "allCompleted": "All levels completed!"
+    "allCompleted": "All levels completed!",
+    "streak": "{{count}} level streak"
   },
   "levels": {
     "title": "Levels",
@@ -85,5 +87,23 @@
     "rotateDesc": "Tap a piece to rotate it before placing",
     "fillTitle": "Fill the Board!",
     "fillDesc": "Place all pieces to complete the level"
+  },
+  "hardLevel": {
+    "title": "Hard Level",
+    "timeLimit": "You have {{seconds}} seconds",
+    "streakAtStake": "Your {{count}} level streak and x{{multiplier}} bonus are on the line",
+    "start": "Start"
+  },
+  "retry": {
+    "timeUpTitle": "Time's up!",
+    "restartTitle": "Start over?",
+    "streakValue": "{{count}} streak · x{{multiplier}}",
+    "streakLoss": "If you don't save your streak, the score bonus you've built up is gone.",
+    "noStreak": "Try again, you've got this.",
+    "useLife": "Use a life · Keep streak",
+    "watchAd": "Watch an ad · Keep streak",
+    "nextLife": "Next life: {{time}}",
+    "giveUpStreak": "Drop the streak, start over",
+    "cancel": "Cancel"
   }
 }

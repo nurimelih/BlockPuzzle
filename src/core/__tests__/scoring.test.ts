@@ -116,4 +116,11 @@ describe('calculateScore', () => {
     else if (result.stars >= 1.5) expect(result.grade).toBe('B');
     else expect(result.grade).toBe('C');
   });
+
+  it('multiplies score but not stars by the streak multiplier', () => {
+    const base = calculateScore(baseInput);
+    const boosted = calculateScore({ ...baseInput, streakMultiplier: 2 });
+    expect(boosted.score).toBe(base.score * 2);
+    expect(boosted.stars).toBe(base.stars);
+  });
 });

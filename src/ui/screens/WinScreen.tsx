@@ -21,6 +21,9 @@ type Props = {
   pieceCount: number;
   boardSize: number;
   hintCount: number;
+  // Multiplier the level was won with, and the streak after this win
+  streakMultiplier?: number;
+  winStreak?: number;
   isLastLevel: boolean;
   isDaily?: boolean;
   onNextLevel: () => void;
@@ -84,6 +87,8 @@ export const WinScreen: React.FC<Props> = ({
   pieceCount,
   boardSize,
   hintCount,
+  streakMultiplier = 1,
+  winStreak = 0,
   isLastLevel,
   isDaily,
   onNextLevel,
@@ -111,7 +116,14 @@ export const WinScreen: React.FC<Props> = ({
 
   if (!visible) return null;
 
-  const scoreResult = calculateScore({ moves, time, hintCount, pieceCount, boardSize });
+  const scoreResult = calculateScore({
+    moves,
+    time,
+    hintCount,
+    pieceCount,
+    boardSize,
+    streakMultiplier,
+  });
   const { stars, score, grade } = scoreResult;
   const [star1, star2, star3] = getStarStates(stars);
 
@@ -130,6 +142,16 @@ export const WinScreen: React.FC<Props> = ({
           <Star filled={star2} size={64} />
           <Star filled={star3} size={48} />
         </View>
+
+        {winStreak > 0 && (
+          <View style={styles.streakRow}>
+            <Icon name="flame" size={22} color="#FF6B35" />
+            <LabelButton style={styles.streakText}>
+              {t('win.streak', { count: winStreak })}
+              {streakMultiplier > 1 ? `  ·  x${streakMultiplier}` : ''}
+            </LabelButton>
+          </View>
+        )}
 
         {/* Stats */}
         <View style={styles.statsContainer}>
@@ -255,6 +277,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xxl,
+  },
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: -spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  streakText: {
+    fontSize: typography.fontSize.xl,
+    color: '#FF6B35',
   },
   statsContainer: {
     flexDirection: 'row',

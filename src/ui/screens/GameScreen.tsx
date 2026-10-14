@@ -1,8 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { AppState, Dimensions, StyleSheet, View } from 'react-native';
 import { useGameState } from '../../state/useGameState.ts';
 import { useHintSystem } from '../../state/useHintSystem.ts';
 import { useGameSession } from '../../state/useGameSession.ts';
+import { useProgression } from '../../state/useProgression.ts';
+import { useLevelProgress } from '../../state/useLevelProgress.ts';
 import {
   AnimatedPiece,
   AnimatedPieceHandle,
@@ -11,6 +19,8 @@ import { GameBoard } from '../components/GameBoard.tsx';
 import { GameHeader, GameFooter } from '../components/GameHud.tsx';
 import { MenuOverlay } from '../components/MenuOverlay.tsx';
 import { TutorialOverlay } from '../components/TutorialOverlay.tsx';
+import { RetryModal, RetryReason } from '../components/RetryModal.tsx';
+import { HardLevelIntro } from '../components/HardLevelIntro.tsx';
 import { WinScreen } from './WinScreen.tsx';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/navigation.ts';
@@ -21,11 +31,27 @@ import { HapticsManager } from '../../services/HapticsManager.ts';
 import { GameStorage } from '../../services/GameStorage.ts';
 import { useMusicMuted } from '../../state/useMusicMuted.ts';
 import { useAppStore } from '../../state/useAppStore.ts';
-import { showInterstitialIfReady } from '../../services/AdManager.ts';
+import {
+  isRewardedAdReady,
+  registerLevelComplete,
+  showInterstitialIfReady,
+  showRewardedAd,
+} from '../../services/AdManager.ts';
 import { calculateScore } from '../../core/scoring.ts';
+import { HintPlacement } from '../../core/hint.ts';
+import {
+  DEFAULT_TIMED_LEVEL_CONFIG,
+  getTimeLimit,
+} from '../../core/progression.ts';
+import type { LevelProgressSnapshot } from '../../services/GameStorage.ts';
+import type { PieceDirection, PieceMatrix } from '../../types/types.ts';
 import { Analytics } from '../../services/Analytics.ts';
 import { submitScore } from '../../services/supabase.ts';
 import { NicknameModal } from '../components/NicknameModal.tsx';
+
+// Remaining share of the time limit below which the hint gets a nudge
+const HINT_NUDGE_TIME_RATIO = 0.3;
+const TIME_CRITICAL_SECONDS = 10;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GameScreen'>;
 
@@ -49,19 +75,53 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     pauseTimer,
     resumeTimer,
     getElapsedTime,
+    setElapsedTime,
     getPieceFresh,
+    placePieceAt,
+    unplacePieces,
+    restorePieces,
   } = useGameState(levelNumber, dailyChallenge);
+
+  const appSettings = useAppStore(state => state.appSettings);
+  const timeLimit = useMemo(
+    () =>
+      isDaily
+        ? undefined
+        : getTimeLimit(currentLevel, currentLevelNumber, {
+            ...DEFAULT_TIMED_LEVEL_CONFIG,
+            ...(appSettings.timedLevelInterval !== undefined && {
+              interval: appSettings.timedLevelInterval,
+            }),
+            ...(appSettings.timedLevelTimeFactor !== undefined && {
+              timeFactor: appSettings.timedLevelTimeFactor,
+            }),
+          }),
+    [isDaily, currentLevel, currentLevelNumber, appSettings],
+  );
+  const isTimedLevel = timeLimit !== undefined;
+
+  const progression = useProgression();
+
+  // Assigned below once piece positions are known; the hint hook only needs a stable callback
+  const applyHintRef = useRef<(placement: HintPlacement) => void>(() => {});
+  const handleApplyHint = useCallback(
+    (placement: HintPlacement) => applyHintRef.current(placement),
+    [],
+  );
 
   const {
     hintCells,
     hintCount,
+    setHintCount,
     freeHints,
     resetHints,
     refreshFreeHints,
     shouldShowHintButton,
     onHintPress,
-    hasFreeHints,
-  } = useHintSystem(currentLevel, pieces, currentLevelNumber);
+  } = useHintSystem(currentLevel, pieces, currentLevelNumber, {
+    isTimedLevel,
+    onApplyHint: handleApplyHint,
+  });
 
   const { handleHome, handleSettings, logRestart } = useGameSession(
     navigation,
@@ -78,6 +138,15 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const [resetKey, setResetKey] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const [showHardIntro, setShowHardIntro] = useState(false);
+  const [retryReason, setRetryReason] = useState<RetryReason | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number | undefined>();
+  // Score multiplier and streak shown on the win screen for the level just won
+  const [winStreakInfo, setWinStreakInfo] = useState({
+    multiplier: 1,
+    streak: 0,
+  });
+  const isTransitioningRef = useRef(false);
   const isNicknameModalActive = showNicknameModal;
   const pendingScoreRef = useRef<{ score: number; elapsed: number } | null>(
     null,
@@ -107,6 +176,32 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   const { isMusicMuted, setMusicMuted } = useMusicMuted();
 
   const pieceRefs = useRef<Record<string, AnimatedPieceHandle>>({});
+
+  // Container position of a piece sitting on the board at grid (x, y)
+  const getPlacedPosition = useCallback(
+    (
+      baseMatrix: PieceMatrix,
+      rotation: PieceDirection,
+      gridX: number,
+      gridY: number,
+    ) => {
+      const baseCols = baseMatrix[0].length;
+      const baseRows = baseMatrix.length;
+      const isSwapped = rotation % 180 !== 0;
+      const rotatedW = (isSwapped ? baseRows : baseCols) * CELL_WIDTH;
+      const rotatedH = (isSwapped ? baseCols : baseRows) * CELL_HEIGHT;
+      const baseW = baseCols * CELL_WIDTH;
+      const baseH = baseRows * CELL_HEIGHT;
+      return {
+        left: gridX * CELL_WIDTH - (baseW - rotatedW) / 2,
+        top:
+          gridY * CELL_HEIGHT -
+          (baseH - rotatedH) / 2 -
+          PIECE_CONTAINER_TOP_PADDING,
+      };
+    },
+    [CELL_WIDTH, CELL_HEIGHT, PIECE_CONTAINER_TOP_PADDING],
+  );
 
   const generateScatteredPositions = useCallback(
     (gamePieces: { baseMatrix: number[][] }[]) => {
@@ -192,6 +287,60 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       currentLevel.pieces.map(m => ({ baseMatrix: m })),
     ),
   );
+  // Board positions of pieces restored from a saved session (override scattered)
+  const restoredPositions = useRef<
+    Record<string, { left: number; top: number }>
+  >({});
+
+  const levelKey = isDaily
+    ? `daily-${new Date().toDateString()}`
+    : `level-${currentLevelNumber}`;
+
+  const handleRestoreProgress = useCallback(
+    (snapshot: LevelProgressSnapshot) => {
+      restorePieces(snapshot.pieces, snapshot.moveCount);
+      setElapsedTime(snapshot.elapsed);
+      setHintCount(snapshot.hintCount);
+
+      const positions: Record<string, { left: number; top: number }> = {};
+      snapshot.pieces.forEach((sp, index) => {
+        const base = currentLevel.pieces[index];
+        if (
+          sp.placed &&
+          base &&
+          sp.boardX !== undefined &&
+          sp.boardY !== undefined
+        ) {
+          positions[sp.id] = getPlacedPosition(
+            base,
+            sp.rotation,
+            sp.boardX,
+            sp.boardY,
+          );
+        }
+      });
+      restoredPositions.current = positions;
+      setResetKey(k => k + 1);
+    },
+    [
+      restorePieces,
+      setElapsedTime,
+      setHintCount,
+      currentLevel,
+      getPlacedPosition,
+    ],
+  );
+
+  const { clearProgress } = useLevelProgress({
+    levelKey,
+    level: currentLevel,
+    pieces,
+    moveCount,
+    hintCount,
+    isOver,
+    getElapsedTime,
+    onRestore: handleRestoreProgress,
+  });
 
   // Gesture callbacks
   const handleDragStart = useCallback((id: string) => {
@@ -220,12 +369,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       if (canPlace) {
         SoundManager.playPlaceEffect();
         HapticsManager.impactMedium();
-        const placedLeft = gridX * CELL_WIDTH - (baseW - rotatedW) / 2;
-        const placedTop =
-          gridY * CELL_HEIGHT -
-          (baseH - rotatedH) / 2 -
-          PIECE_CONTAINER_TOP_PADDING;
-        pieceRefs.current[id]?.setPosition(placedLeft, placedTop);
+        const placed = getPlacedPosition(
+          piece.baseMatrix,
+          piece.rotation,
+          gridX,
+          gridY,
+        );
+        pieceRefs.current[id]?.setPosition(placed.left, placed.top);
       }
 
       releaseAndTryLockPiece(id, gridX, gridY, canPlace);
@@ -235,11 +385,38 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
       getPieceFresh,
       tryPlacePiece,
       releaseAndTryLockPiece,
+      getPlacedPosition,
       CELL_WIDTH,
       CELL_HEIGHT,
-      PIECE_CONTAINER_TOP_PADDING,
     ],
   );
+
+  applyHintRef.current = (placement: HintPlacement) => {
+    const hintId = `piece-${placement.pieceIndex}`;
+    const toUnplace = placement.unplaceIndices
+      .map(i => `piece-${i}`)
+      .filter(id => id !== hintId);
+    if (toUnplace.length > 0) {
+      unplacePieces(toUnplace);
+      toUnplace.forEach(id => {
+        const home = scatteredPositions.current[id];
+        if (home) pieceRefs.current[id]?.setPosition(home.left, home.top);
+      });
+    }
+
+    const piece = getPieceFresh(hintId);
+    if (!piece) return;
+    placePieceAt(hintId, placement.rotation, placement.x, placement.y);
+    const placed = getPlacedPosition(
+      piece.baseMatrix,
+      placement.rotation,
+      placement.x,
+      placement.y,
+    );
+    pieceRefs.current[hintId]?.setPosition(placed.left, placed.top);
+    SoundManager.playPlaceEffect();
+    HapticsManager.impactMedium();
+  };
 
   const handleTapRotate = useCallback(
     (id: string) => {
@@ -262,15 +439,78 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const toggleMusic = () => setMusicMuted(!isMusicMuted);
 
-  // Timer
+  // Anything on screen that must keep the clock stopped
+  const isTimerBlocked =
+    menuVisible ||
+    showHardIntro ||
+    retryReason !== null ||
+    isOver ||
+    showTutorial;
+  const isTimerBlockedRef = useRef(isTimerBlocked);
+  isTimerBlockedRef.current = isTimerBlocked;
+
+  const handleTimeUp = useCallback(() => {
+    pauseTimer();
+    setRetryReason('timeUp');
+    Analytics.logTimeUp(currentLevelNumber, progression.winStreak);
+  }, [pauseTimer, currentLevelNumber, progression.winStreak]);
+
+  // Timer: counts up normally, down on timed levels
   useEffect(() => {
+    const tick = () => {
+      const elapsed = getElapsedTime();
+      if (timeLimit === undefined) {
+        setGameTime(formatTime(elapsed));
+        setRemainingTime(undefined);
+        return;
+      }
+      const remaining = Math.max(0, timeLimit - elapsed);
+      setGameTime(formatTime(remaining));
+      setRemainingTime(remaining);
+      // Blocked covers intro/menu/modals: a restored, already expired level
+      // must not fire before the intro card is dismissed
+      if (remaining === 0 && !isTimerBlockedRef.current) {
+        handleTimeUp();
+      }
+    };
+    tick();
     if (isPaused) return;
-    setGameTime(formatTime(getElapsedTime()));
-    const interval = setInterval(() => {
-      setGameTime(formatTime(getElapsedTime()));
-    }, 1000);
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [isPaused, getElapsedTime, currentLevelNumber]);
+  }, [
+    isPaused,
+    getElapsedTime,
+    currentLevelNumber,
+    timeLimit,
+    isOver,
+    retryReason,
+    handleTimeUp,
+  ]);
+
+  // Metro stops, calls, notifications: the clock only runs while the game is visible
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        if (!isTimerBlockedRef.current) resumeTimer();
+      } else {
+        pauseTimer();
+      }
+    });
+    return () => sub.remove();
+  }, [pauseTimer, resumeTimer]);
+
+  const handleHintPress = useCallback(async () => {
+    // A rewarded ad can take 30s; it must not eat into a timed level
+    pauseTimer();
+    try {
+      await onHintPress();
+    } finally {
+      if (!isTimerBlockedRef.current) resumeTimer();
+    }
+  }, [onHintPress, pauseTimer, resumeTimer]);
+
+  const isAdRetryAvailable =
+    isRewardedAdReady() && !!appSettings.rewardedAdsActive;
 
   // Tutorial check
   useEffect(() => {
@@ -282,17 +522,46 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Win flow
+  const streakRef = useRef(progression);
+  streakRef.current = progression;
+  // isOver stays true for one render after switching levels; without this guard
+  // the win would be recorded again under the next level's number
+  const winHandledRef = useRef(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    },
+    [],
+  );
+
   useEffect(() => {
-    if (isOver) {
+    if (!isOver) {
+      winHandledRef.current = false;
+      setShowWin(false);
+      return;
+    }
+    if (winHandledRef.current) return;
+    winHandledRef.current = true;
+    {
       const elapsed = getElapsedTime();
       const boardSize =
         currentLevel.board.length * currentLevel.board[0].length;
+      // The multiplier earned so far applies to this win; the streak grows after it
+      const { streakMultiplier, winStreak } = streakRef.current;
+      const multiplier = isDaily ? 1 : streakMultiplier;
+      setWinStreakInfo({ multiplier, streak: isDaily ? 0 : winStreak + 1 });
+      if (!isDaily) streakRef.current.incrementStreak();
+      registerLevelComplete();
+
       const scoreResult = calculateScore({
         moves: moveCount,
         time: elapsed,
         hintCount,
         pieceCount: currentLevel.pieces.length,
         boardSize,
+        streakMultiplier: multiplier,
       });
 
       Analytics.logLevelComplete(
@@ -336,20 +605,17 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         scoreResult.stars,
         scoreResult.score,
       ).then(() => refreshFreeHints());
-      showInterstitialIfReady();
 
       if (isRevealLevel) {
         setBackgroundRevealing(true);
-        const timer = setTimeout(() => {
+        revealTimerRef.current = setTimeout(() => {
+          revealTimerRef.current = null;
           setBackgroundRevealing(false);
           setShowWin(true);
         }, 3500);
-        return () => clearTimeout(timer);
       } else {
         setShowWin(true);
       }
-    } else {
-      setShowWin(false);
     }
   }, [
     isOver,
@@ -363,34 +629,118 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
     refreshFreeHints,
   ]);
 
+  // Timed levels open with the intro card; the clock waits for it
+  const showIntroIfTimed = useCallback(() => {
+    if (!isTimedLevel) {
+      setShowHardIntro(false);
+      return;
+    }
+    setShowHardIntro(true);
+    pauseTimer();
+  }, [isTimedLevel, pauseTimer]);
+
   // Level change reset
   useEffect(() => {
     scatteredPositions.current = generateScatteredPositions(
       currentLevel.pieces.map(m => ({ baseMatrix: m })),
     );
+    restoredPositions.current = {};
+    if (revealTimerRef.current) {
+      clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
     setResetKey(k => k + 1);
     resetHints();
     setShowWin(false);
+    setRetryReason(null);
     setBackgroundRevealing(false);
+    showIntroIfTimed();
   }, [
     currentLevel,
     generateScatteredPositions,
     setBackgroundRevealing,
     resetHints,
+    showIntroIfTimed,
   ]);
 
   // Restart
-  const handleRestart = () => {
+  const performRestart = () => {
     logRestart();
     restart();
+    clearProgress();
     scatteredPositions.current = generateScatteredPositions(
       pieces.map(p => ({ baseMatrix: p.baseMatrix })),
     );
+    restoredPositions.current = {};
     setResetKey(k => k + 1);
     setMenuVisible(false);
     setShowWin(false);
+    setRetryReason(null);
     resetHints();
     setBackgroundRevealing(false);
+    showIntroIfTimed();
+  };
+
+  // Restarting a running timed level would reset the clock for free, so it
+  // goes through the same life / ad / streak choice as running out of time
+  const handleRestart = () => {
+    if (isTimedLevel && !isOver && progression.winStreak > 0) {
+      setMenuVisible(false);
+      pauseTimer();
+      setRetryReason('restart');
+      return;
+    }
+    performRestart();
+  };
+
+  const handleRetryWithLife = async () => {
+    if (await progression.spendLife()) {
+      Analytics.logTimedRetry(
+        currentLevelNumber,
+        'life',
+        progression.winStreak,
+      );
+      performRestart();
+    }
+  };
+
+  const handleRetryWithAd = async () => {
+    if (await showRewardedAd()) {
+      Analytics.logTimedRetry(currentLevelNumber, 'ad', progression.winStreak);
+      performRestart();
+    }
+  };
+
+  const handleGiveUpStreak = async () => {
+    Analytics.logTimedRetry(
+      currentLevelNumber,
+      'streak_lost',
+      progression.winStreak,
+    );
+    await progression.resetStreak();
+    performRestart();
+  };
+
+  const handleCancelRetry = () => {
+    setRetryReason(null);
+    resumeTimer();
+  };
+
+  const handleHardIntroStart = () => {
+    setShowHardIntro(false);
+    resumeTimer();
+  };
+
+  // Interstitials only at natural breaks after a win, never over the win moment
+  const withInterstitial = (next: () => void) => async () => {
+    if (isTransitioningRef.current) return;
+    isTransitioningRef.current = true;
+    try {
+      await showInterstitialIfReady();
+    } finally {
+      isTransitioningRef.current = false;
+      next();
+    }
   };
 
   return (
@@ -409,6 +759,11 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           currentLevelNumber={currentLevelNumber}
           moveCount={moveCount}
           gameTime={gameTime}
+          isTimeCritical={
+            remainingTime !== undefined &&
+            remainingTime <= TIME_CRITICAL_SECONDS
+          }
+          winStreak={isDaily ? 0 : progression.winStreak}
           title={isDaily ? new Date().toLocaleDateString('tr-TR') : undefined}
           onLevelPress={isDaily ? undefined : handleNextLevel}
           onMenuPress={toggleMenu}
@@ -424,7 +779,9 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           ]}
         >
           {pieces.map(gamePiece => {
-            const scattered = scatteredPositions.current[gamePiece.id];
+            const scattered =
+              restoredPositions.current[gamePiece.id] ??
+              scatteredPositions.current[gamePiece.id];
             return (
               <AnimatedPiece
                 ref={handle => {
@@ -459,8 +816,14 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
           isMusicMuted={isMusicMuted}
           shouldShowHintButton={shouldShowHintButton}
           freeHints={freeHints}
+          showHintNudge={
+            timeLimit !== undefined &&
+            remainingTime !== undefined &&
+            remainingTime <= timeLimit * HINT_NUDGE_TIME_RATIO &&
+            !isTimerBlocked
+          }
           onMenuPress={toggleMenu}
-          onHintPress={onHintPress}
+          onHintPress={handleHintPress}
           onMusicToggle={toggleMusic}
         />
       )}
@@ -473,11 +836,13 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
         pieceCount={currentLevel.pieces.length}
         boardSize={currentLevel.board.length * currentLevel.board[0].length}
         hintCount={hintCount}
+        streakMultiplier={winStreakInfo.multiplier}
+        winStreak={winStreakInfo.streak}
         isLastLevel={currentLevelNumber === levels.length - 1}
         isDaily={isDaily}
-        onNextLevel={handleNextLevel}
+        onNextLevel={withInterstitial(handleNextLevel)}
         onRestart={handleRestart}
-        onHome={handleHome}
+        onHome={withInterstitial(handleHome)}
         onLeaderboard={() => navigation.navigate('Leaderboard')}
       />
 
@@ -501,6 +866,27 @@ export const GameScreen: React.FC<Props> = ({ route, navigation }) => {
             pendingScoreRef.current = null;
           }
         }}
+      />
+
+      <HardLevelIntro
+        visible={showHardIntro && !showTutorial}
+        timeLimit={timeLimit ?? 0}
+        winStreak={progression.winStreak}
+        streakMultiplier={progression.streakMultiplier}
+        lives={progression.lives}
+        onStart={handleHardIntroStart}
+      />
+
+      <RetryModal
+        reason={retryReason}
+        winStreak={progression.winStreak}
+        streakMultiplier={progression.streakMultiplier}
+        livesState={progression.livesState}
+        isAdAvailable={isAdRetryAvailable}
+        onUseLife={handleRetryWithLife}
+        onWatchAd={handleRetryWithAd}
+        onGiveUpStreak={handleGiveUpStreak}
+        onCancel={handleCancelRetry}
       />
 
       <TutorialOverlay

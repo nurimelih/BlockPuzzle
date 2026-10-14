@@ -57,6 +57,22 @@ export const Analytics = {
     posthog?.capture('level_selected', { level: levelNumber, was_completed: wasCompleted });
   },
 
+  logTimeUp: async (levelNumber: number, winStreak: number) => {
+    posthog?.capture('level_time_up', { level: levelNumber, win_streak: winStreak });
+  },
+
+  logTimedRetry: async (
+    levelNumber: number,
+    method: 'life' | 'ad' | 'streak_lost',
+    winStreak: number,
+  ) => {
+    posthog?.capture('timed_level_retry', { level: levelNumber, method, win_streak: winStreak });
+  },
+
+  logStreakFreezeUsed: async (streak: number) => {
+    posthog?.capture('daily_streak_freeze_used', { streak });
+  },
+
   logHintSolveTime: async (levelNumber: number, solveMs: number, cached: boolean) => {
     posthog?.capture('hint_solve_ms', { level: levelNumber, hint_solve_ms: solveMs, cached });
   },

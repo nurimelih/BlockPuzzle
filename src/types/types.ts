@@ -13,6 +13,11 @@ export type AppSettings = {
   musicActive?: boolean;
   musicVolume?: number;
   forceToShowHints?: boolean;
+  // Remote-tunable progression knobs (see core/progression.ts defaults)
+  levelsBetweenAds?: number;
+  minSecondsBetweenAds?: number;
+  timedLevelInterval?: number;
+  timedLevelTimeFactor?: number;
 };
 
 
@@ -25,6 +30,8 @@ export type PieceMatrix = number[][]; // 0 / 1
 export type LevelDefinition = {
   board: Board;
   pieces: PieceMatrix[];
+  // Seconds. Overrides the timed-level heuristic; 0 = never timed.
+  timeLimit?: number;
 };
 
 // examples

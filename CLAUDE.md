@@ -23,6 +23,8 @@ src/
 │   ├── gameCore.ts          # Board operations: canPlace, placePiece, getAdjustedPlacement
 │   ├── transformHelpers.ts  # Piece rotation (matrix transpose+reverse), rotation variants
 │   ├── solver.ts            # Backtracking solver for level validation
+│   ├── hint.ts              # Next-piece hint (falls back to full solve + unplace)
+│   ├── progression.ts       # Lives, win streak multiplier, timed levels, ad pacing, daily freeze
 │   ├── levels.ts            # Built-in level definitions
 │   ├── levels_auto_generated.ts  # Auto-generated levels
 │   ├── levelGenerator.ts    # Level generation logic
@@ -36,7 +38,9 @@ src/
 │   └── supabase.ts          # Supabase REST client (levels, settings)
 ├── state/
 │   ├── useAppStore.ts       # Zustand global store
-│   └── useGameState.ts      # Complex custom hook: board state, pieces, timer, game logic
+│   ├── useGameState.ts      # Complex custom hook: board state, pieces, timer, game logic
+│   ├── useProgression.ts    # Lives + win streak (persisted)
+│   └── useLevelProgress.ts  # Saves/restores an unfinished level (board + timer)
 ├── theme/                   # Design tokens
 │   ├── colors.ts
 │   ├── spacing.ts
@@ -79,7 +83,8 @@ yarn import-level     # Import levels to Supabase (edit scripts/import-level.ts 
 - **Service Layer:** All external integrations are singleton services in `src/services/`
 - **Pure Core Logic:** `src/core/` has zero React dependencies - pure algorithms, fully testable
 - **Feature Toggles:** `FIREBASE_ENABLED` env var controls Firebase inclusion
-- **Ad Frequency:** Interstitial ads throttled by LEVELS_BETWEEN_ADS constant
+- **Ad Frequency:** Interstitials only on transitions after a win (next/home), paced by persisted level count + minimum time gap (`core/progression.ts`, remote-tunable via `ad_settings`)
+- **Timed Levels:** Every 5th level after 10 (or `levels.time_limit` in Supabase). Time-up → spend a life, watch an ad, or lose the win streak
 - **DEV Mode:** Fake reward granting in dev, console logs gated by __DEV__
 - **Platform Checks:** `Platform.OS` used in UI components for iOS/Android differences
 

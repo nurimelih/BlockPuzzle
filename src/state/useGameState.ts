@@ -141,6 +141,46 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
     return true;
   };
 
+  // Places a piece directly (hints). Counts as a move like a manual placement.
+  const placePieceAt = useCallback(
+    (id: string, rotation: PieceDirection, x: number, y: number) => {
+      setMoveCount(prev => prev + 1);
+      setPieces(prev =>
+        prev.map(p =>
+          p.id === id
+            ? { ...p, rotation, boardX: x, boardY: y, placed: true }
+            : p,
+        ),
+      );
+    },
+    [],
+  );
+
+  const unplacePieces = useCallback((ids: string[]) => {
+    setPieces(prev =>
+      prev.map(p =>
+        ids.includes(p.id)
+          ? { ...p, placed: false, boardX: undefined, boardY: undefined }
+          : p,
+      ),
+    );
+  }, []);
+
+  const restorePieces = useCallback(
+    (saved: Pick<GamePiece, 'id' | 'rotation' | 'placed' | 'boardX' | 'boardY'>[], moves: number) => {
+      setPieces(prev =>
+        prev.map(p => {
+          const s = saved.find(sp => sp.id === p.id);
+          return s
+            ? { ...p, rotation: s.rotation, placed: s.placed, boardX: s.boardX, boardY: s.boardY }
+            : p;
+        }),
+      );
+      setMoveCount(moves);
+    },
+    [],
+  );
+
   const checkIsOver = useCallback(
     (endWithMissingPieces: boolean = false) => {
       return endWithMissingPieces
@@ -171,20 +211,29 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
     });
   }, []);
 
+  // Ref-based so callers (AppState listeners, overlays) never see a stale isPaused
   const pauseTimer = useCallback(() => {
-    if (!isPaused && pauseStartTimeRef.current === null) {
-      pauseStartTimeRef.current = Date.now();
-      setIsPaused(true);
-    }
-  }, [isPaused]);
+    if (pauseStartTimeRef.current !== null) return;
+    pauseStartTimeRef.current = Date.now();
+    setIsPaused(true);
+  }, []);
 
   const resumeTimer = useCallback(() => {
-    if (isPaused && pauseStartTimeRef.current !== null) {
-      totalPausedTimeRef.current += Date.now() - pauseStartTimeRef.current;
-      pauseStartTimeRef.current = null;
-      setIsPaused(false);
+    if (pauseStartTimeRef.current === null) return;
+    totalPausedTimeRef.current += Date.now() - pauseStartTimeRef.current;
+    pauseStartTimeRef.current = null;
+    setIsPaused(false);
+  }, []);
+
+  // Used when restoring a saved level: the clock continues from `seconds`
+  const setElapsedTime = useCallback((seconds: number) => {
+    const now = Date.now();
+    startTimeRef.current = now - seconds * 1000;
+    totalPausedTimeRef.current = 0;
+    if (pauseStartTimeRef.current !== null) {
+      pauseStartTimeRef.current = now;
     }
-  }, [isPaused]);
+  }, []);
 
   const getElapsedTime = useCallback(() => {
     const now = Date.now();
@@ -275,6 +324,10 @@ export const useGameState = (initialLevel: number, overrideLevel?: LevelDefiniti
     pauseTimer,
     resumeTimer,
     getElapsedTime,
+    setElapsedTime,
     getPieceFresh,
+    placePieceAt,
+    unplacePieces,
+    restorePieces,
   };
 };

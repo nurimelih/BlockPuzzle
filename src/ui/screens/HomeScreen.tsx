@@ -22,7 +22,13 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const levels = useAppStore(state => state.levels);
   const [highestLevel, setHighestLevel] = useState(0);
   const [lastLevelStats, setLastLevelStats] = useState<CompletedLevel | null>(null);
-  const { level: dailyLevel, streak, completedToday, reload: reloadDaily } = useDailyChallenge();
+  const {
+    level: dailyLevel,
+    streak,
+    freezes,
+    completedToday,
+    reload: reloadDaily,
+  } = useDailyChallenge();
 
   useFocusEffect(
     useCallback(() => {
@@ -98,6 +104,12 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 <LabelButton style={styles.streakText}>
                   {t('home.streak', { count: streak })}
                 </LabelButton>
+                {freezes > 0 && (
+                  <>
+                    <Icon name="snow" size={14} color="#4FC3F7" />
+                    <LabelButton style={styles.freezeText}>{freezes}</LabelButton>
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -244,6 +256,10 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: typography.fontSize.md,
     color: '#FF6B35',
+  },
+  freezeText: {
+    fontSize: typography.fontSize.md,
+    color: '#4FC3F7',
   },
   continueContent: {
     alignItems: 'center',

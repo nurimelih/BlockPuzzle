@@ -52,7 +52,8 @@
     "moves": "Hamle {{count}}",
     "paused": "Duraklatıldı",
     "restartLevel": "Yeniden Başlat",
-    "previousLevel": "Önceki Bölüm"
+    "previousLevel": "Önceki Bölüm",
+    "hintNudge": "Takıldın mı?"
   },
   "win": {
     "complete": "Tamamlandı!",
@@ -60,7 +61,8 @@
     "moves": "Hamle",
     "time": "Süre",
     "score": "Puan",
-    "allCompleted": "Tüm bölümler tamamlandı!"
+    "allCompleted": "Tüm bölümler tamamlandı!",
+    "streak": "{{count}} bölüm seri"
   },
   "levels": {
     "title": "Bölümler",
@@ -85,5 +87,23 @@
     "rotateDesc": "Yerleştirmeden önce parçaya dokunarak döndürün",
     "fillTitle": "Tahtayı Doldur!",
     "fillDesc": "Bölümü tamamlamak için tüm parçaları yerleştirin"
+  },
+  "hardLevel": {
+    "title": "Zor Bölüm",
+    "timeLimit": "{{seconds}} saniyen var",
+    "streakAtStake": "{{count}} bölüm serin ve x{{multiplier}} çarpanın ortada",
+    "start": "Başla"
+  },
+  "retry": {
+    "timeUpTitle": "Süre doldu!",
+    "restartTitle": "Baştan başla?",
+    "streakValue": "{{count}} seri · x{{multiplier}}",
+    "streakLoss": "Serini korumazsan bu seride biriktirdiğin puan çarpanı yanar.",
+    "noStreak": "Bir daha dene, bu sefer olacak.",
+    "useLife": "Can kullan · Seriyi koru",
+    "watchAd": "Reklam izle · Seriyi koru",
+    "nextLife": "Sonraki can: {{time}}",
+    "giveUpStreak": "Seriyi bırak, baştan başla",
+    "cancel": "Vazgeç"
   }
 }

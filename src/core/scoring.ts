@@ -14,6 +14,8 @@ export type ScoreInput = {
   hintCount: number;
   pieceCount: number;
   boardSize: number;
+  // Win-streak multiplier, applied to score only (stars stay skill-based)
+  streakMultiplier?: number;
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -27,10 +29,10 @@ function clamp(value: number, min: number, max: number): number {
  * - timeBonus: based on time relative to expected time (pieceCount * 10s per piece + boardSize factor)
  * - hintPenalty: -0.5 stars per hint used
  * - stars: 0.5 to 3.0 (in 0.5 increments)
- * - score: 0 to 1000
+ * - score: 0 to 1000, times the streak multiplier
  */
 export function calculateScore(input: ScoreInput): ScoreResult {
-  const { moves, time, hintCount, pieceCount, boardSize } = input;
+  const { moves, time, hintCount, pieceCount, boardSize, streakMultiplier = 1 } = input;
 
   // Move efficiency: optimal is 1 move per piece
   const optimalMoves = pieceCount;
@@ -53,7 +55,7 @@ export function calculateScore(input: ScoreInput): ScoreResult {
 
   // Score: 0-1000 scale
   const rawScore = (moveEfficiency * 700) + (timeBonus * 300) - (hintCount * 100);
-  const score = Math.round(clamp(rawScore, 0, 1000));
+  const score = Math.round(clamp(rawScore, 0, 1000) * streakMultiplier);
 
   // Grade based on stars
   let grade: ScoreGrade;

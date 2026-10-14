@@ -1,5 +1,5 @@
 import { Cell, PieceMatrix } from '../../types/types.ts';
-import { canPlace, getAdjustedPlacement } from '../gamecore.ts';
+import { canPlace, getAdjustedPlacement } from '../gameCore.ts';
 
 // canPlace
 /*
