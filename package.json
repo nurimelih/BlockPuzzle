@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
+    "web": "expo start --web",
+    "preview:web": "node scripts/web-preview.js",
     "pod-install": "cd ios && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install",
     "pod-install-hard": "cd ios && rm -rf Podfile.lock && rm -rf Pods && rm -rf build && rm -rf ~/Library/Developer/Xcode/DerivedData && pod cache clean --all && USE_FRAMEWORKS=static RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --repo-update",
     "reset-hard": "rm -rf node_modules ios/Pods ios/Podfile.lock ios/build android/app/build android/build ~/Library/Developer/Xcode/DerivedData && yarn cache clean && yarn && yarn pod-install-hard",
@@ -20,6 +22,7 @@
     "import-level": "npx ts-node scripts/import-level.ts"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native/new-app-screen": "0.83.1",
     "@react-navigation/elements": "2.9.5",
@@ -40,6 +43,7 @@
     "posthog-react-native": "4.30.2",
     "posthog-react-native-session-replay": "1.2.3",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-i18next": "16.5.4",
     "react-native": "0.81.5",
     "react-native-device-info": "15.0.1",
@@ -50,6 +54,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "react-native-vector-icons": "10.3.0",
+    "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
     "zustand": "5.0.11"
   },

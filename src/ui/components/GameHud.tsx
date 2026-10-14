@@ -94,7 +94,7 @@ export const GameFooter: React.FC<FooterProps> = React.memo(({
         </View>
       </Pressable>
       {!isOver && shouldShowHintButton && (
-        <Pressable onPress={onHintPress} style={styles.footerIcon}>
+        <Pressable onPress={onHintPress} style={styles.footerIcon} testID="hint-button">
           <View style={styles.iconShadow}>
             <Icon name="bulb-outline" size={22} color={colors.white} />
           </View>
@@ -170,9 +170,10 @@ const styles = StyleSheet.create({
     color: '#FF6B35',
     ...shadows.text,
   },
+  // Below the bulb: above it would cover the countdown
   hintNudge: {
     position: 'absolute',
-    bottom: '100%',
+    top: '100%',
     alignSelf: 'center',
     backgroundColor: colors.background.cream,
     borderRadius: spacing.borderRadius.lg,

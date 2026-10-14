@@ -1,6 +1,6 @@
 import './src/i18n/i18n';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { PostHogProvider, usePostHog } from 'posthog-react-native';
@@ -12,7 +12,11 @@ import { LeaderboardScreen } from './src/ui/screens/LeaderboardScreen.tsx';
 import { ThemeProvider, createTheme } from '@rneui/themed';
 import BackgroundImage from './src/ui/components/BackgroundImage.tsx';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  NavigationContainer,
+  NavigationContainerRef,
+} from '@react-navigation/native';
 import type { RootStackParamList } from './src/types/navigation.ts';
 import { SoundManager } from './src/services/SoundManager.ts';
 import { fetchAllLevels, createPlayer } from './src/services/supabase.ts';
@@ -34,6 +38,12 @@ const theme = createTheme({
   },
   mode: 'light',
 });
+
+// Web preview only: the web stack paints the theme background over BackgroundImage
+const navigationTheme =
+  Platform.OS === 'web'
+    ? { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent' } }
+    : undefined;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -138,6 +148,7 @@ function App() {
           <SafeAreaView style={styles.safeArea}>
             <NavigationContainer
               ref={navigationRef}
+              theme={navigationTheme}
               onReady={() => {
                 routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
               }}
